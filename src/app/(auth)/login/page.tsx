@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -13,15 +13,23 @@ const TABS: { key: Mode; label: string }[] = [
   { key: "forgot", label: "Забыли пароль" },
 ];
 
-function translateAuthError(message: string): string {
+type AuthErrorContext = "login" | "register" | "forgot";
+
+function translateAuthError(message: string, context: AuthErrorContext = "login"): string {
   const known: Record<string, string> = {
     "Invalid login credentials": "Неверный email или пароль.",
     "Email not confirmed": "Email ещё не подтверждён — проверьте почту и перейдите по ссылке из письма.",
-    "User already registered": "Пользователь с таким email уже зарегистрирован.",
+    "User already registered": "Этот email уже зарегистрирован. Войдите в аккаунт или восстановите пароль.",
     "Password should be at least 6 characters": "Пароль должен быть не короче 6 символов.",
   };
-  return known[message] ?? `Что-то пошло не так: ${message}`;
+  if (known[message]) return known[message];
+  if (context === "register") return `Не удалось создать аккаунт: ${message}`;
+  if (context === "login") return `Не удалось войти: ${message}`;
+  return `Что-то пошло не так: ${message}`;
 }
+
+/** Result of a registration attempt, shown instead of silently switching tabs. */
+type RegisterResult = { kind: "check-email"; email: string } | { kind: "already-registered" };
 
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
@@ -34,12 +42,34 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const [registerResult, setRegisterResult] = useState<RegisterResult | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendNotice, setResendNotice] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+
   const router = useRouter();
+
+  // An email confirmation (or magic) link lands here with the session in the
+  // URL hash, which only the browser client can see — proxy.ts can't read it
+  // from a request it never gets fragments on, so a fresh confirmation would
+  // otherwise leave the user stuck looking logged-out on this exact page.
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/");
+        router.refresh();
+      }
+    });
+  }, [router]);
 
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
     setNotice(null);
+    setRegisterResult(null);
+    setResendNotice(null);
+    setResendError(null);
   }
 
   async function handleLogin(e: FormEvent) {
@@ -51,7 +81,7 @@ export default function LoginPage() {
       const supabase = createBrowserSupabaseClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
-        setError(translateAuthError(signInError.message));
+        setError(translateAuthError(signInError.message, "login"));
         return;
       }
       router.push("/");
@@ -65,6 +95,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    setRegisterResult(null);
 
     if (password.length < 6) {
       setError("Пароль должен быть не короче 6 символов.");
@@ -78,9 +109,13 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const supabase = createBrowserSupabaseClient();
-      const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/login` },
+      });
       if (signUpError) {
-        setError(translateAuthError(signUpError.message));
+        setError(translateAuthError(signUpError.message, "register"));
         return;
       }
 
@@ -90,12 +125,41 @@ export default function LoginPage() {
         return;
       }
 
-      setNotice(
-        `Мы отправили письмо для подтверждения на ${email}. Перейдите по ссылке из письма, затем войдите.`
-      );
-      setMode("login");
+      // Supabase returns success with no error for an email that's already
+      // registered (to avoid leaking which emails exist) — the tell is an
+      // empty identities array instead of a real error. Without this check
+      // we'd wrongly tell an existing user "check your email" every time,
+      // with no email actually sent.
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setRegisterResult({ kind: "already-registered" });
+        return;
+      }
+
+      setRegisterResult({ kind: "check-email", email });
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    if (!registerResult || registerResult.kind !== "check-email") return;
+    setResending(true);
+    setResendNotice(null);
+    setResendError(null);
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const { error: resendErr } = await supabase.auth.resend({
+        type: "signup",
+        email: registerResult.email,
+        options: { emailRedirectTo: `${window.location.origin}/login` },
+      });
+      if (resendErr) {
+        setResendError(translateAuthError(resendErr.message, "register"));
+        return;
+      }
+      setResendNotice("Письмо отправлено повторно.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -110,7 +174,7 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (resetError) {
-        setError(translateAuthError(resetError.message));
+        setError(translateAuthError(resetError.message, "forgot"));
         return;
       }
       setNotice("Если такой email зарегистрирован, мы отправили на него ссылку для сброса пароля.");
@@ -182,7 +246,59 @@ export default function LoginPage() {
         </form>
       )}
 
-      {mode === "register" && (
+      {mode === "register" && registerResult?.kind === "check-email" && (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">
+            Аккаунт создан. Проверьте почту <span className="font-medium">{registerResult.email}</span> и
+            перейдите по ссылке из письма, чтобы подтвердить регистрацию.
+          </p>
+          {resendNotice && (
+            <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">{resendNotice}</p>
+          )}
+          {resendError && (
+            <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3">{resendError}</p>
+          )}
+          <button
+            type="button"
+            onClick={handleResendConfirmation}
+            disabled={resending}
+            className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            {resending ? "Отправляем…" : "Отправить письмо ещё раз"}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("login")}
+            className="text-sm text-accent underline"
+          >
+            У меня уже есть аккаунт — войти
+          </button>
+        </div>
+      )}
+
+      {mode === "register" && registerResult?.kind === "already-registered" && (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3">
+            Этот email уже зарегистрирован. Войдите в аккаунт или восстановите пароль.
+          </p>
+          <button
+            type="button"
+            onClick={() => switchMode("login")}
+            className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          >
+            Войти
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("forgot")}
+            className="text-sm text-accent underline"
+          >
+            Забыли пароль?
+          </button>
+        </div>
+      )}
+
+      {mode === "register" && !registerResult && (
         <form onSubmit={handleRegister} className="flex flex-col gap-3">
           <input
             type="email"
@@ -213,7 +329,7 @@ export default function LoginPage() {
             disabled={submitting}
             className="mt-2 rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            {submitting ? "Регистрируем…" : "Зарегистрироваться"}
+            {submitting ? "Создаём аккаунт…" : "Зарегистрироваться"}
           </button>
         </form>
       )}
