@@ -14,5 +14,8 @@ export async function GET() {
     storeId: profile.storeId,
     storeName: profile.storeName,
     storeSlug: profile.storeSlug,
+    displayName: profile.displayName,
+    skinType: profile.skinType,
+    skinConcerns: profile.skinConcerns,
   });
 }

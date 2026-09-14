@@ -13,12 +13,12 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "BeautyAI — ваш AI-консультант по красоте",
-  description: "AI-помощник, который подбирает косметику именно из ассортимента вашего магазина",
+  title: "Beauty — красота начинается с правильного ухода",
+  description: "Beauty помогает подобрать уход и косметику из ассортимента вашего магазина",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BeautyAI",
+    title: "Beauty",
   },
 };
 

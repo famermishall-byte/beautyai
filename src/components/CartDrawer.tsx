@@ -1,25 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 
 export function CartDrawer() {
   const { items, totalCount, totalPrice, changeQuantity, removeItem } = useCart();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   function goToCheckout() {
     setOpen(false);
     router.push("/checkout");
   }
 
+  // Already on checkout — the floating trigger would be redundant there.
+  if (pathname.startsWith("/checkout")) return null;
+
   return (
     <>
       <button
         onClick={() => setOpen(true)}
         aria-label="Открыть корзину"
-        className="fixed bottom-6 right-6 z-40 rounded-full bg-foreground text-background shadow-lg px-5 py-3 flex items-center gap-2 transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        className="fixed bottom-24 right-4 z-40 rounded-full bg-foreground text-background shadow-lg px-5 py-3 flex items-center gap-2 transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
         <span>🛍️ Корзина</span>
         {totalCount > 0 && (

@@ -192,7 +192,7 @@ export default function LoginPage() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-xl font-display text-white">
           B
         </div>
-        <h1 className="font-display text-2xl">BeautyAI</h1>
+        <h1 className="font-display text-2xl">Beauty</h1>
         <p className="text-muted text-sm mt-1">Вход в личный кабинет магазина</p>
       </div>
 

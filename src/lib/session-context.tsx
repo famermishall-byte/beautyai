@@ -10,6 +10,9 @@ export type Session = {
   storeId: string;
   storeName: string;
   storeSlug: string;
+  displayName: string | null;
+  skinType: string | null;
+  skinConcerns: string[];
 };
 
 type SessionContextValue = {
@@ -19,6 +22,8 @@ type SessionContextValue = {
   isAdmin: boolean;
   isOwner: boolean;
   signOut: () => Promise<void>;
+  /** Re-fetch the session after something like the skin profile changes server-side. */
+  refresh: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -28,25 +33,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  async function loadSession() {
+    try {
+      const res = await fetch("/api/me");
+      setSession(res.ok ? await res.json() : null);
+    } catch {
+      setSession(null);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: Session | null) => {
-        if (!cancelled) setSession(data);
-      })
-      .catch(() => {
-        if (!cancelled) setSession(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    loadSession().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  async function refresh() {
+    await loadSession();
+  }
 
   async function signOut() {
     const supabase = createBrowserSupabaseClient();
@@ -64,6 +74,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         isAdmin: session?.role === "admin" || session?.role === "owner",
         isOwner: session?.role === "owner",
         signOut,
+        refresh,
       }}
     >
       {children}

@@ -27,7 +27,7 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     .join("\n");
 
   return [
-    "Новый заказ из Beauty AI 💄",
+    "Новый заказ из Beauty 💄",
     "",
     `Заказ: #${order.orderNumber}`,
     "",

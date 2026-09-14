@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BeautyAI — консультант по красоте",
-    short_name: "BeautyAI",
-    description: "AI-помощник, который подбирает косметику из ассортимента вашего магазина",
+    name: "Beauty — красота начинается с правильного ухода",
+    short_name: "Beauty",
+    description: "Beauty помогает подобрать уход и косметику из ассортимента вашего магазина",
     start_url: "/",
     display: "standalone",
     background_color: "#faf7f5",

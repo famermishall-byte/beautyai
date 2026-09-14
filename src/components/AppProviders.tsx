@@ -3,21 +3,28 @@
 import { Suspense, type ReactNode } from "react";
 import { SessionProvider } from "@/lib/session-context";
 import { CartProvider } from "@/lib/cart-context";
+import { MyBagProvider } from "@/lib/mybag-context";
 import { AppSplashGate } from "@/components/AppSplashGate";
 import { AccessDeniedBanner } from "@/components/AccessDeniedBanner";
 import { NavHeader } from "@/components/NavHeader";
+import { BottomNav } from "@/components/BottomNav";
+import { CartDrawer } from "@/components/CartDrawer";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <CartProvider>
-        <AppSplashGate>
-          <Suspense fallback={null}>
-            <AccessDeniedBanner />
-          </Suspense>
-          <NavHeader />
-          {children}
-        </AppSplashGate>
+        <MyBagProvider>
+          <AppSplashGate>
+            <Suspense fallback={null}>
+              <AccessDeniedBanner />
+            </Suspense>
+            <NavHeader />
+            <div className="pb-20">{children}</div>
+            <CartDrawer />
+            <BottomNav />
+          </AppSplashGate>
+        </MyBagProvider>
       </CartProvider>
     </SessionProvider>
   );

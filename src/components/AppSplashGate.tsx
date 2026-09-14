@@ -29,7 +29,7 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
             {(session?.storeName || "B").charAt(0)}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl leading-tight">
-            {session?.storeName || "BeautyAI"}
+            {session?.storeName || "Beauty"}
           </h1>
           <p className="text-muted mt-2">Добро пожаловать!</p>
         </div>

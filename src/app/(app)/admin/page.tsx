@@ -90,7 +90,7 @@ export default function AdminPage() {
           ⚙️ Настройки аккаунта
         </Link>
       </div>
-      <p className="text-muted mb-8">Загрузите ассортимент товаров — AI будет рекомендовать только их.</p>
+      <p className="text-muted mb-8">Загрузите ассортимент товаров, чтобы покупатели могли их найти в каталоге.</p>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
         <h2 className="font-medium mb-3">Профиль магазина</h2>

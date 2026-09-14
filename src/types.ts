@@ -1,3 +1,9 @@
+export type SkinProfile = {
+  displayName: string | null;
+  skinType: string | null;
+  skinConcerns: string[];
+};
+
 export type Product = {
   id: string;
   sku: string;
@@ -13,13 +19,6 @@ export type Product = {
 };
 
 export type RecommendedProduct = Product & { reason: string };
-
-export type ConsultantResponse = {
-  found: boolean;
-  message: string;
-  products: RecommendedProduct[];
-  error?: string;
-};
 
 export type CartItem = {
   product: Product;

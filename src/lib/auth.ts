@@ -7,6 +7,9 @@ export type SessionProfile = {
   storeId: string;
   storeName: string;
   storeSlug: string;
+  displayName: string | null;
+  skinType: string | null;
+  skinConcerns: string[];
 };
 
 /**
@@ -27,7 +30,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, store_id, stores(name, slug)")
+    .select("role, store_id, display_name, skin_type, skin_concerns, stores(name, slug)")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -42,6 +45,9 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     storeId: profile.store_id,
     storeName: store?.name ?? "",
     storeSlug: store?.slug ?? "",
+    displayName: profile.display_name,
+    skinType: profile.skin_type,
+    skinConcerns: profile.skin_concerns ?? [],
   };
 }
 

@@ -1,121 +1,87 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { CartDrawer } from "@/components/CartDrawer";
-import { ProductCard } from "@/components/ProductCard";
-import type { ConsultantResponse } from "@/types";
+import Link from "next/link";
+import { useSession } from "@/lib/session-context";
+import { skinTypeLabel } from "@/lib/skincare";
 
-const SCENARIOS = [
-  { emoji: "💄", label: "Собрать косметичку", query: "Собери мне косметичку для повседневного макияжа" },
-  { emoji: "🧴", label: "Подобрать уход", query: "Подбери уход для лица" },
-  { emoji: "🎁", label: "Выбрать подарок", query: "Мне нужен подарок на день рождения" },
-  { emoji: "💰", label: "Найти до бюджета", query: "Что можно найти до 1000 сом" },
-  { emoji: "🔎", label: "Найти товар", query: "" },
+const CARDS = [
+  {
+    href: "/skin-profile",
+    emoji: "💧",
+    title: "Моя кожа",
+    text: "Укажите тип кожи",
+  },
+  {
+    href: "/skin-profile",
+    emoji: "🌸",
+    title: "Проблемы кожи",
+    text: "Отметьте, что беспокоит",
+  },
+  {
+    href: "/routine",
+    emoji: "🧴",
+    title: "Мой уход",
+    text: "Порядок утром и вечером",
+  },
+  {
+    href: "/catalog?tab=search",
+    emoji: "🔎",
+    title: "Найти товар",
+    text: "По названию или бренду",
+  },
+  {
+    href: "/catalog?tab=budget",
+    emoji: "💰",
+    title: "По бюджету",
+    text: "Товары в вашей цене",
+  },
+  {
+    href: "/mybag",
+    emoji: "❤️",
+    title: "Моя косметичка",
+    text: "Сохранённые товары",
+  },
 ];
 
 export default function Home() {
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ConsultantResponse | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  async function ask(message: string) {
-    if (!message.trim()) return;
-    setLoading(true);
-    setResult(null);
-    try {
-      const res = await fetch("/api/consultant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      const data: ConsultantResponse = await res.json();
-      if (!res.ok) {
-        setResult({ found: false, message: data.error ?? "Не удалось получить рекомендации.", products: [] });
-      } else {
-        setResult(data);
-      }
-    } catch {
-      setResult({ found: false, message: "Что-то пошло не так. Попробуйте ещё раз.", products: [] });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleScenario(scenarioQuery: string) {
-    if (scenarioQuery) {
-      setQuery(scenarioQuery);
-      ask(scenarioQuery);
-    } else {
-      // "Найти товар" — просто ставим фокус в поле поиска, чтобы человек ввёл свой запрос
-      inputRef.current?.focus();
-    }
-  }
-
-  const canSubmit = query.trim().length > 0 && !loading;
+  const { session } = useSession();
+  const skinLabel = skinTypeLabel(session?.skinType ?? null);
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-16">
-        <div className="w-full max-w-2xl text-center">
-          <h1 className="font-display text-4xl sm:text-5xl leading-tight mb-4">
-            Что вы ищете?
-          </h1>
-          <p className="text-muted mb-8">
-            Опишите своими словами — подберём то, что реально есть в наличии
-          </p>
+    <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
+      <div className="text-center mb-8">
+        <h1 className="font-display text-4xl sm:text-5xl leading-tight">Beauty</h1>
+        <p className="text-muted mt-2">Красота начинается с правильного ухода</p>
+      </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              ask(query);
-            }}
-            className="flex gap-2 mb-6"
-          >
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Например: уход для сухой кожи до 2000 сом"
-              className="flex-1 rounded-full border border-black/10 bg-card px-5 py-3 outline-none transition focus:ring-2 focus:ring-accent"
-            />
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-            >
-              Найти
-            </button>
-          </form>
-
-          <div className="flex flex-wrap gap-2 justify-center mb-12">
-            {SCENARIOS.map((s) => (
-              <button
-                key={s.label}
-                onClick={() => handleScenario(s.query)}
-                className="rounded-full bg-accent-soft text-accent px-4 py-2 text-sm font-medium transition hover:bg-accent hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-              >
-                {s.emoji} {s.label}
-              </button>
-            ))}
+      <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6 flex items-center justify-between gap-4">
+        <div>
+          <div className="text-sm text-muted mb-1">Моя кожа</div>
+          <div className="font-display text-xl">
+            {skinLabel ?? "Расскажите нам о своей коже"}
           </div>
         </div>
+        <Link
+          href="/skin-profile"
+          className="shrink-0 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          Настроить
+        </Link>
+      </div>
 
-        {loading && <div className="text-muted animate-pulse">Подбираем варианты…</div>}
-
-        {result && !loading && (
-          <div className="w-full max-w-5xl">
-            <p className="text-center text-lg mb-8 font-display">{result.message}</p>
-            {result.products.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {result.products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-      <CartDrawer />
+      <div className="grid grid-cols-2 gap-4">
+        {CARDS.map((card) => (
+          <Link
+            key={card.title}
+            href={card.href}
+            className="bg-card rounded-2xl border border-black/5 p-5 flex flex-col gap-2 transition hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <span className="text-3xl">{card.emoji}</span>
+            <span className="font-display text-lg leading-snug">{card.title}</span>
+            <span className="text-sm text-muted">{card.text}</span>
+          </Link>
+        ))}
+      </div>
     </main>
   );
 }
