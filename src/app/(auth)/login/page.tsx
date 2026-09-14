@@ -189,10 +189,10 @@ export default function LoginPage() {
   return (
     <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
       <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-xl font-display text-white">
-          B
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-lg font-bold text-white">
+          01
         </div>
-        <h1 className="font-display text-2xl">Beauty</h1>
+        <h1 className="font-display text-2xl">ОПТОВЫЕ ЦЕНЫ 01</h1>
         <p className="text-muted text-sm mt-1">Вход в личный кабинет магазина</p>
       </div>
 
@@ -239,7 +239,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? "Входим…" : "Войти"}
           </button>
@@ -284,7 +284,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => switchMode("login")}
-            className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             Войти
           </button>
@@ -327,7 +327,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? "Создаём аккаунт…" : "Зарегистрироваться"}
           </button>
@@ -347,7 +347,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? "Отправляем…" : "Отправить ссылку для сброса"}
           </button>

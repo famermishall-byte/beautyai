@@ -151,7 +151,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={emailSubmitting || !newEmail.trim()}
-            className="shrink-0 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
             {emailSubmitting ? "Отправляем…" : "Изменить email"}
           </button>
@@ -184,7 +184,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={passwordSubmitting || !newPassword}
-            className="self-start rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className="self-start rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
             {passwordSubmitting ? "Сохраняем…" : "Изменить пароль"}
           </button>

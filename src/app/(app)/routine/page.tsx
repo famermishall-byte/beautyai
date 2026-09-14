@@ -43,7 +43,7 @@ export default function RoutinePage() {
         <p className="text-muted mb-6">Чтобы подобрать порядок ухода, расскажите нам о своей коже.</p>
         <Link
           href="/skin-profile"
-          className="inline-block rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90"
+          className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
         >
           Настроить
         </Link>

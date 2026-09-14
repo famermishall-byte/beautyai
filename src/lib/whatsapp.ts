@@ -16,6 +16,7 @@ type OrderMessageInput = {
   customerPhone: string;
   branchName: string;
   branchAddress: string;
+  storeName: string;
 };
 
 export function buildOrderMessage(order: OrderMessageInput): string {
@@ -27,7 +28,7 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     .join("\n");
 
   return [
-    "Новый заказ из Beauty 💄",
+    `Новый заказ из ${order.storeName} 💄`,
     "",
     `Заказ: #${order.orderNumber}`,
     "",

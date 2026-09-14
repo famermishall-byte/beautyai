@@ -13,17 +13,17 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Beauty — красота начинается с правильного ухода",
-  description: "Beauty помогает подобрать уход и косметику из ассортимента вашего магазина",
+  title: "ОПТОВЫЕ ЦЕНЫ 01",
+  description: "Каталог и заказ товаров ОПТОВЫЕ ЦЕНЫ 01",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Beauty",
+    title: "ОПТОВЫЕ ЦЕНЫ 01",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#8f5730",
+  themeColor: "#c8135f",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -99,7 +99,7 @@ export default function CheckoutPage() {
         </p>
         <button
           onClick={() => router.push("/")}
-          className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           Вернуться в каталог
         </button>
@@ -170,7 +170,7 @@ export default function CheckoutPage() {
           <button
             onClick={() => setStep("contact")}
             disabled={!branchId}
-            className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             Далее
           </button>
@@ -204,7 +204,7 @@ export default function CheckoutPage() {
             <button
               onClick={() => setStep("review")}
               disabled={!customerName.trim() || !customerPhone.trim()}
-              className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               Далее
             </button>

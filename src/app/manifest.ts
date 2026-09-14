@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Beauty — красота начинается с правильного ухода",
-    short_name: "Beauty",
-    description: "Beauty помогает подобрать уход и косметику из ассортимента вашего магазина",
+    name: "ОПТОВЫЕ ЦЕНЫ 01",
+    short_name: "ОПТОВЫЕ ЦЕНЫ 01",
+    description: "Каталог и заказ товаров ОПТОВЫЕ ЦЕНЫ 01",
     start_url: "/",
     display: "standalone",
-    background_color: "#faf7f5",
-    theme_color: "#8f5730",
+    background_color: "#faf6f8",
+    theme_color: "#c8135f",
     icons: [
       {
         src: "/icon",

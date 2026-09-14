@@ -71,7 +71,7 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={savingStoreName || !storeName.trim()}
-            className="rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {storeNameSaved ? "Сохранено ✓" : savingStoreName ? "Сохраняем…" : "Сохранить"}
           </button>
@@ -86,7 +86,7 @@ export default function AdminPage() {
         </p>
         <Link
           href="/admin/import"
-          className="inline-block rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95"
+          className="inline-block rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95"
         >
           Загрузить товары
         </Link>

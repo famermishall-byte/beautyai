@@ -15,7 +15,7 @@ export function NavHeader() {
           href="/"
           className="text-sm tracking-[0.3em] uppercase font-medium rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent shrink-0"
         >
-          {session?.storeName || "Beauty"}
+          {session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}
         </Link>
         {isAdmin && (
           <Link

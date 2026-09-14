@@ -13,17 +13,19 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#8f5730",
+          background: "#c8135f",
         }}
       >
         <div
           style={{
-            fontSize: 92,
-            fontFamily: "Georgia, serif",
-            color: "#faf7f5",
+            fontSize: 78,
+            fontWeight: 700,
+            fontFamily: "Arial, sans-serif",
+            color: "#ffffff",
+            letterSpacing: -2,
           }}
         >
-          B
+          01
         </div>
       </div>
     ),

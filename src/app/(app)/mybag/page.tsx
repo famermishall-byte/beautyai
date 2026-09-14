@@ -20,7 +20,7 @@ export default function MyBagPage() {
           <p className="text-muted mb-6">Пока пусто — нажмите на сердечко на карточке товара, чтобы сохранить.</p>
           <Link
             href="/catalog"
-            className="inline-block rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+            className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
           >
             Перейти в каталог
           </Link>

@@ -49,7 +49,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <span className="font-display text-xl">{product.price.toLocaleString("ru-RU")} сом</span>
           <button
             onClick={handleAdd}
-            className="rounded-full bg-foreground text-background px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {justAdded ? "Добавлено ✓" : "Добавить"}
           </button>

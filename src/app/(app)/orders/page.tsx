@@ -38,7 +38,7 @@ export default function OrdersPage() {
           <p className="text-muted mb-6">У вас пока нет заказов.</p>
           <Link
             href="/"
-            className="inline-block rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+            className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
           >
             Перейти в каталог
           </Link>

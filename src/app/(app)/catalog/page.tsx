@@ -78,7 +78,7 @@ function CatalogContent() {
             onClick={() => setCategory(null)}
             className={[
               "rounded-full px-3.5 py-2 text-sm font-medium transition",
-              category === null ? "bg-foreground text-background" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+              category === null ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
             ].join(" ")}
           >
             Все
@@ -89,7 +89,7 @@ function CatalogContent() {
               onClick={() => setCategory(category === c ? null : c)}
               className={[
                 "rounded-full px-3.5 py-2 text-sm font-medium transition",
-                category === c ? "bg-foreground text-background" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                category === c ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
               ].join(" ")}
             >
               {c}
@@ -107,7 +107,7 @@ function CatalogContent() {
               onClick={() => setBudget(budget === b.value ? undefined : b.value)}
               className={[
                 "rounded-full px-3.5 py-2 text-sm font-medium transition",
-                budget === b.value ? "bg-foreground text-background" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                budget === b.value ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
               ].join(" ")}
             >
               {b.label}

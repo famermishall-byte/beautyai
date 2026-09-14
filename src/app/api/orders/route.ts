@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       customerPhone,
       branchName: branch.name,
       branchAddress: branch.address,
+      storeName: profile.storeName,
     });
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 

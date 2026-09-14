@@ -74,7 +74,7 @@ function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: ()
         <button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-full bg-foreground text-background px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {savedFlash ? "Сохранено ✓" : saving ? "Сохраняю…" : "Сохранить"}
         </button>

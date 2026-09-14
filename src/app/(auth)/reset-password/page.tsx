@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
         </p>
         <a
           href="/login"
-          className="inline-block rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90"
+          className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
         >
           Вернуться ко входу
         </a>
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           {submitting ? "Сохраняем…" : "Сохранить пароль"}
         </button>

@@ -23,7 +23,7 @@ export function CartDrawer() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Открыть корзину"
-        className="fixed bottom-24 right-4 z-40 rounded-full bg-foreground text-background shadow-lg px-5 py-3 flex items-center gap-2 transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        className="fixed bottom-24 right-4 z-40 rounded-full bg-accent text-white shadow-lg px-5 py-3 flex items-center gap-2 transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
       >
         <span>🛍️ Корзина</span>
         {totalCount > 0 && (
@@ -97,7 +97,7 @@ export function CartDrawer() {
               {items.length > 0 && (
                 <button
                   onClick={goToCheckout}
-                  className="w-full rounded-full bg-foreground text-background px-4 py-3 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 mb-2"
+                  className="w-full rounded-full bg-accent text-white px-4 py-3 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 mb-2"
                 >
                   Оформить заказ
                 </button>

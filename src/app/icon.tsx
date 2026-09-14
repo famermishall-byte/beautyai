@@ -13,18 +13,20 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#8f5730",
+          background: "#c8135f",
           borderRadius: 96,
         }}
       >
         <div
           style={{
-            fontSize: 260,
-            fontFamily: "Georgia, serif",
-            color: "#faf7f5",
+            fontSize: 220,
+            fontWeight: 700,
+            fontFamily: "Arial, sans-serif",
+            color: "#ffffff",
+            letterSpacing: -6,
           }}
         >
-          B
+          01
         </div>
       </div>
     ),

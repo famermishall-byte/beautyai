@@ -25,11 +25,11 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
         }`}
       >
         <div className="animate-splash-in text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl font-display text-white shadow-lg shadow-accent/30">
-            {(session?.storeName || "B").charAt(0)}
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-xl font-bold text-white shadow-lg shadow-accent/30">
+            01
           </div>
           <h1 className="font-display text-3xl sm:text-4xl leading-tight">
-            {session?.storeName || "Beauty"}
+            {session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}
           </h1>
           <p className="text-muted mt-2">Добро пожаловать!</p>
         </div>

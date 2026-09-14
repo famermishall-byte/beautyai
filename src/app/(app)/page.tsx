@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
       <div className="text-center mb-8">
-        <h1 className="font-display text-4xl sm:text-5xl leading-tight">Beauty</h1>
+        <h1 className="font-display text-4xl sm:text-5xl leading-tight">{session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}</h1>
         <p className="text-muted mt-2">Красота начинается с правильного ухода</p>
       </div>
 
@@ -63,7 +63,7 @@ export default function Home() {
         </div>
         <Link
           href="/skin-profile"
-          className="shrink-0 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           Настроить
         </Link>

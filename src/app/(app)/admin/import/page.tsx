@@ -234,7 +234,7 @@ export default function ImportPage() {
               type="file"
               accept={SUPPORTED_EXTENSIONS.join(",")}
               onChange={handleFileChange}
-              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-4 file:py-2 file:font-medium file:transition file:cursor-pointer hover:file:opacity-90"
+              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-accent file:text-white file:px-4 file:py-2 file:font-medium file:transition file:cursor-pointer hover:file:opacity-90"
             />
           </div>
         </>
@@ -324,7 +324,7 @@ export default function ImportPage() {
             </button>
             <button
               onClick={goToPreview}
-              className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
               Далее: предпросмотр
             </button>
@@ -405,7 +405,7 @@ export default function ImportPage() {
             <button
               onClick={handleImport}
               disabled={importing || okRows.length === 0}
-              className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
               {importing ? "Импортируем…" : `Импортировать товары (${okRows.length})`}
             </button>
@@ -432,7 +432,7 @@ export default function ImportPage() {
             </button>
             <Link
               href="/admin"
-              className="rounded-full bg-foreground text-background px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
               В панель магазина
             </Link>
