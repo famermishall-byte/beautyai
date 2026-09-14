@@ -13,9 +13,6 @@ type CatalogResponse = {
 
 export default function AdminPage() {
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [warnings, setWarnings] = useState<string[]>([]);
 
   const [storeName, setStoreName] = useState("");
   const [savingStoreName, setSavingStoreName] = useState(false);
@@ -52,36 +49,6 @@ export default function AdminPage() {
     }
   }
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setMessage(null);
-    setWarnings([]);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error ?? "Не удалось загрузить файл.");
-        setWarnings(data.details ?? []);
-      } else {
-        setMessage(`Готово! Загружено товаров: ${data.imported}`);
-        setWarnings(data.warnings ?? []);
-        await loadCatalog();
-      }
-    } catch {
-      setMessage("Ошибка при загрузке файла.");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  }
-
   return (
     <main className="flex-1 px-4 py-12 max-w-4xl mx-auto w-full">
       <div className="flex items-start justify-between gap-4 mb-2">
@@ -112,26 +79,17 @@ export default function AdminPage() {
       </div>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
-        <h2 className="font-medium mb-3">Загрузить каталог (Excel/CSV)</h2>
+        <h2 className="font-medium mb-3">Товары</h2>
         <p className="text-sm text-muted mb-4">
-          Столбцы: Название | Бренд | Категория | Цена | Описание | Характеристики | Для кого/чего | Наличие | Артикул | Фото
+          Загрузите Excel-файл с ассортиментом — Beauty сама определит колонки и покажет предпросмотр
+          перед импортом.
         </p>
-        <input
-          type="file"
-          accept=".xlsx,.xls,.csv"
-          onChange={handleUpload}
-          disabled={uploading}
-          className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-foreground file:text-background file:px-4 file:py-2 file:font-medium file:transition file:cursor-pointer hover:file:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed disabled:file:cursor-not-allowed"
-        />
-        {uploading && <p className="text-sm text-muted mt-3">Загружаем и обрабатываем файл…</p>}
-        {message && <p className="text-sm mt-3 font-medium">{message}</p>}
-        {warnings.length > 0 && (
-          <ul className="text-xs text-muted mt-2 list-disc pl-5 space-y-1">
-            {warnings.map((w, i) => (
-              <li key={i}>{w}</li>
-            ))}
-          </ul>
-        )}
+        <Link
+          href="/admin/import"
+          className="inline-block rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95"
+        >
+          Загрузить товары
+        </Link>
       </div>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
