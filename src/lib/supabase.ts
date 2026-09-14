@@ -1,0 +1,50 @@
+import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
+
+// Клиент без авторизации пользователя — RLS теперь ограничивает доступ к данным
+// (products/branches/orders/stores) только авторизованным пользователям своего
+// магазина, так что этот клиент сам по себе ничего чужого прочитать не может.
+// Для запросов от имени конкретного пользователя используйте
+// createServerSupabaseClient() из "@/lib/supabase/server".
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+export function mapProduct(row: Record<string, unknown>) {
+  return {
+    id: row.id as string,
+    sku: row.sku as string,
+    name: row.name as string,
+    brand: row.brand as string,
+    category: row.category as string,
+    price: row.price as number,
+    description: row.description as string | null,
+    characteristics: row.characteristics as string | null,
+    purpose: row.purpose as string | null,
+    inStock: row.in_stock as boolean,
+    imageUrl: row.image_url as string | null,
+  };
+}
+
+export function mapBranch(row: Record<string, unknown>) {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    address: row.address as string,
+    phone: row.phone as string,
+    whatsapp: row.whatsapp as string,
+    hours: row.hours as string,
+  };
+}
+
+export function mapOrder(row: Record<string, unknown> & { branches?: Record<string, unknown> }) {
+  return {
+    id: row.id as string,
+    number: row.number as string,
+    customerName: row.customer_name as string,
+    customerPhone: row.customer_phone as string,
+    totalPrice: row.total_price as number,
+    status: row.status as string,
+    createdAt: row.created_at as string,
+    branch: row.branches ? mapBranch(row.branches) : null,
+    items: row.items_json as { name: string; brand: string; price: number; quantity: number }[],
+  };
+}
