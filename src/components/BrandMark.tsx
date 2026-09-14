@@ -1,12 +1,12 @@
-export function BrandMark({ size = 24 }: { size?: number }) {
+export function BrandMark({ size = 24, color = "currentColor" }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100">
-      <ellipse cx="36" cy="52" rx="19" ry="25" fill="none" stroke="currentColor" strokeWidth="8.5" />
+      <circle cx="50" cy="50" r="33" fill="none" stroke={color} strokeWidth="9" />
       <path
-        d="M 56 34 L 68 26 L 68 78 M 58 78 L 78 78"
+        d="M 37 35 L 50 20 L 50 80"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="8.5"
+        stroke={color}
+        strokeWidth="9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
