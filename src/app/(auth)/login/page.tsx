@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
+import { BrandMark } from "@/components/BrandMark";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -189,8 +190,8 @@ export default function LoginPage() {
   return (
     <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
       <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-lg font-bold text-white">
-          01
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-white">
+          <BrandMark size={26} />
         </div>
         <h1 className="font-display text-2xl">ОПТОВЫЕ ЦЕНЫ 01</h1>
         <p className="text-muted text-sm mt-1">Вход в личный кабинет магазина</p>
