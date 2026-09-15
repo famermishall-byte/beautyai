@@ -21,11 +21,16 @@ export default function ProfilePage() {
   const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session) setDisplayName(session.displayName ?? "");
@@ -101,8 +106,38 @@ export default function ProfilePage() {
     }
   }
 
+  function handleCancelPasswordForm() {
+    setShowPasswordForm(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordNotice(null);
+    setPasswordError(null);
+  }
+
   async function handleSignOut() {
     await signOut();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error ?? "Не удалось удалить аккаунт.");
+        return;
+      }
+      try {
+        localStorage.removeItem("beautyai-orders");
+        localStorage.removeItem("beautyai-cart");
+      } catch {
+        // недоступно — не критично, аккаунт всё равно удалён
+      }
+      await signOut();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (loading) {
@@ -187,41 +222,66 @@ export default function ProfilePage() {
       </div>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
-        <h2 className="font-medium mb-3">Пароль</h2>
-        {passwordNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-3">{passwordNotice}</p>
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium">Пароль</h2>
+          {!showPasswordForm && (
+            <button
+              type="button"
+              onClick={() => setShowPasswordForm(true)}
+              className="text-sm text-accent underline"
+            >
+              Изменить пароль
+            </button>
+          )}
+        </div>
+
+        {showPasswordForm && (
+          <>
+            {passwordNotice && (
+              <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mt-3">{passwordNotice}</p>
+            )}
+            {passwordError && (
+              <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mt-3">{passwordError}</p>
+            )}
+            <form onSubmit={handleChangePassword} className="flex flex-col gap-3 mt-3">
+              <PasswordInput
+                placeholder="Новый пароль (минимум 6 символов)"
+                className={inputClass}
+                value={newPassword}
+                onChange={setNewPassword}
+                autoComplete="new-password"
+              />
+              <PasswordInput
+                placeholder="Повторите пароль"
+                className={inputClass}
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={passwordSubmitting || !newPassword}
+                  className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+                >
+                  {passwordSubmitting ? "Сохраняем…" : "Сохранить пароль"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelPasswordForm}
+                  className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5"
+                >
+                  Отмена
+                </button>
+              </div>
+            </form>
+          </>
         )}
-        {passwordError && (
-          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{passwordError}</p>
-        )}
-        <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
-          <PasswordInput
-            placeholder="Новый пароль (минимум 6 символов)"
-            className={inputClass}
-            value={newPassword}
-            onChange={setNewPassword}
-            autoComplete="new-password"
-          />
-          <PasswordInput
-            placeholder="Повторите пароль"
-            className={inputClass}
-            value={confirmPassword}
-            onChange={setConfirmPassword}
-            autoComplete="new-password"
-          />
-          <button
-            type="submit"
-            disabled={passwordSubmitting || !newPassword}
-            className="self-start rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-          >
-            {passwordSubmitting ? "Сохраняем…" : "Изменить пароль"}
-          </button>
-        </form>
       </div>
 
       <div className="flex flex-col gap-2 mb-6">
         <Link href="/orders" className="text-sm text-accent underline">
-          Мои заказы
+          Мои покупки
         </Link>
         {isAdmin && (
           <>
@@ -241,6 +301,49 @@ export default function ProfilePage() {
       >
         Выйти
       </button>
+
+      <button
+        type="button"
+        onClick={() => setShowDeleteConfirm(true)}
+        className="w-full text-center text-xs text-muted underline mt-6 transition hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+      >
+        Удалить аккаунт
+      </button>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => !deleting && setShowDeleteConfirm(false)}
+          />
+          <div className="relative w-full max-w-sm bg-background rounded-2xl shadow-xl p-6">
+            <h2 className="font-display text-xl mb-3">Удалить аккаунт?</h2>
+            <p className="text-sm text-muted mb-6">
+              Вы уверены, что хотите удалить аккаунт? Все сохранённые данные, информация о коже,
+              косметичка и история покупок будут удалены без возможности восстановления.
+            </p>
+            {deleteError && <p className="text-sm text-red-600 mb-4">{deleteError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 disabled:opacity-50"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 rounded-full bg-red-600 text-white px-4 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              >
+                {deleting ? "Удаляем…" : "Удалить аккаунт"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

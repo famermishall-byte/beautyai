@@ -28,7 +28,7 @@ export default function OrdersPage() {
 
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-2">Мои заказы</h1>
+      <h1 className="font-display text-3xl mb-2">Мои покупки</h1>
       <p className="text-muted mb-8">Заказы, оформленные с этого устройства.</p>
 
       {orders === null && <p className="text-muted text-sm">Загружаем…</p>}
