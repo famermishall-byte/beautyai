@@ -6,18 +6,6 @@ import { skinTypeLabel } from "@/lib/skincare";
 
 const CARDS = [
   {
-    href: "/skin-profile",
-    emoji: "💧",
-    title: "Моя кожа",
-    text: "Укажите тип кожи",
-  },
-  {
-    href: "/skin-profile",
-    emoji: "🌸",
-    title: "Проблемы кожи",
-    text: "Отметьте, что беспокоит",
-  },
-  {
     href: "/routine",
     emoji: "🧴",
     title: "Мой уход",
