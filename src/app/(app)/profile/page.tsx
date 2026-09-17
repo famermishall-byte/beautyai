@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
-import { useSession } from "@/lib/session-context";
+import { useSession, type Session } from "@/lib/session-context";
 import { skinTypeLabel, skinConcernLabel } from "@/lib/skincare";
 
 export default function ProfilePage() {
   const { session, loading, isAdmin, signOut, refresh } = useSession();
-  const router = useRouter();
 
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState(() => session?.displayName ?? "");
   const [nameSubmitting, setNameSubmitting] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
 
@@ -32,9 +30,16 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Keep the editable name field in sync when `session` is (re)loaded (e.g. after
+  // `refresh()`), without wiping out what the user is currently typing otherwise.
+  // Adjusting state during render (guarded by a "did the source value change?"
+  // check) is the React-recommended replacement for a useEffect here — see
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevSessionForName, setPrevSessionForName] = useState<Session | null>(session);
+  if (session !== prevSessionForName) {
+    setPrevSessionForName(session);
     if (session) setDisplayName(session.displayName ?? "");
-  }, [session]);
+  }
 
   async function handleSaveName(e: FormEvent) {
     e.preventDefault();

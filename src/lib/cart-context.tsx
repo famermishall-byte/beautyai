@@ -23,8 +23,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Reading localStorage is a browser-only "synchronize with an external
+    // system" effect (per https://react.dev/learn/synchronizing-with-effects)
+    // — it can't run during render/SSR, so there's no render-time equivalent.
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setItems(JSON.parse(raw));
     } catch {
       // игнорируем — начнём с пустой корзины

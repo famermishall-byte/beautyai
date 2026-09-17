@@ -78,6 +78,10 @@ export function OrderManager() {
   }
 
   useEffect(() => {
+    // Fetching data on mount (a genuine "synchronize with an external
+    // system" effect, per https://react.dev/learn/synchronizing-with-effects)
+    // — not a derived-state case, so there's no render-time equivalent here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, []);
 

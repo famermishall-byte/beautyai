@@ -1,25 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/session-context";
+import { useSession, type Session } from "@/lib/session-context";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 
 export default function SkinProfilePage() {
   const { session, loading, refresh } = useSession();
   const router = useRouter();
 
-  const [skinType, setSkinType] = useState<SkinType | null>(null);
-  const [concerns, setConcerns] = useState<SkinConcern[]>([]);
+  const [skinType, setSkinType] = useState<SkinType | null>(() => (session?.skinType as SkinType) ?? null);
+  const [concerns, setConcerns] = useState<SkinConcern[]>(() => (session?.skinConcerns as SkinConcern[]) ?? []);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
+  // Re-sync the selected type/concerns whenever `session` is (re)loaded (e.g.
+  // after `refresh()`), same "adjust state during render" replacement for a
+  // useEffect as in profile/page.tsx.
+  const [prevSessionForSkin, setPrevSessionForSkin] = useState<Session | null>(session);
+  if (session !== prevSessionForSkin) {
+    setPrevSessionForSkin(session);
     if (session) {
       setSkinType((session.skinType as SkinType) ?? null);
       setConcerns((session.skinConcerns as SkinConcern[]) ?? []);
     }
-  }, [session]);
+  }
 
   function toggleConcern(value: SkinConcern) {
     setConcerns((prev) => (prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]));

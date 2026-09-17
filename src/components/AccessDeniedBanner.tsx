@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export function AccessDeniedBanner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [visible, setVisible] = useState(false);
 
   const denied = searchParams.get("denied");
+  // Derived directly from the URL — no need for its own state. Once the
+  // effect below strips `?denied=admin` from the URL, `denied` (and so
+  // `visible`) naturally flips back to false on the next render.
+  const visible = denied === "admin";
 
   useEffect(() => {
     if (denied === "admin") {
-      setVisible(true);
       const timer = setTimeout(() => {
-        setVisible(false);
         router.replace("/");
       }, 4000);
       return () => clearTimeout(timer);

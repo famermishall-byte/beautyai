@@ -42,11 +42,20 @@ function CatalogContent() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchId, setBranchId] = useState<string | null>(null);
 
+  // Preselect "любой бюджет" when arriving via the "По бюджету" home-screen
+  // shortcut. Adjusting state during render (guarded by a "did the source
+  // value change?" check) is the React-recommended replacement for a
+  // useEffect here — see
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevInitialTab, setPrevInitialTab] = useState(initialTab);
+  if (initialTab !== prevInitialTab) {
+    setPrevInitialTab(initialTab);
+    if (initialTab === "budget") setBudget(null);
+  }
+
   useEffect(() => {
     if (initialTab === "search") {
       searchInputRef.current?.focus();
-    } else if (initialTab === "budget") {
-      setBudget(null);
     }
   }, [initialTab]);
 
@@ -84,6 +93,11 @@ function CatalogContent() {
     if (typeof budget === "number") params.set("maxPrice", String(budget));
     if (branchId) params.set("branchId", branchId);
 
+    // Data fetching triggered by filter changes — this mirrors React's own
+    // documented fetch-in-effect pattern (setting a loading flag synchronously
+    // before the async request starts, per
+    // https://react.dev/learn/you-might-not-need-an-effect#fetching-data).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/products?${params.toString()}`)
       .then((res) => (res.ok ? res.json() : { products: [] }))
