@@ -12,7 +12,7 @@ export function NavHeader() {
     <header className="w-full border-b border-black/5 bg-card/80 backdrop-blur sticky top-0 z-30">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <Link
-          href="/"
+          href={isAdmin ? "/admin" : "/"}
           className="text-sm tracking-[0.3em] uppercase font-medium rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent shrink-0"
         >
           {session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}

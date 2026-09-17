@@ -3,25 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Order } from "@/types";
+import { getOrderStatusLabel } from "@/lib/orderStatus";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
 
   useEffect(() => {
-    let ids: string[] = [];
-    try {
-      const raw = localStorage.getItem("beautyai-orders");
-      ids = raw ? JSON.parse(raw) : [];
-    } catch {
-      ids = [];
-    }
-
-    if (ids.length === 0) {
-      setOrders([]);
-      return;
-    }
-
-    fetch(`/api/orders?ids=${ids.join(",")}`)
+    fetch("/api/orders")
       .then((res) => res.json())
       .then((data) => setOrders(data.orders ?? []));
   }, []);
@@ -29,7 +17,7 @@ export default function OrdersPage() {
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
       <h1 className="font-display text-3xl mb-2">Мои покупки</h1>
-      <p className="text-muted mb-8">Заказы, оформленные с этого устройства.</p>
+      <p className="text-muted mb-8">Заказы, оформленные с вашего аккаунта.</p>
 
       {orders === null && <p className="text-muted text-sm">Загружаем…</p>}
 
@@ -52,7 +40,7 @@ export default function OrdersPage() {
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium">#{order.number}</span>
                 <span className="text-xs bg-accent-soft text-accent rounded-full px-2 py-1">
-                  {order.status === "sent" ? "Отправлен" : order.status}
+                  {getOrderStatusLabel(order.status)}
                 </span>
               </div>
               <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString("ru-RU")}</div>

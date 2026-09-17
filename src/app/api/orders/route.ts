@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       .from("orders")
       .insert({
         store_id: profile.storeId,
+        user_id: profile.userId,
         branch_id: branch.id,
         number: orderNumber,
         customer_name: customerName,
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
         status: "sent",
         items_json: itemsForOrder,
       })
-      .select("id")
+      .select("id, status_token")
       .single();
 
     if (orderError) throw orderError;
@@ -75,6 +76,8 @@ export async function POST(request: NextRequest) {
       branchName: branch.name,
       branchAddress: branch.address,
       storeName: profile.storeName,
+      statusToken: order.status_token,
+      origin: request.nextUrl.origin,
     });
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 
@@ -84,17 +87,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const profile = await getSessionProfile();
   if (!profile) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
-  }
-
-  const idsParam = request.nextUrl.searchParams.get("ids") ?? "";
-  const ids = idsParam.split(",").map((id) => id.trim()).filter(Boolean);
-
-  if (ids.length === 0) {
-    return NextResponse.json({ orders: [] });
   }
 
   try {
@@ -102,8 +98,7 @@ export async function GET(request: NextRequest) {
     const { data: orders, error } = await supabase
       .from("orders")
       .select("*, branches(*)")
-      .in("id", ids)
-      .eq("store_id", profile.storeId)
+      .eq("user_id", profile.userId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;

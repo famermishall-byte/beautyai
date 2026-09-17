@@ -17,6 +17,8 @@ type OrderMessageInput = {
   branchName: string;
   branchAddress: string;
   storeName: string;
+  statusToken: string;
+  origin: string;
 };
 
 export function buildOrderMessage(order: OrderMessageInput): string {
@@ -48,6 +50,11 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     "Клиент хочет оформить доставку.",
     "",
     "Пожалуйста, свяжитесь с клиентом для подтверждения заказа и оформления доставки.",
+    "",
+    "Когда обработаете заказ, нажмите нужную ссылку — статус обновится сам, без входа в приложение:",
+    `✅ Подтвердить заказ: ${order.origin}/o/${order.statusToken}/confirmed`,
+    `📦 Заказ выполнен: ${order.origin}/o/${order.statusToken}/completed`,
+    `❌ Отменить заказ: ${order.origin}/o/${order.statusToken}/cancelled`,
   ].join("\n");
 }
 

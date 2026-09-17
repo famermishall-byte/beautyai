@@ -129,7 +129,6 @@ export default function ProfilePage() {
         return;
       }
       try {
-        localStorage.removeItem("beautyai-orders");
         localStorage.removeItem("beautyai-cart");
       } catch {
         // недоступно — не критично, аккаунт всё равно удалён

@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import { useSession } from "@/lib/session-context";
 
 export function CartDrawer() {
   const { items, totalCount, totalPrice, changeQuantity, removeItem } = useCart();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { isAdmin } = useSession();
 
   function goToCheckout() {
     setOpen(false);
@@ -17,6 +19,8 @@ export function CartDrawer() {
 
   // Already on checkout — the floating trigger would be redundant there.
   if (pathname.startsWith("/checkout")) return null;
+  // Admins/owners don't shop through their own account — see proxy.ts.
+  if (isAdmin) return null;
 
   return (
     <>

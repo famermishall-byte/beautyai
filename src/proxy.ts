@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
+import { isStoreManager } from "@/lib/auth";
 
 // Pages reachable without being logged in.
-const PUBLIC_PATHS = ["/login", "/reset-password"];
+// "/o" — one-click order-status links sent to the store's WhatsApp; the
+// random token in the URL is the authorization, not a login session.
+const PUBLIC_PATHS = ["/login", "/reset-password", "/o"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -44,8 +47,23 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && pathname === "/login") {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Admins/owners run the store, not shop in it: keep their account out of
+  // the customer storefront entirely, so a single email can't both manage a
+  // store and place orders as a "customer" through the same login.
+  if (user && !pathname.startsWith("/admin")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const isManager = !!profile && isStoreManager(profile.role);
+
+    if (pathname === "/login") {
+      return NextResponse.redirect(new URL(isManager ? "/admin" : "/", request.url));
+    }
+    if (isManager && !isPublicPath(pathname)) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
   }
 
   return response;

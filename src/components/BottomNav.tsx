@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "@/lib/session-context";
 
 const ITEMS = [
   { href: "/", label: "Главная", icon: "🏠" },
@@ -12,6 +13,9 @@ const ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { isAdmin } = useSession();
+
+  if (isAdmin) return null;
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur border-t border-black/5 pb-[env(safe-area-inset-bottom)]">

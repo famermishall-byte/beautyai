@@ -13,16 +13,6 @@ const STEP_LABELS: { key: Step; label: string }[] = [
   { key: "review", label: "Подтверждение" },
 ];
 
-function saveOrderIdLocally(orderId: string) {
-  try {
-    const raw = localStorage.getItem("beautyai-orders");
-    const ids: string[] = raw ? JSON.parse(raw) : [];
-    localStorage.setItem("beautyai-orders", JSON.stringify([orderId, ...ids]));
-  } catch {
-    // недоступно — молча пропускаем, заказ всё равно оформлен
-  }
-}
-
 export default function CheckoutPage() {
   const { items, hydrated, totalPrice, clearCart } = useCart();
   const router = useRouter();
@@ -72,7 +62,6 @@ export default function CheckoutPage() {
       }
 
       window.open(data.whatsappUrl, "_blank");
-      saveOrderIdLocally(data.orderId);
       clearCart();
       setSuccessInfo({ orderNumber: data.orderNumber });
       setStep("success");

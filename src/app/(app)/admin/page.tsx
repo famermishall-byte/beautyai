@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BranchManager } from "@/components/BranchManager";
+import { OrderManager } from "@/components/OrderManager";
 import type { Product } from "@/types";
 
 type CatalogResponse = {
@@ -126,6 +127,10 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+      </div>
+
+      <div className="mb-8">
+        <OrderManager />
       </div>
 
       <BranchManager />
