@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session-context";
 
 export function NavHeader() {
   const pathname = usePathname();
-  const { session, isAdmin } = useSession();
+  const { session, isAdmin, signOut } = useSession();
 
   return (
     <header className="w-full border-b border-black/5 bg-card/80 backdrop-blur sticky top-0 z-30">
@@ -18,19 +18,27 @@ export function NavHeader() {
           {session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}
         </Link>
         {isAdmin && (
-          <Link
-            href="/admin"
-            aria-current={pathname.startsWith("/admin") ? "page" : undefined}
-            className={[
-              "px-3 py-1.5 rounded-full text-sm font-medium transition",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-              pathname.startsWith("/admin")
-                ? "bg-accent-soft text-accent"
-                : "text-muted hover:text-foreground hover:bg-black/5",
-            ].join(" ")}
-          >
-            Админ
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin"
+              aria-current={pathname.startsWith("/admin") ? "page" : undefined}
+              className={[
+                "px-3 py-1.5 rounded-full text-sm font-medium transition",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                pathname.startsWith("/admin")
+                  ? "bg-accent-soft text-accent"
+                  : "text-muted hover:text-foreground hover:bg-black/5",
+              ].join(" ")}
+            >
+              Админ
+            </Link>
+            <button
+              onClick={() => signOut()}
+              className="px-3 py-1.5 rounded-full text-sm font-medium text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Выйти
+            </button>
+          </div>
         )}
       </div>
     </header>

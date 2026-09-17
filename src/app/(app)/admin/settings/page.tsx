@@ -15,7 +15,7 @@ const TRANSFER_ERRORS: Record<string, string> = {
 };
 
 export default function AdminSettingsPage() {
-  const { session, isOwner } = useSession();
+  const { session, isOwner, signOut } = useSession();
   const router = useRouter();
 
   const [newEmail, setNewEmail] = useState("");
@@ -131,6 +131,13 @@ export default function AdminSettingsPage() {
         Вы вошли как <span className="font-medium text-foreground">{session?.email}</span> (
         {isOwner ? "владелец" : "администратор"} магазина «{session?.storeName}»)
       </p>
+
+      <button
+        onClick={() => signOut()}
+        className="mb-6 rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        Выйти
+      </button>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
         <h2 className="font-medium mb-3">Email</h2>
