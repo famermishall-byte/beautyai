@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
 
-function toProduct(p: Record<string, unknown>) {
+function toProduct(
+  p: Record<string, unknown>,
+  branchInfo: { quantity: number | null; availableAtOtherBranch: boolean } | null
+) {
   return {
     id: p.id,
     sku: p.sku,
@@ -15,11 +18,12 @@ function toProduct(p: Record<string, unknown>) {
     purpose: p.purpose,
     inStock: p.in_stock,
     imageUrl: p.image_url,
+    ...(branchInfo ? { branchQuantity: branchInfo.quantity, availableAtOtherBranch: branchInfo.availableAtOtherBranch } : {}),
   };
 }
 
 // Plain search/filter over the store's catalog — no AI, just text matching
-// and simple comparisons. Powers "Найти товар", "По бюджету" and "Каталог".
+// and simple comparisons. Powers "Найти товар", "По бюджету" и "Каталог".
 export async function GET(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) {
@@ -31,14 +35,16 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get("category")?.trim().toLowerCase() ?? "";
   const maxPriceRaw = searchParams.get("maxPrice");
   const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : null;
+  // Only when a branch is picked (src/app/(app)/catalog/page.tsx) do we show
+  // otherwise-hidden (per-branch out-of-stock) rows with a "нет в наличии"
+  // label instead of hiding them entirely — the old, branch-agnostic
+  // behavior below (hide anything with in_stock=false) is unchanged.
+  const branchId = searchParams.get("branchId")?.trim() || null;
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("store_id", profile.storeId)
-    .eq("in_stock", true)
-    .order("name", { ascending: true });
+  let query = supabase.from("products").select("*").eq("store_id", profile.storeId).order("name", { ascending: true });
+  if (!branchId) query = query.eq("in_stock", true);
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: "База данных недоступна." }, { status: 500 });
@@ -64,5 +70,32 @@ export async function GET(request: NextRequest) {
     products = products.filter((p) => typeof p.price === "number" && p.price <= maxPrice);
   }
 
-  return NextResponse.json({ products: products.map(toProduct) });
+  if (!branchId) {
+    return NextResponse.json({ products: products.map((p) => toProduct(p, null)) });
+  }
+
+  const productIds = products.map((p) => p.id as string);
+  const { data: stockRows } = await supabase
+    .from("product_branch_stock")
+    .select("product_id, branch_id, quantity")
+    .in("product_id", productIds);
+
+  const quantityAtBranch = new Map<string, number>();
+  const hasBranchData = new Set<string>();
+  const availableElsewhere = new Set<string>();
+  for (const row of stockRows ?? []) {
+    const productId = row.product_id as string;
+    hasBranchData.add(productId);
+    if (row.branch_id === branchId) quantityAtBranch.set(productId, row.quantity as number);
+    else if ((row.quantity as number) > 0) availableElsewhere.add(productId);
+  }
+
+  return NextResponse.json({
+    products: products.map((p) => {
+      const id = p.id as string;
+      const quantity = quantityAtBranch.has(id) ? quantityAtBranch.get(id)! : hasBranchData.has(id) ? 0 : null;
+      const isOutHere = quantity === 0 || (quantity === null && !p.in_stock);
+      return toProduct(p, { quantity, availableAtOtherBranch: isOutHere && availableElsewhere.has(id) });
+    }),
+  });
 }

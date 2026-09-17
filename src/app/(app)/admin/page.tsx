@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BranchManager } from "@/components/BranchManager";
 import { OrderManager } from "@/components/OrderManager";
+import { SourceManager } from "@/components/SourceManager";
 import type { Product } from "@/types";
 
 type CatalogResponse = {
@@ -79,15 +80,17 @@ export default function AdminPage() {
         </form>
       </div>
 
+      <SourceManager />
+
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
-        <h2 className="font-medium mb-3">Товары</h2>
+        <h2 className="font-medium mb-3">Разовая загрузка каталога</h2>
         <p className="text-sm text-muted mb-4">
-          Загрузите Excel-файл с ассортиментом — Beauty сама определит колонки и покажет предпросмотр
-          перед импортом.
+          Для постоянного обновления остатков по филиалам используйте раздел «Источник товаров и остатков» выше.
+          Этот мастер — для быстрой разовой загрузки Excel-файла без остатков по филиалам.
         </p>
         <Link
           href="/admin/import"
-          className="inline-block rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95"
+          className="inline-block rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95"
         >
           Загрузить товары
         </Link>

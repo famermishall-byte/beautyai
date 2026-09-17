@@ -16,6 +16,9 @@ export type Product = {
   purpose: string | null;
   inStock: boolean;
   imageUrl: string | null;
+  /** Only present when /api/products was called with a branchId (see catalog/page.tsx). */
+  branchQuantity?: number | null;
+  availableAtOtherBranch?: boolean;
 };
 
 export type RecommendedProduct = Product & { reason: string };

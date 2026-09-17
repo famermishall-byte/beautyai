@@ -10,14 +10,18 @@ export type RawTable = {
   rows: string[][];
 };
 
-export type ImportFormat = "xlsx";
+export type ImportFormat = "xlsx" | "csv" | "json";
 
 /** The canonical set of product fields Beauty understands, independent of what any given file calls them. */
 export type FieldKey =
   | "name"
   | "price"
   | "sku"
+  | "barcode"
+  | "externalId"
   | "inStock"
+  | "quantity"
+  | "branchName"
   | "brand"
   | "category"
   | "description"
@@ -39,6 +43,11 @@ export type ParsedImportProduct = {
   characteristics: string;
   purpose: string;
   imageUrl: string;
+  /** Only meaningful for the stock-sync pipeline (src/lib/import/sync.ts) — absent for the plain catalog-upload wizard. */
+  barcode?: string;
+  externalId?: string;
+  quantity?: number;
+  branchName?: string;
 };
 
 export type ImportRowResult =

@@ -1,10 +1,8 @@
 import * as XLSX from "xlsx";
 import type { RawTable } from "../types";
 
-/** Reads an .xlsx/.xls file's first sheet into a plain headers+rows table. */
-export function parseXlsxToRawTable(buffer: ArrayBuffer): RawTable {
-  const workbook = XLSX.read(buffer, { type: "array" });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+/** Shared by xlsx.ts and csv.ts (SheetJS parses CSV text the same way it parses a sheet). */
+export function rawTableFromSheet(sheet: XLSX.WorkSheet): RawTable {
   const raw: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
   if (raw.length === 0) {
@@ -18,4 +16,11 @@ export function parseXlsxToRawTable(buffer: ArrayBuffer): RawTable {
     .map((row) => headers.map((_, i) => String(row[i] ?? "").trim()));
 
   return { headers, rows };
+}
+
+/** Reads an .xlsx/.xls file's first sheet into a plain headers+rows table. */
+export function parseXlsxToRawTable(buffer: ArrayBuffer): RawTable {
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  return rawTableFromSheet(sheet);
 }

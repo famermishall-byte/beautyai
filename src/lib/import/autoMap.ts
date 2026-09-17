@@ -1,22 +1,28 @@
 import { IMPORT_FIELDS } from "./fields";
-import type { ColumnMapping } from "./types";
+import type { ColumnMapping, FieldKey } from "./types";
 
 function normalizeHeader(header: string): string {
   return header.trim().toLowerCase();
 }
+
+type ImportField = { key: FieldKey; required: boolean; aliases: string[] };
 
 /**
  * Guesses which file column holds each Beauty field, by matching header
  * text against each field's known aliases. Required fields are matched
  * first so they win any ambiguity; a column already claimed by one field
  * won't also be suggested for another.
+ *
+ * `fields` defaults to the catalog-upload wizard's field list; the
+ * stock-sync wizard passes its own superset (see syncFields.ts) without
+ * touching this function's default behavior.
  */
-export function suggestMapping(headers: string[]): ColumnMapping {
+export function suggestMapping(headers: string[], fields: ImportField[] = IMPORT_FIELDS): ColumnMapping {
   const normalized = headers.map(normalizeHeader);
   const mapping: ColumnMapping = {};
   const claimed = new Set<number>();
 
-  const orderedFields = [...IMPORT_FIELDS].sort((a, b) => Number(b.required) - Number(a.required));
+  const orderedFields = [...fields].sort((a, b) => Number(b.required) - Number(a.required));
 
   for (const field of orderedFields) {
     // Exact match first ("цена" === "цена"), then substring containment

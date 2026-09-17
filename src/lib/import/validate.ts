@@ -1,7 +1,7 @@
 import { IMPORT_FIELDS } from "./fields";
-import type { ColumnMapping, ImportRowResult, RawTable } from "./types";
+import type { ColumnMapping, FieldKey, ImportRowResult, RawTable } from "./types";
 
-function parsePrice(value: string): number {
+export function parsePrice(value: string): number {
   const cleaned = value.replace(/[^\d.,-]/g, "").replace(",", ".");
   const parsed = parseFloat(cleaned);
   return Number.isFinite(parsed) ? parsed : NaN;
@@ -15,13 +15,16 @@ function parseInStock(value: string): boolean {
   return !["нет", "нет в наличии", "закончился", "false", "no", "0"].includes(text);
 }
 
-function randomSku(): string {
+export function randomSku(): string {
   return `AUTO-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
 /** Fields that must have a column assigned before we can even attempt to build rows. */
-export function missingRequiredColumns(mapping: ColumnMapping): string[] {
-  return IMPORT_FIELDS.filter((f) => f.required && mapping[f.key] === undefined).map((f) => f.label);
+export function missingRequiredColumns(
+  mapping: ColumnMapping,
+  fields: { key: FieldKey; required: boolean; label: string }[] = IMPORT_FIELDS
+): string[] {
+  return fields.filter((f) => f.required && mapping[f.key] === undefined).map((f) => f.label);
 }
 
 /**

@@ -3,7 +3,9 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
-import type { Product } from "@/types";
+import type { Branch, Product } from "@/types";
+
+const BRANCH_STORAGE_KEY = "beautyai-branch";
 
 const CATEGORIES = [
   "Уход за лицом",
@@ -37,6 +39,9 @@ function CatalogContent() {
   const [loading, setLoading] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchId, setBranchId] = useState<string | null>(null);
+
   useEffect(() => {
     if (initialTab === "search") {
       searchInputRef.current?.focus();
@@ -46,10 +51,38 @@ function CatalogContent() {
   }, [initialTab]);
 
   useEffect(() => {
+    fetch("/api/branches")
+      .then((res) => (res.ok ? res.json() : { branches: [] }))
+      .then((data: { branches: Branch[] }) => {
+        const list = data.branches ?? [];
+        setBranches(list);
+        let stored: string | null = null;
+        try {
+          stored = localStorage.getItem(BRANCH_STORAGE_KEY);
+        } catch {
+          // недоступно — просто не запомним выбор
+        }
+        const valid = stored && list.some((b) => b.id === stored) ? stored : null;
+        setBranchId(valid ?? (list.length === 1 ? list[0].id : null));
+      })
+      .catch(() => setBranches([]));
+  }, []);
+
+  function handleSelectBranch(id: string) {
+    setBranchId(id);
+    try {
+      localStorage.setItem(BRANCH_STORAGE_KEY, id);
+    } catch {
+      // недоступно — выбор просто не сохранится между визитами
+    }
+  }
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (category) params.set("category", category);
     if (typeof budget === "number") params.set("maxPrice", String(budget));
+    if (branchId) params.set("branchId", branchId);
 
     setLoading(true);
     fetch(`/api/products?${params.toString()}`)
@@ -57,11 +90,31 @@ function CatalogContent() {
       .then((data: { products: Product[] }) => setProducts(data.products ?? []))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
-  }, [query, category, budget]);
+  }, [query, category, budget, branchId]);
 
   return (
     <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
       <h1 className="font-display text-3xl mb-6">Каталог</h1>
+
+      {branches.length > 1 && (
+        <div className="mb-4">
+          <div className="text-sm text-muted mb-2">📍 Филиал</div>
+          <div className="flex flex-wrap gap-2">
+            {branches.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => handleSelectBranch(b.id)}
+                className={[
+                  "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                  branchId === b.id ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                ].join(" ")}
+              >
+                {b.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <input
         ref={searchInputRef}

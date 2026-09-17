@@ -45,6 +45,18 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
         {reason && (
           <div className="text-sm bg-accent-soft text-accent rounded-lg px-3 py-2 mt-1">{reason}</div>
         )}
+        {product.branchQuantity !== undefined && (
+          <div className="text-xs">
+            {product.branchQuantity === null ? null : product.branchQuantity > 0 ? (
+              <span className="text-green-700">🟢 В наличии — {product.branchQuantity} шт.</span>
+            ) : (
+              <span className="text-red-600">
+                🔴 Нет в наличии
+                {product.availableAtOtherBranch && " · есть в другом филиале"}
+              </span>
+            )}
+          </div>
+        )}
         <div className="mt-auto pt-3 flex items-center justify-between">
           <span className="font-display text-xl">{product.price.toLocaleString("ru-RU")} сом</span>
           <button
