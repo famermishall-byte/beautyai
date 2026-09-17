@@ -32,6 +32,18 @@ function translateAuthError(message: string, context: AuthErrorContext = "login"
 /** Result of a registration attempt, shown instead of silently switching tabs. */
 type RegisterResult = { kind: "check-email"; email: string } | { kind: "already-registered" };
 
+// The cart lives in a plain localStorage key, not scoped to an account — a
+// brand-new registration on a browser that previously had someone else
+// logged in (or an unfinished registration) would otherwise inherit
+// whatever was left in that cart.
+function clearStaleCart() {
+  try {
+    localStorage.removeItem("beautyai-cart");
+  } catch {
+    // недоступно — не критично
+  }
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
 
@@ -58,6 +70,7 @@ export default function LoginPage() {
     const supabase = createBrowserSupabaseClient();
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
+        clearStaleCart();
         router.replace("/");
         router.refresh();
       }
@@ -121,6 +134,7 @@ export default function LoginPage() {
       }
 
       if (data.session) {
+        clearStaleCart();
         router.push("/");
         router.refresh();
         return;

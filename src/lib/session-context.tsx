@@ -62,14 +62,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
     setSession(null);
-    // Cart/orders are stored in localStorage, not scoped to an account — clear
-    // them on sign-out so the next person on this device/browser doesn't see
-    // items left behind by whoever was logged in before.
-    try {
-      localStorage.removeItem("beautyai-cart");
-    } catch {
-      // недоступно — не критично
-    }
     router.push("/login");
     router.refresh();
   }
