@@ -10,6 +10,14 @@ const VALID_CONCERNS = new Set<string>(SKIN_CONCERNS.map((c) => c.value));
 const VALID_HAIR_TYPES = new Set<string>(HAIR_TYPES.map((t) => t.value));
 const VALID_HAIR_CONCERNS = new Set<string>(HAIR_CONCERNS.map((c) => c.value));
 
+// YYYY-MM-DD, a real calendar date, not in the future, not before 1900.
+function isValidBirthDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) return false;
+  return d.getTime() <= Date.now() && d.getUTCFullYear() >= 1900;
+}
+
 export async function PUT(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) {
@@ -43,12 +51,12 @@ export async function PUT(request: NextRequest) {
     update.skin_concerns = skinConcerns;
   }
 
-  if ("age" in body) {
-    const age = body.age;
-    if (age !== null && !(Number.isInteger(age) && age >= 5 && age <= 120)) {
-      return NextResponse.json({ error: "Некорректный возраст." }, { status: 400 });
+  if ("birthDate" in body) {
+    const birthDate = body.birthDate;
+    if (birthDate !== null && !isValidBirthDate(birthDate)) {
+      return NextResponse.json({ error: "Некорректная дата рождения." }, { status: 400 });
     }
-    update.age = age;
+    update.birth_date = birthDate;
   }
 
   if ("gender" in body) {

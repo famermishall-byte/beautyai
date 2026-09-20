@@ -13,7 +13,7 @@ export type Session = {
   displayName: string | null;
   skinType: string | null;
   skinConcerns: string[];
-  age: number | null;
+  birthDate: string | null;
   gender: string | null;
   hairType: string | null;
   hairConcerns: string[];

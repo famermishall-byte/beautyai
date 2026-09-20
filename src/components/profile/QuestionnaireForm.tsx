@@ -26,7 +26,7 @@ export function QuestionnaireForm({
   onCancel?: () => void;
 }) {
   const [name, setName] = useState(session.displayName ?? "");
-  const [age, setAge] = useState(session.age !== null ? String(session.age) : "");
+  const [birthDate, setBirthDate] = useState(session.birthDate ?? "");
   const [gender, setGender] = useState<string | null>(session.gender);
   const [skinType, setSkinType] = useState<SkinType | null>((session.skinType as SkinType) ?? null);
   const [skinConcerns, setSkinConcerns] = useState<SkinConcern[]>((session.skinConcerns as SkinConcern[]) ?? []);
@@ -39,12 +39,6 @@ export function QuestionnaireForm({
     e.preventDefault();
     setError(null);
 
-    const ageNumber = age.trim() === "" ? null : Number(age);
-    if (ageNumber !== null && !(Number.isInteger(ageNumber) && ageNumber >= 5 && ageNumber <= 120)) {
-      setError("Укажите возраст числом от 5 до 120.");
-      return;
-    }
-
     setSaving(true);
     try {
       const res = await fetch("/api/profile", {
@@ -52,7 +46,7 @@ export function QuestionnaireForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: name,
-          age: ageNumber,
+          birthDate: birthDate || null,
           gender,
           skinType,
           skinConcerns,
@@ -80,13 +74,17 @@ export function QuestionnaireForm({
         <h3 className="text-sm font-medium mb-3">О вас</h3>
         <div className="flex flex-col gap-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Как вас зовут?" className={inputClass} />
-          <input
-            value={age}
-            onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 3))}
-            placeholder="Возраст"
-            inputMode="numeric"
-            className={inputClass}
-          />
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted">Дата рождения</span>
+            <input
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              min="1900-01-01"
+              max={new Date().toISOString().slice(0, 10)}
+              className={inputClass}
+            />
+          </label>
           <div className="flex flex-wrap gap-2">
             {GENDERS.map((g) => (
               <Chip key={g.value} label={g.label} active={gender === g.value} onClick={() => setGender(gender === g.value ? null : g.value)} />

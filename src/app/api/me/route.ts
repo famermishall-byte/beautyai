@@ -17,7 +17,7 @@ export async function GET() {
     displayName: profile.displayName,
     skinType: profile.skinType,
     skinConcerns: profile.skinConcerns,
-    age: profile.age,
+    birthDate: profile.birthDate,
     gender: profile.gender,
     hairType: profile.hairType,
     hairConcerns: profile.hairConcerns,

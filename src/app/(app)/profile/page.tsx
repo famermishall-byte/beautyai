@@ -24,6 +24,7 @@ import { getStoredCity } from "@/lib/city";
 import { skinTypeLabel, skinConcernLabel, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { hairTypeLabel, hairConcernLabel, type HairType, type HairConcern } from "@/lib/haircare";
 import { buildCareKit } from "@/lib/kit";
+import { ageFromBirthDate, formatBirthDate, yearsLabel } from "@/lib/birthdate";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AvatarUploader } from "@/components/profile/AvatarUploader";
@@ -183,9 +184,13 @@ export default function ProfilePage() {
   const cardClass = "bg-card rounded-[var(--radius-card)] border border-border p-5 mb-4 shadow-[var(--shadow-card)]";
   const initial = (session.displayName ?? session.email ?? "").trim().charAt(0).toUpperCase();
 
+  const birthLabel = session.birthDate
+    ? `${formatBirthDate(session.birthDate)} (${ageFromBirthDate(session.birthDate)} ${yearsLabel(ageFromBirthDate(session.birthDate))})`
+    : "не указана";
+
   const summary: { label: string; value: string }[] = [
     { label: "Имя", value: session.displayName ?? "не указано" },
-    { label: "Возраст", value: session.age !== null ? String(session.age) : "не указан" },
+    { label: "Дата рождения", value: birthLabel },
     { label: "Пол", value: session.gender ? (GENDER_LABELS[session.gender] ?? "не указан") : "не указан" },
     {
       label: "Кожа",
