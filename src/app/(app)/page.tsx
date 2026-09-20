@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/session-context";
-import { skinTypeLabel } from "@/lib/skincare";
+import { skinTypeLabel, type SkinType } from "@/lib/skincare";
+import { CATEGORY_GROUPS } from "@/lib/categories";
+import { SKIN_TYPE_CATEGORIES } from "@/lib/personalization";
+import { ProductCard } from "@/components/ProductCard";
+import type { Product } from "@/types";
 
 const CARDS = [
   {
@@ -34,6 +39,20 @@ const CARDS = [
 export default function Home() {
   const { session } = useSession();
   const skinLabel = skinTypeLabel(session?.skinType ?? null);
+  const skinType = session?.skinType as SkinType | null | undefined;
+
+  const [recommended, setRecommended] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (!skinType || !(skinType in SKIN_TYPE_CATEGORIES)) return;
+    const categories = SKIN_TYPE_CATEGORIES[skinType].join(",");
+    // Fetching data on mount/when skin type changes — see the same
+    // pattern/rationale in BranchManager.tsx.
+    fetch(`/api/products?category=${encodeURIComponent(categories)}`)
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setRecommended((data.products ?? []).slice(0, 6)))
+      .catch(() => setRecommended([]));
+  }, [skinType]);
 
   return (
     <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
@@ -57,6 +76,41 @@ export default function Home() {
         </Link>
       </div>
 
+      <div className="text-sm text-muted mb-3">Категории</div>
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        {CATEGORY_GROUPS.map((group, i) => (
+          <Link
+            key={group.name}
+            href={`/catalog?group=${encodeURIComponent(group.name)}`}
+            className={[
+              "bg-card rounded-2xl border border-black/5 p-4 flex items-center gap-3 transition hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+              // Last tile spans both columns when the count is odd, matching the design mockup.
+              i === CATEGORY_GROUPS.length - 1 && CATEGORY_GROUPS.length % 2 === 1 ? "col-span-2" : "",
+            ].join(" ")}
+          >
+            <span className="text-2xl shrink-0">{group.emoji}</span>
+            <div className="flex flex-col">
+              <span className="font-display text-base leading-snug">{group.name}</span>
+              <span className="text-xs text-muted">
+                {group.children.length > 0 ? `${group.children.length} разделов` : "все товары"}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {recommended.length > 0 && (
+        <>
+          <div className="text-sm text-muted mb-3">Подобрано для вас</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+            {recommended.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="text-sm text-muted mb-3">Ярлыки</div>
       <div className="grid grid-cols-2 gap-4">
         {CARDS.map((card) => (
           <Link

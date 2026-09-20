@@ -3,22 +3,10 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
+import { CATEGORIES, CATEGORY_GROUPS } from "@/lib/categories";
 import type { Branch, Product } from "@/types";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
-
-const CATEGORIES = [
-  "Уход за лицом",
-  "Очищение",
-  "Тоники",
-  "Сыворотки",
-  "Кремы",
-  "SPF",
-  "Маски",
-  "Уход за глазами",
-  "Макияж",
-  "Уход за волосами",
-];
 
 const BUDGETS = [
   { label: "до 1 000 сом", value: 1000 },
@@ -51,6 +39,19 @@ function CatalogContent() {
   if (initialTab !== prevInitialTab) {
     setPrevInitialTab(initialTab);
     if (initialTab === "budget") setBudget(null);
+  }
+
+  // Arriving via a home-screen category tile (?group=...): a group with
+  // subcategories shows them as chips (see render below); a group without
+  // any (e.g. "Макияж") filters straight to every category in that group.
+  const groupParam = searchParams.get("group");
+  const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
+  const [prevGroupParam, setPrevGroupParam] = useState(groupParam);
+  if (groupParam !== prevGroupParam) {
+    setPrevGroupParam(groupParam);
+    if (activeGroup) {
+      setCategory(activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name);
+    }
   }
 
   useEffect(() => {
@@ -139,29 +140,61 @@ function CatalogContent() {
       />
 
       <div className="mb-4">
-        <div className="text-sm text-muted mb-2">Категория</div>
+        <div className="text-sm text-muted mb-2">
+          {activeGroup ? activeGroup.name : "Категория"}
+        </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setCategory(null)}
-            className={[
-              "rounded-full px-3.5 py-2 text-sm font-medium transition",
-              category === null ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
-            ].join(" ")}
-          >
-            Все
-          </button>
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(category === c ? null : c)}
-              className={[
-                "rounded-full px-3.5 py-2 text-sm font-medium transition",
-                category === c ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
-              ].join(" ")}
-            >
-              {c}
-            </button>
-          ))}
+          {activeGroup && activeGroup.children.length > 0 ? (
+            <>
+              <button
+                onClick={() => setCategory(activeGroup.children.join(","))}
+                className={[
+                  "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                  category === activeGroup.children.join(",")
+                    ? "bg-accent text-white"
+                    : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                ].join(" ")}
+              >
+                Все
+              </button>
+              {activeGroup.children.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={[
+                    "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                    category === c ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                  ].join(" ")}
+                >
+                  {c}
+                </button>
+              ))}
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setCategory(null)}
+                className={[
+                  "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                  category === null ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                ].join(" ")}
+              >
+                Все
+              </button>
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCategory(category === c ? null : c)}
+                  className={[
+                    "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                    category === c ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                  ].join(" ")}
+                >
+                  {c}
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
 

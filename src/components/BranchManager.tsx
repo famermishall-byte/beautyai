@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import type { Branch } from "@/types";
 
-const EMPTY_FORM = { name: "", address: "", phone: "", whatsapp: "", hours: "" };
+const EMPTY_FORM = { name: "", city: "", address: "", phone: "", whatsapp: "", hours: "" };
 
 function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: () => void; onDeleted: () => void }) {
   const [form, setForm] = useState({
     name: branch.name,
+    city: branch.city,
     address: branch.address,
     phone: branch.phone,
     whatsapp: branch.whatsapp,
@@ -48,6 +49,10 @@ function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: ()
       <label className="flex flex-col gap-1 text-xs text-muted">
         Название
         <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-muted">
+        Город
+        <input className={inputClass} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
       </label>
       <label className="flex flex-col gap-1 text-xs text-muted">
         Адрес
@@ -112,7 +117,7 @@ export function BranchManager() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!form.name || !form.address || !form.phone || !form.whatsapp || !form.hours) {
+    if (!form.name || !form.city || !form.address || !form.phone || !form.whatsapp || !form.hours) {
       setError("Заполните все поля, чтобы добавить филиал.");
       return;
     }
@@ -163,6 +168,12 @@ export function BranchManager() {
             placeholder="Название"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <input
+            className={inputClass}
+            placeholder="Город"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
           />
           <input
             className={inputClass}

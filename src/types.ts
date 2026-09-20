@@ -31,10 +31,18 @@ export type CartItem = {
 export type Branch = {
   id: string;
   name: string;
+  city: string;
   address: string;
   phone: string;
   whatsapp: string;
   hours: string;
+};
+
+export type Feedback = {
+  id: string;
+  message: string;
+  createdAt: string;
+  authorName: string | null;
 };
 
 export type Order = {

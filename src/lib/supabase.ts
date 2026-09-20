@@ -28,10 +28,21 @@ export function mapBranch(row: Record<string, unknown>) {
   return {
     id: row.id as string,
     name: row.name as string,
+    city: row.city as string,
     address: row.address as string,
     phone: row.phone as string,
     whatsapp: row.whatsapp as string,
     hours: row.hours as string,
+  };
+}
+
+export function mapFeedback(row: Record<string, unknown> & { profiles?: Record<string, unknown> | null }) {
+  const profile = row.profiles as { display_name?: string | null } | null | undefined;
+  return {
+    id: row.id as string,
+    message: row.message as string,
+    createdAt: row.created_at as string,
+    authorName: profile?.display_name ?? null,
   };
 }
 

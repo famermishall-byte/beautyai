@@ -14,9 +14,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const { id } = await params;
   const body = await request.json();
-  const { name, address, phone, whatsapp, hours } = body;
+  const { name, city, address, phone, whatsapp, hours } = body;
 
-  if (!name || !address || !phone || !whatsapp || !hours) {
+  if (!name || !city || !address || !phone || !whatsapp || !hours) {
     return NextResponse.json({ error: "Заполните все поля филиала." }, { status: 400 });
   }
 
@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const supabase = await createServerSupabaseClient();
     const { data: branch, error } = await supabase
       .from("branches")
-      .update({ name, address, phone, whatsapp, hours })
+      .update({ name, city, address, phone, whatsapp, hours })
       .eq("id", id)
       .eq("store_id", profile.storeId)
       .select("*")

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BranchManager } from "@/components/BranchManager";
 import { OrderManager } from "@/components/OrderManager";
+import { FeedbackManager } from "@/components/FeedbackManager";
 import { SourceManager } from "@/components/SourceManager";
 import type { Product } from "@/types";
 
@@ -138,6 +139,10 @@ export default function AdminPage() {
 
       <div className="mb-8">
         <OrderManager />
+      </div>
+
+      <div className="mb-8">
+        <FeedbackManager />
       </div>
 
       <BranchManager />

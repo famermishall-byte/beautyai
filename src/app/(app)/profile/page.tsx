@@ -287,6 +287,18 @@ export default function ProfilePage() {
         <Link href="/orders" className="text-sm text-accent underline">
           Мои покупки
         </Link>
+        <Link href="/mybag" className="text-sm text-accent underline">
+          Моя косметичка
+        </Link>
+        <Link href="/city" className="text-sm text-accent underline">
+          Мой город
+        </Link>
+        <Link href="/branches" className="text-sm text-accent underline">
+          Магазины
+        </Link>
+        <Link href="/feedback" className="text-sm text-accent underline">
+          Обратная связь
+        </Link>
         {isAdmin && (
           <>
             <Link href="/admin" className="text-sm text-accent underline">

@@ -32,7 +32,12 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim().toLowerCase() ?? "";
-  const category = searchParams.get("category")?.trim().toLowerCase() ?? "";
+  // Comma-separated to support a category-group filter (e.g. all of "Уход за
+  // лицом"'s subcategories at once) — see src/lib/categories.ts.
+  const categories = (searchParams.get("category") ?? "")
+    .split(",")
+    .map((c) => c.trim().toLowerCase())
+    .filter(Boolean);
   const maxPriceRaw = searchParams.get("maxPrice");
   const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : null;
   // Only when a branch is picked (src/app/(app)/catalog/page.tsx) do we show
@@ -62,8 +67,10 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  if (category) {
-    products = products.filter((p) => typeof p.category === "string" && p.category.toLowerCase() === category);
+  if (categories.length > 0) {
+    products = products.filter(
+      (p) => typeof p.category === "string" && categories.includes(p.category.toLowerCase())
+    );
   }
 
   if (maxPrice !== null && Number.isFinite(maxPrice)) {

@@ -58,6 +58,22 @@ export function buildOrderMessage(order: OrderMessageInput): string {
   ].join("\n");
 }
 
+type FeedbackMessageInput = {
+  message: string;
+  customerName: string;
+  storeName: string;
+};
+
+export function buildFeedbackMessage(input: FeedbackMessageInput): string {
+  return [
+    `Обратная связь из ${input.storeName} 💬`,
+    "",
+    input.message,
+    "",
+    `От: ${input.customerName}`,
+  ].join("\n");
+}
+
 export function buildWhatsAppUrl(whatsappNumber: string, message: string): string {
   const phone = sanitizePhoneForWhatsApp(whatsappNumber);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
