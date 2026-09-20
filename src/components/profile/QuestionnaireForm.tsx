@@ -1,19 +1,93 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { Check, Contrast, Droplet, Flower2, Leaf, Mars, Scissors, Sparkles, Sun, UserRound, Venus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { HAIR_TYPES, HAIR_CONCERNS, type HairType, type HairConcern } from "@/lib/haircare";
 import type { Session } from "@/lib/session-context";
 
-const GENDERS = [
-  { value: "female", label: "Женский" },
-  { value: "male", label: "Мужской" },
-] as const;
+const GENDERS: { value: string; label: string; icon: LucideIcon }[] = [
+  { value: "female", label: "Женский", icon: Venus },
+  { value: "male", label: "Мужской", icon: Mars },
+];
+
+const SKIN_ICONS: Record<SkinType, LucideIcon> = {
+  dry: Sun,
+  oily: Droplet,
+  combination: Contrast,
+  normal: Leaf,
+  sensitive: Flower2,
+};
+
+const HAIR_ICONS: Record<HairType, LucideIcon> = {
+  dry: Sun,
+  oily: Droplet,
+  normal: Leaf,
+  combination: Contrast,
+};
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+function SectionHead({ icon: Icon, title, hint }: { icon: LucideIcon; title: string; hint?: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <span className="grid place-items-center size-10 shrink-0 rounded-full bg-accent-soft text-accent">
+        <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+      </span>
+      <div>
+        <h3 className="font-display text-lg leading-tight">{title}</h3>
+        {hint && <p className="text-xs text-muted mt-0.5">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Tile({ label, icon: Icon, active, onClick }: { label: string; icon: LucideIcon; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={[
+        "relative flex flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] px-2 py-4 text-center text-sm font-semibold leading-tight",
+        "transition duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        active ? "bg-accent text-white shadow-[var(--shadow-float)]" : "bg-background text-foreground hover:bg-accent-soft",
+      ].join(" ")}
+    >
+      <Icon className={`size-6 ${active ? "" : "text-accent"}`} strokeWidth={1.6} aria-hidden />
+      <span>{label}</span>
+      {active && (
+        <span className="absolute top-1.5 right-1.5 grid place-items-center size-4 rounded-full bg-white text-accent animate-pop">
+          <Check className="size-2.5" strokeWidth={3.5} aria-hidden />
+        </span>
+      )}
+    </button>
+  );
+}
+
+function ConcernChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={[
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition duration-200 active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        active ? "border-accent bg-accent text-white" : "border-border-strong bg-transparent text-foreground hover:border-accent hover:text-accent",
+      ].join(" ")}
+    >
+      {active && <Check className="size-3.5 animate-pop" strokeWidth={3} aria-hidden />}
+      {label}
+    </button>
+  );
+}
+
+function SubLabel({ children }: { children: ReactNode }) {
+  return <p className="text-sm font-medium mt-6 mb-3">{children}</p>;
 }
 
 export function QuestionnaireForm({
@@ -66,12 +140,37 @@ export function QuestionnaireForm({
   }
 
   const inputClass =
-    "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
+    "w-full rounded-[var(--radius-control)] border border-transparent bg-background px-4 py-3.5 text-sm outline-none transition focus:bg-card focus:ring-2 focus:ring-accent focus:border-accent placeholder:text-muted";
+
+  const answers = [name.trim(), birthDate, gender, skinType, hairType];
+  const done = answers.filter(Boolean).length;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-9">
       <div>
-        <h3 className="text-sm font-medium mb-3">О вас</h3>
+        <div className="flex items-center justify-between gap-3 text-xs text-muted mb-2">
+          <span>{done === answers.length ? "Всё заполнено — осталось сохранить" : "Чем больше расскажете, тем точнее набор"}</span>
+          <span className="font-semibold text-accent tabular-nums">
+            {done}/{answers.length}
+          </span>
+        </div>
+        <div
+          className="h-1.5 rounded-full bg-accent-soft overflow-hidden"
+          role="progressbar"
+          aria-label="Заполнено вопросов анкеты"
+          aria-valuemin={0}
+          aria-valuemax={answers.length}
+          aria-valuenow={done}
+        >
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{ width: `${(done / answers.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <section>
+        <SectionHead icon={UserRound} title="О вас" />
         <div className="flex flex-col gap-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Как вас зовут?" className={inputClass} />
           <label className="flex flex-col gap-1.5">
@@ -85,45 +184,43 @@ export function QuestionnaireForm({
               className={inputClass}
             />
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-3 mt-1">
             {GENDERS.map((g) => (
-              <Chip key={g.value} label={g.label} active={gender === g.value} onClick={() => setGender(gender === g.value ? null : g.value)} />
+              <Tile key={g.value} label={g.label} icon={g.icon} active={gender === g.value} onClick={() => setGender(gender === g.value ? null : g.value)} />
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div>
-        <h3 className="text-sm font-medium mb-1">Кожа лица</h3>
-        <p className="text-xs text-muted mb-3">Какой у вас тип кожи?</p>
-        <div className="flex flex-wrap gap-2 mb-4">
+      <section>
+        <SectionHead icon={Sparkles} title="Кожа лица" hint="Какой у вас тип кожи?" />
+        <div className="grid grid-cols-3 gap-3">
           {SKIN_TYPES.map((t) => (
-            <Chip key={t.value} label={t.label} active={skinType === t.value} onClick={() => setSkinType(skinType === t.value ? null : t.value)} />
+            <Tile key={t.value} label={t.label} icon={SKIN_ICONS[t.value]} active={skinType === t.value} onClick={() => setSkinType(skinType === t.value ? null : t.value)} />
           ))}
         </div>
-        <p className="text-xs text-muted mb-3">Что беспокоит? Можно выбрать несколько.</p>
+        <SubLabel>Что беспокоит? Можно выбрать несколько.</SubLabel>
         <div className="flex flex-wrap gap-2">
           {SKIN_CONCERNS.map((c) => (
-            <Chip key={c.value} label={c.label} active={skinConcerns.includes(c.value)} onClick={() => setSkinConcerns(toggle(skinConcerns, c.value))} />
+            <ConcernChip key={c.value} label={c.label} active={skinConcerns.includes(c.value)} onClick={() => setSkinConcerns(toggle(skinConcerns, c.value))} />
           ))}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <h3 className="text-sm font-medium mb-1">Волосы</h3>
-        <p className="text-xs text-muted mb-3">Какие у вас волосы?</p>
-        <div className="flex flex-wrap gap-2 mb-4">
+      <section>
+        <SectionHead icon={Scissors} title="Волосы" hint="Какие у вас волосы?" />
+        <div className="grid grid-cols-2 gap-3">
           {HAIR_TYPES.map((t) => (
-            <Chip key={t.value} label={t.label} active={hairType === t.value} onClick={() => setHairType(hairType === t.value ? null : t.value)} />
+            <Tile key={t.value} label={t.label} icon={HAIR_ICONS[t.value]} active={hairType === t.value} onClick={() => setHairType(hairType === t.value ? null : t.value)} />
           ))}
         </div>
-        <p className="text-xs text-muted mb-3">Что беспокоит? Можно выбрать несколько.</p>
+        <SubLabel>Что беспокоит? Можно выбрать несколько.</SubLabel>
         <div className="flex flex-wrap gap-2">
           {HAIR_CONCERNS.map((c) => (
-            <Chip key={c.value} label={c.label} active={hairConcerns.includes(c.value)} onClick={() => setHairConcerns(toggle(hairConcerns, c.value))} />
+            <ConcernChip key={c.value} label={c.label} active={hairConcerns.includes(c.value)} onClick={() => setHairConcerns(toggle(hairConcerns, c.value))} />
           ))}
         </div>
-      </div>
+      </section>
 
       {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
 
