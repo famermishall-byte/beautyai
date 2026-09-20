@@ -206,7 +206,7 @@ export default function ProfilePage() {
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-6">Личный кабинет</h1>
+      <h1 className="font-title text-3xl leading-tight mb-6 text-center">Личный кабинет</h1>
 
       <div className={`${cardClass} flex flex-col items-center pt-6`}>
         <AvatarUploader avatarUrl={session.avatarUrl} initial={initial} onChanged={refresh} />

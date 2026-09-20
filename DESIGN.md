@@ -10,8 +10,9 @@ with real elevation, a real icon system, and real empty/loading/error
 states instead of the flat, list-and-chip look the app had before. Warm
 pale-pink surface, white cards, one saturated accent carrying every
 primary action and every "you are here" signal (active nav, selected
-chip, selected city). Playfair Display for all headings/prices (the
-brand's existing editorial display face), Inter for body/UI text.
+chip, selected city). Manrope for everything — body, headings, prices, titles — by the client's explicit choice
+(2026-09-20). Headings/prices use the `font-display` class, which in this one-family
+setup gets weight 700 and slightly tight tracking from a base-layer rule in `globals.css`.
 
 ## Tokens
 

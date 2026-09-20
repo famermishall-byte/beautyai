@@ -50,12 +50,24 @@
   --color-warning-soft: var(--warning-soft);
   --color-error: var(--error);
   --color-error-soft: var(--error-soft);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-playfair);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-manrope);
+  --font-title: var(--font-manrope);
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Headings, prices and names use font-display; in one sans family they need
+   real weight to read as headings. Lives in the base layer so any explicit
+   font-* utility on the element still wins. */
+@layer base {
+  [class~="font-display"],
+  [class~="font-title"] {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
 }
 
 body {

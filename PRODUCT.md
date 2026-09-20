@@ -86,8 +86,8 @@ a bare admin tool.
   ring/number-1 mark on the accent color) — small source image, already
   wired into favicons/splash/in-app badge via
   `scripts/build-brand-assets.mjs`.
-- Display type currently Playfair Display (headings) + Inter (body) via
-  `--font-display`/`--font-sans` — evidence of an intended editorial/
+- Typeface: Manrope everywhere (client's explicit choice, 2026-09-20; supersedes the
+  earlier Playfair Display + Inter pairing).
   premium feel, not a decided constraint to keep verbatim.
 
 ## Evidence on Hand
