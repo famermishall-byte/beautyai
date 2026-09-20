@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Branch } from "@/types";
 
-const EMPTY_FORM = { name: "", city: "", address: "", phone: "", whatsapp: "", hours: "" };
+const EMPTY_FORM = { name: "", city: "", address: "", phone: "", whatsapp: "", hours: "", latitude: "", longitude: "" };
 
 function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: () => void; onDeleted: () => void }) {
   const [form, setForm] = useState({
@@ -13,6 +13,8 @@ function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: ()
     phone: branch.phone,
     whatsapp: branch.whatsapp,
     hours: branch.hours,
+    latitude: branch.latitude === null ? "" : String(branch.latitude),
+    longitude: branch.longitude === null ? "" : String(branch.longitude),
   });
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -74,6 +76,14 @@ function BranchRow({ branch, onSaved, onDeleted }: { branch: Branch; onSaved: ()
       <label className="flex flex-col gap-1 text-xs text-muted sm:col-span-2">
         Часы работы
         <input className={inputClass} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-muted">
+        Широта (для карты)
+        <input className={inputClass} value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} placeholder="42.8746" inputMode="decimal" />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-muted">
+        Долгота (для карты)
+        <input className={inputClass} value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} placeholder="74.5698" inputMode="decimal" />
       </label>
       <div className="sm:col-span-2 flex items-center gap-2 pt-1">
         <button
@@ -198,6 +208,20 @@ export function BranchManager() {
             placeholder="Часы работы"
             value={form.hours}
             onChange={(e) => setForm({ ...form, hours: e.target.value })}
+          />
+          <input
+            className={inputClass}
+            placeholder="Широта (для карты), напр. 42.8746"
+            value={form.latitude}
+            inputMode="decimal"
+            onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+          />
+          <input
+            className={inputClass}
+            placeholder="Долгота (для карты), напр. 74.5698"
+            value={form.longitude}
+            inputMode="decimal"
+            onChange={(e) => setForm({ ...form, longitude: e.target.value })}
           />
         </div>
         {error && <p className="text-sm text-red-600 mt-2">{error}</p>}

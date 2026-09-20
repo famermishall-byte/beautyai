@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
 import { SKIN_TYPES, SKIN_CONCERNS } from "@/lib/skincare";
+import { HAIR_TYPES, HAIR_CONCERNS } from "@/lib/haircare";
+import { SUPABASE_URL } from "@/lib/supabase/config";
 
 const VALID_SKIN_TYPES = new Set<string>(SKIN_TYPES.map((t) => t.value));
 const VALID_CONCERNS = new Set<string>(SKIN_CONCERNS.map((c) => c.value));
+const VALID_HAIR_TYPES = new Set<string>(HAIR_TYPES.map((t) => t.value));
+const VALID_HAIR_CONCERNS = new Set<string>(HAIR_CONCERNS.map((c) => c.value));
 
 export async function PUT(request: NextRequest) {
   const profile = await getSessionProfile();
@@ -37,6 +41,51 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Некорректный список проблем кожи." }, { status: 400 });
     }
     update.skin_concerns = skinConcerns;
+  }
+
+  if ("age" in body) {
+    const age = body.age;
+    if (age !== null && !(Number.isInteger(age) && age >= 5 && age <= 120)) {
+      return NextResponse.json({ error: "Некорректный возраст." }, { status: 400 });
+    }
+    update.age = age;
+  }
+
+  if ("gender" in body) {
+    const gender = body.gender;
+    if (gender !== null && gender !== "female" && gender !== "male") {
+      return NextResponse.json({ error: "Некорректный пол." }, { status: 400 });
+    }
+    update.gender = gender;
+  }
+
+  if ("hairType" in body) {
+    const hairType = body.hairType;
+    if (hairType !== null && !VALID_HAIR_TYPES.has(hairType)) {
+      return NextResponse.json({ error: "Некорректный тип волос." }, { status: 400 });
+    }
+    update.hair_type = hairType;
+  }
+
+  if ("hairConcerns" in body) {
+    const hairConcerns = body.hairConcerns;
+    if (
+      !Array.isArray(hairConcerns) ||
+      !hairConcerns.every((c) => typeof c === "string" && VALID_HAIR_CONCERNS.has(c))
+    ) {
+      return NextResponse.json({ error: "Некорректный список проблем волос." }, { status: 400 });
+    }
+    update.hair_concerns = hairConcerns;
+  }
+
+  if ("avatarUrl" in body) {
+    const avatarUrl = body.avatarUrl;
+    // Only a file inside this user's own folder of the public avatars bucket.
+    const allowedPrefix = `${SUPABASE_URL}/storage/v1/object/public/avatars/${profile.userId}/`;
+    if (avatarUrl !== null && !(typeof avatarUrl === "string" && avatarUrl.startsWith(allowedPrefix))) {
+      return NextResponse.json({ error: "Некорректное фото." }, { status: 400 });
+    }
+    update.avatar_url = avatarUrl;
   }
 
   if (Object.keys(update).length === 0) {

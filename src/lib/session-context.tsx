@@ -13,6 +13,11 @@ export type Session = {
   displayName: string | null;
   skinType: string | null;
   skinConcerns: string[];
+  age: number | null;
+  gender: string | null;
+  hairType: string | null;
+  hairConcerns: string[];
+  avatarUrl: string | null;
 };
 
 type SessionContextValue = {

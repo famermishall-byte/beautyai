@@ -9,6 +9,9 @@ export async function DELETE() {
   }
 
   const supabase = await createServerSupabaseClient();
+
+  // The avatar lives in storage, outside the account rows the RPC deletes — remove it first.
+  await supabase.storage.from("avatars").remove([`${profile.userId}/avatar.jpg`]);
   const { error } = await supabase.rpc("delete_own_account");
 
   if (error) {

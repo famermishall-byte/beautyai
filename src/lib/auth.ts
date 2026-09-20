@@ -10,6 +10,11 @@ export type SessionProfile = {
   displayName: string | null;
   skinType: string | null;
   skinConcerns: string[];
+  age: number | null;
+  gender: string | null;
+  hairType: string | null;
+  hairConcerns: string[];
+  avatarUrl: string | null;
 };
 
 /**
@@ -30,7 +35,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, store_id, display_name, skin_type, skin_concerns, stores(name, slug)")
+    .select("role, store_id, display_name, skin_type, skin_concerns, age, gender, hair_type, hair_concerns, avatar_url, stores(name, slug)")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -48,6 +53,11 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     displayName: profile.display_name,
     skinType: profile.skin_type,
     skinConcerns: profile.skin_concerns ?? [],
+    age: profile.age ?? null,
+    gender: profile.gender ?? null,
+    hairType: profile.hair_type ?? null,
+    hairConcerns: profile.hair_concerns ?? [],
+    avatarUrl: profile.avatar_url ?? null,
   };
 }
 

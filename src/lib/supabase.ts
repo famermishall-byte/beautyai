@@ -33,6 +33,8 @@ export function mapBranch(row: Record<string, unknown>) {
     phone: row.phone as string,
     whatsapp: row.whatsapp as string,
     hours: row.hours as string,
+    latitude: (row.latitude as number | null) ?? null,
+    longitude: (row.longitude as number | null) ?? null,
   };
 }
 

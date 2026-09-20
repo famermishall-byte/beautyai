@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   ChevronRight,
+  ChevronDown,
   ShoppingBag,
   Heart,
   MapPin,
@@ -12,26 +13,41 @@ import {
   LayoutDashboard,
   Settings,
   LogOut,
+  KeyRound,
+  Pencil,
+  Sparkles,
 } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
-import { useSession, type Session } from "@/lib/session-context";
-import { skinTypeLabel, skinConcernLabel } from "@/lib/skincare";
+import { useSession } from "@/lib/session-context";
+import { getStoredCity } from "@/lib/city";
+import { skinTypeLabel, skinConcernLabel, type SkinType, type SkinConcern } from "@/lib/skincare";
+import { hairTypeLabel, hairConcernLabel, type HairType, type HairConcern } from "@/lib/haircare";
+import { buildCareKit } from "@/lib/kit";
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { AvatarUploader } from "@/components/profile/AvatarUploader";
+import { QuestionnaireForm } from "@/components/profile/QuestionnaireForm";
+import { CareKitView } from "@/components/profile/CareKitView";
+import type { Product } from "@/types";
+
+const GENDER_LABELS: Record<string, string> = { female: "Женский", male: "Мужской" };
 
 export default function ProfilePage() {
   const { session, loading, isAdmin, signOut, refresh } = useSession();
 
-  const [displayName, setDisplayName] = useState(() => session?.displayName ?? "");
-  const [nameSubmitting, setNameSubmitting] = useState(false);
-  const [nameSaved, setNameSaved] = useState(false);
+  const [city, setCity] = useState<string | null>(null);
+  const [editing, setEditing] = useState<boolean | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(null);
+  const [savedTick, setSavedTick] = useState(0);
+  const kitRef = useRef<HTMLDivElement>(null);
 
+  const [showAccount, setShowAccount] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
@@ -42,32 +58,40 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Keep the editable name field in sync when `session` is (re)loaded (e.g. after
-  // `refresh()`), without wiping out what the user is currently typing otherwise.
-  // Adjusting state during render (guarded by a "did the source value change?"
-  // check) is the React-recommended replacement for a useEffect here — see
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  const [prevSessionForName, setPrevSessionForName] = useState<Session | null>(session);
-  if (session !== prevSessionForName) {
-    setPrevSessionForName(session);
-    if (session) setDisplayName(session.displayName ?? "");
-  }
+  const skinType = (session?.skinType as SkinType | null) ?? null;
+  const skinConcerns = useMemo(() => (session?.skinConcerns as SkinConcern[]) ?? [], [session?.skinConcerns]);
+  const hairType = (session?.hairType as HairType | null) ?? null;
+  const hairConcerns = useMemo(() => (session?.hairConcerns as HairConcern[]) ?? [], [session?.hairConcerns]);
+  const hasAnswers = !!skinType || !!hairType || skinConcerns.length > 0 || hairConcerns.length > 0;
+  const isEditing = editing ?? !hasAnswers;
 
-  async function handleSaveName(e: FormEvent) {
-    e.preventDefault();
-    setNameSubmitting(true);
-    try {
-      await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName }),
-      });
-      await refresh();
-      setNameSaved(true);
-      setTimeout(() => setNameSaved(false), 1500);
-    } finally {
-      setNameSubmitting(false);
-    }
+  useEffect(() => {
+    // Read after mount (SSR has no localStorage) — see the same rationale in page.tsx (home).
+    Promise.resolve().then(() => setCity(getStoredCity()));
+  }, []);
+
+  useEffect(() => {
+    if (!hasAnswers || products !== null) return;
+    // Fetching data when the questionnaire has answers — see the same pattern in BranchManager.tsx.
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setProducts(data.products ?? []))
+      .catch(() => setProducts([]));
+  }, [hasAnswers, products]);
+
+  useEffect(() => {
+    if (savedTick > 0) kitRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [savedTick]);
+
+  const kit = useMemo(
+    () => (products ? buildCareKit(products, skinType, skinConcerns, hairType, hairConcerns) : null),
+    [products, skinType, skinConcerns, hairType, hairConcerns]
+  );
+
+  async function handleQuestionnaireSaved() {
+    await refresh();
+    setEditing(false);
+    setSavedTick((n) => n + 1);
   }
 
   async function handleChangeEmail(e: FormEvent) {
@@ -123,18 +147,6 @@ export default function ProfilePage() {
     }
   }
 
-  function handleCancelPasswordForm() {
-    setShowPasswordForm(false);
-    setNewPassword("");
-    setConfirmPassword("");
-    setPasswordNotice(null);
-    setPasswordError(null);
-  }
-
-  async function handleSignOut() {
-    await signOut();
-  }
-
   async function handleDeleteAccount() {
     setDeleting(true);
     setDeleteError(null);
@@ -156,10 +168,12 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) {
+  if (loading || !session) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">Загружаем…</p>
+      <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full flex flex-col gap-4">
+        <Skeleton className="h-9 w-56" />
+        <Skeleton className="h-28 rounded-[var(--radius-card)]" />
+        <Skeleton className="h-64 rounded-[var(--radius-card)]" />
       </main>
     );
   }
@@ -167,92 +181,146 @@ export default function ProfilePage() {
   const inputClass =
     "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
   const cardClass = "bg-card rounded-[var(--radius-card)] border border-border p-5 mb-4 shadow-[var(--shadow-card)]";
+  const initial = (session.displayName ?? session.email ?? "").trim().charAt(0).toUpperCase();
+
+  const summary: { label: string; value: string }[] = [
+    { label: "Имя", value: session.displayName ?? "не указано" },
+    { label: "Возраст", value: session.age !== null ? String(session.age) : "не указан" },
+    { label: "Пол", value: session.gender ? (GENDER_LABELS[session.gender] ?? "не указан") : "не указан" },
+    {
+      label: "Кожа",
+      value:
+        [skinTypeLabel(skinType), ...skinConcerns.map(skinConcernLabel)].filter(Boolean).join(", ") || "не указана",
+    },
+    {
+      label: "Волосы",
+      value:
+        [hairTypeLabel(hairType), ...hairConcerns.map(hairConcernLabel)].filter(Boolean).join(", ") || "не указаны",
+    },
+  ];
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">Профиль</h1>
-      <p className="text-muted text-sm mb-7">{session?.email}</p>
+      <h1 className="font-display text-3xl mb-6">Личный кабинет</h1>
 
-      <div className={cardClass}>
-        <h2 className="font-medium mb-3 text-sm">Имя</h2>
-        <form onSubmit={handleSaveName} className="flex gap-2">
-          <input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Как вас называть?"
-            className={inputClass}
-          />
-          <Button type="submit" size="sm" disabled={nameSubmitting} className="shrink-0">
-            {nameSaved ? "Сохранено ✓" : nameSubmitting ? "Сохраняем…" : "Сохранить"}
-          </Button>
-        </form>
-      </div>
-
-      <div className={cardClass}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium text-sm">Моя кожа</h2>
-          <Link href="/skin-profile" className="text-sm text-accent font-medium hover:underline">
-            Изменить
-          </Link>
+      <div className={`${cardClass} flex flex-col items-center pt-6`}>
+        <AvatarUploader avatarUrl={session.avatarUrl} initial={initial} onChanged={refresh} />
+        <div className="text-center mt-4">
+          <div className="font-display text-xl leading-tight">{session.displayName ?? "Добро пожаловать!"}</div>
+          <div className="text-sm text-muted mt-0.5">{session.email}</div>
         </div>
-        <p className="text-sm text-muted mb-1">
-          Тип кожи: <span className="text-foreground">{skinTypeLabel(session?.skinType ?? null) ?? "не указан"}</span>
-        </p>
-        <p className="text-sm text-muted">
-          Проблемы:{" "}
-          <span className="text-foreground">
-            {session?.skinConcerns && session.skinConcerns.length > 0
-              ? session.skinConcerns.map(skinConcernLabel).join(", ")
-              : "не указаны"}
-          </span>
-        </p>
       </div>
 
       <div className={cardClass}>
-        <h2 className="font-medium mb-3 text-sm">Email</h2>
-        {emailNotice && (
-          <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3 mb-3">
-            {emailNotice}
-          </p>
-        )}
-        {emailError && (
-          <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mb-3">{emailError}</p>
-        )}
-        <form onSubmit={handleChangeEmail} className="flex gap-2">
-          <input
-            type="email"
-            placeholder="Новый email"
-            className={inputClass}
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-          />
-          <Button type="submit" size="sm" disabled={emailSubmitting || !newEmail.trim()} className="shrink-0">
-            {emailSubmitting ? "Отправляем…" : "Изменить"}
-          </Button>
-        </form>
-      </div>
-
-      <div className={cardClass}>
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium text-sm">Пароль</h2>
-          {!showPasswordForm && (
-            <button type="button" onClick={() => setShowPasswordForm(true)} className="text-sm text-accent font-medium hover:underline">
-              Изменить пароль
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl">Моя анкета</h2>
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline"
+            >
+              <Pencil className="size-3.5" strokeWidth={2} aria-hidden />
+              Изменить
             </button>
           )}
         </div>
 
-        {showPasswordForm && (
+        {isEditing ? (
           <>
-            {passwordNotice && (
-              <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3 mt-3">
-                {passwordNotice}
+            {!hasAnswers && (
+              <p className="text-sm text-muted mb-5 leading-relaxed">
+                Ответьте на несколько вопросов — мы подберём набор средств и дадим советы по уходу.
               </p>
             )}
-            {passwordError && (
-              <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mt-3">{passwordError}</p>
-            )}
-            <form onSubmit={handleChangePassword} className="flex flex-col gap-3 mt-3">
+            <QuestionnaireForm
+              session={session}
+              onSaved={handleQuestionnaireSaved}
+              onCancel={hasAnswers ? () => setEditing(false) : undefined}
+            />
+          </>
+        ) : (
+          <dl className="flex flex-col gap-2.5">
+            {summary.map((row) => (
+              <div key={row.label} className="flex gap-3 text-sm">
+                <dt className="w-20 shrink-0 text-muted">{row.label}</dt>
+                <dd className="flex-1">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+
+      {hasAnswers && !isEditing && (
+        <div ref={kitRef} className="mb-6 scroll-mt-20 animate-rise-in">
+          <div className="flex items-center gap-1.5 mb-3">
+            <Sparkles className="size-4 text-accent" strokeWidth={2} aria-hidden />
+            <h2 className="font-display text-xl">Ваш набор</h2>
+          </div>
+          {kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-[var(--radius-card)]" />}
+        </div>
+      )}
+
+      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-4">
+        <MenuRow href="/city" icon={MapPin} label="Мой город" hint={city ?? "Не выбран"} />
+        <MenuRow href="/branches" icon={Store} label="Магазины" hint="Карта филиалов" />
+        <MenuRow href="/mybag" icon={Heart} label="Моя косметичка" hint="Избранные товары" />
+        <MenuRow href="/orders" icon={ShoppingBag} label="Мои покупки" hint="Все заказы" />
+        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isAdmin} />
+        {isAdmin && (
+          <>
+            <MenuRow href="/admin" icon={LayoutDashboard} label="Админ-панель магазина" />
+            <MenuRow href="/admin/settings" icon={Settings} label="Настройки магазина" last />
+          </>
+        )}
+      </div>
+
+      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] mb-6 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowAccount((v) => !v)}
+          aria-expanded={showAccount}
+          className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-black/[0.02]"
+        >
+          <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
+            <KeyRound className="size-4.5" strokeWidth={1.85} aria-hidden />
+          </span>
+          <span className="flex-1 text-sm font-medium">Email и пароль</span>
+          <ChevronDown className={["size-4 text-muted transition-transform", showAccount ? "rotate-180" : ""].join(" ")} strokeWidth={2} aria-hidden />
+        </button>
+
+        {showAccount && (
+          <div className="px-5 pb-5 pt-1 flex flex-col gap-6 border-t border-border">
+            <form onSubmit={handleChangeEmail} className="flex flex-col gap-3 pt-4">
+              <h3 className="text-sm font-medium">Email</h3>
+              {emailNotice && (
+                <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3">{emailNotice}</p>
+              )}
+              {emailError && (
+                <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{emailError}</p>
+              )}
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Новый email"
+                  className={inputClass}
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                />
+                <Button type="submit" size="sm" disabled={emailSubmitting || !newEmail.trim()} className="shrink-0">
+                  {emailSubmitting ? "Отправляем…" : "Изменить"}
+                </Button>
+              </div>
+            </form>
+
+            <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium">Пароль</h3>
+              {passwordNotice && (
+                <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3">{passwordNotice}</p>
+              )}
+              {passwordError && (
+                <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{passwordError}</p>
+              )}
               <PasswordInput
                 placeholder="Новый пароль (минимум 6 символов)"
                 className={inputClass}
@@ -267,34 +335,15 @@ export default function ProfilePage() {
                 onChange={setConfirmPassword}
                 autoComplete="new-password"
               />
-              <div className="flex gap-2">
-                <Button type="submit" size="sm" disabled={passwordSubmitting || !newPassword}>
-                  {passwordSubmitting ? "Сохраняем…" : "Сохранить пароль"}
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={handleCancelPasswordForm}>
-                  Отмена
-                </Button>
-              </div>
+              <Button type="submit" size="sm" disabled={passwordSubmitting || !newPassword} className="self-start">
+                {passwordSubmitting ? "Сохраняем…" : "Сохранить пароль"}
+              </Button>
             </form>
-          </>
+          </div>
         )}
       </div>
 
-      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-6 mt-2">
-        <MenuRow href="/orders" icon={ShoppingBag} label="Мои покупки" />
-        <MenuRow href="/mybag" icon={Heart} label="Моя косметичка" />
-        <MenuRow href="/city" icon={MapPin} label="Мой город" />
-        <MenuRow href="/branches" icon={Store} label="Магазины" />
-        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isAdmin} />
-        {isAdmin && (
-          <>
-            <MenuRow href="/admin" icon={LayoutDashboard} label="Админ-панель магазина" />
-            <MenuRow href="/admin/settings" icon={Settings} label="Настройки магазина" last />
-          </>
-        )}
-      </div>
-
-      <Button variant="ghost" size="lg" fullWidth onClick={handleSignOut}>
+      <Button variant="ghost" size="lg" fullWidth onClick={() => signOut()}>
         <LogOut className="size-4.5" strokeWidth={1.85} aria-hidden />
         Выйти
       </Button>
@@ -313,7 +362,7 @@ export default function ProfilePage() {
           <div className="relative w-full max-w-sm bg-background rounded-[var(--radius-card)] shadow-xl p-6 animate-rise-in">
             <h2 className="font-display text-xl mb-3">Удалить аккаунт?</h2>
             <p className="text-sm text-muted mb-6 leading-relaxed">
-              Вы уверены, что хотите удалить аккаунт? Все сохранённые данные, информация о коже,
+              Вы уверены, что хотите удалить аккаунт? Все сохранённые данные, фото, информация о коже и волосах,
               косметичка и история покупок будут удалены без возможности восстановления.
             </p>
             {deleteError && <p className="text-sm text-error mb-4">{deleteError}</p>}
@@ -336,11 +385,13 @@ function MenuRow({
   href,
   icon: Icon,
   label,
+  hint,
   last = false,
 }: {
   href: string;
   icon: typeof ShoppingBag;
   label: string;
+  hint?: string;
   last?: boolean;
 }) {
   return (
@@ -354,8 +405,11 @@ function MenuRow({
       <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
         <Icon className="size-4.5" strokeWidth={1.85} aria-hidden />
       </span>
-      <span className="flex-1 text-sm font-medium">{label}</span>
-      <ChevronRight className="size-4 text-muted" strokeWidth={2} aria-hidden />
+      <span className="flex-1 min-w-0">
+        <span className="block text-sm font-medium">{label}</span>
+        {hint && <span className="block text-xs text-muted truncate">{hint}</span>}
+      </span>
+      <ChevronRight className="size-4 text-muted shrink-0" strokeWidth={2} aria-hidden />
     </Link>
   );
 }

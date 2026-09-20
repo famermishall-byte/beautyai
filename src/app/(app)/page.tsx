@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Sparkles, ChevronRight, Wand2 } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { skinTypeLabel, type SkinType } from "@/lib/skincare";
-import { SKIN_TYPE_CATEGORIES } from "@/lib/personalization";
+import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
@@ -14,24 +14,6 @@ import type { Product } from "@/types";
 const SLIDES = 5;
 const POPULAR = 8;
 const FOR_YOU = 12;
-
-// Word stems for how a product's "для кого" text names each skin type.
-const SKIN_STEMS: Record<SkinType, string> = {
-  dry: "сух",
-  oily: "жирн",
-  combination: "комбинир",
-  normal: "нормальн",
-  sensitive: "чувствител",
-};
-
-// 2 = the product says it is for this skin type, 1 = names no skin type at all
-// (universal), 0 = names only other skin types.
-function skinFit(p: Product, type: SkinType): number {
-  const text = (p.purpose ?? "").toLowerCase();
-  if (text.includes(SKIN_STEMS[type])) return 2;
-  const namesAnyType = Object.values(SKIN_STEMS).some((stem) => text.includes(stem));
-  return namesAnyType ? 0 : 1;
-}
 
 // There is no sales data yet, so "popular" is a stand-in: products with a
 // photo first, interleaved across categories so the slider and the popular
@@ -122,7 +104,7 @@ export default function Home() {
             </div>
           ) : (
             <Link
-              href="/skin-profile"
+              href="/profile"
               className="bg-card rounded-[var(--radius-card)] border border-border p-4.5 flex items-center justify-between gap-4 shadow-[var(--shadow-card)] transition hover:border-accent/30 active:scale-[0.99]"
             >
               <div className="flex items-center gap-3.5">

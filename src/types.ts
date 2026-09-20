@@ -37,6 +37,8 @@ export type Branch = {
   phone: string;
   whatsapp: string;
   hours: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type Feedback = {
