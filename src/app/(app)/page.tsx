@@ -2,128 +2,201 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Sparkles, ChevronRight, Wand2 } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { skinTypeLabel, type SkinType } from "@/lib/skincare";
-import { CATEGORY_GROUPS } from "@/lib/categories";
 import { SKIN_TYPE_CATEGORIES } from "@/lib/personalization";
 import { ProductCard } from "@/components/ProductCard";
+import { HeroSlider } from "@/components/HeroSlider";
+import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
 import type { Product } from "@/types";
 
-const CARDS = [
-  {
-    href: "/routine",
-    emoji: "🧴",
-    title: "Мой уход",
-    text: "Порядок утром и вечером",
-  },
-  {
-    href: "/catalog?tab=search",
-    emoji: "🔎",
-    title: "Найти товар",
-    text: "По названию или бренду",
-  },
-  {
-    href: "/catalog?tab=budget",
-    emoji: "💰",
-    title: "По бюджету",
-    text: "Товары в вашей цене",
-  },
-  {
-    href: "/mybag",
-    emoji: "❤️",
-    title: "Моя косметичка",
-    text: "Сохранённые товары",
-  },
-];
+const SLIDES = 5;
+const POPULAR = 8;
+const FOR_YOU = 12;
+
+// Word stems for how a product's "для кого" text names each skin type.
+const SKIN_STEMS: Record<SkinType, string> = {
+  dry: "сух",
+  oily: "жирн",
+  combination: "комбинир",
+  normal: "нормальн",
+  sensitive: "чувствител",
+};
+
+// 2 = the product says it is for this skin type, 1 = names no skin type at all
+// (universal), 0 = names only other skin types.
+function skinFit(p: Product, type: SkinType): number {
+  const text = (p.purpose ?? "").toLowerCase();
+  if (text.includes(SKIN_STEMS[type])) return 2;
+  const namesAnyType = Object.values(SKIN_STEMS).some((stem) => text.includes(stem));
+  return namesAnyType ? 0 : 1;
+}
+
+// There is no sales data yet, so "popular" is a stand-in: products with a
+// photo first, interleaved across categories so the slider and the popular
+// grid show variety instead of five creams in a row. Swap this for a real
+// signal (an admin "хит" flag or order counts) once one exists.
+function pickShowcase(all: Product[]): Product[] {
+  const withImage = all.filter((p) => p.imageUrl);
+  const pool = withImage.length >= SLIDES ? withImage : [...withImage, ...all.filter((p) => !p.imageUrl)];
+  const byCategory = new Map<string, Product[]>();
+  for (const p of pool) {
+    const list = byCategory.get(p.category);
+    if (list) list.push(p);
+    else byCategory.set(p.category, [p]);
+  }
+  const lists = [...byCategory.values()];
+  const out: Product[] = [];
+  for (let i = 0; out.length < pool.length; i++) {
+    let added = false;
+    for (const list of lists) {
+      if (list[i]) {
+        out.push(list[i]);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return out;
+}
 
 export default function Home() {
   const { session } = useSession();
   const skinLabel = skinTypeLabel(session?.skinType ?? null);
   const skinType = session?.skinType as SkinType | null | undefined;
 
-  const [recommended, setRecommended] = useState<Product[]>([]);
+  const [showcase, setShowcase] = useState<Product[]>([]);
+  const [forYou, setForYou] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetching data on mount — see the same pattern/rationale in BranchManager.tsx.
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setShowcase(pickShowcase(data.products ?? [])))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     if (!skinType || !(skinType in SKIN_TYPE_CATEGORIES)) return;
     const categories = SKIN_TYPE_CATEGORIES[skinType].join(",");
-    // Fetching data on mount/when skin type changes — see the same
-    // pattern/rationale in BranchManager.tsx.
     fetch(`/api/products?category=${encodeURIComponent(categories)}`)
       .then((res) => (res.ok ? res.json() : { products: [] }))
-      .then((data: { products: Product[] }) => setRecommended((data.products ?? []).slice(0, 6)))
-      .catch(() => setRecommended([]));
+      .then((data: { products: Product[] }) => {
+        const list = data.products ?? [];
+        // Best skin-type fit first, then products with a photo (a rail of empty
+        // placeholders reads as broken). Products that name only *other* skin
+        // types are dropped unless that would leave the rail nearly empty.
+        const ranked = list
+          .map((p) => ({ p, fit: skinFit(p, skinType), img: p.imageUrl ? 1 : 0 }))
+          .sort((a, b) => b.fit - a.fit || b.img - a.img);
+        const fitting = ranked.filter((r) => r.fit > 0);
+        const chosen = fitting.length >= 10 ? fitting : ranked;
+        setForYou(chosen.slice(0, FOR_YOU).map((r) => r.p));
+      })
+      .catch(() => setForYou([]));
   }, [skinType]);
 
-  return (
-    <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
-      <div className="text-center mb-8">
-        <h1 className="font-display text-4xl sm:text-5xl leading-tight">{session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}</h1>
-        <p className="text-muted mt-2">Красота начинается с правильного ухода</p>
-      </div>
+  const slides = showcase.slice(0, SLIDES);
+  const popular = showcase.slice(0, POPULAR);
 
-      <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6 flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm text-muted mb-1">Моя кожа</div>
-          <div className="font-display text-xl">
-            {skinLabel ?? "Расскажите нам о своей коже"}
-          </div>
-        </div>
+  return (
+    <main className="flex-1 pb-6">
+      <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
+        {loading ? (
+          <Skeleton className="aspect-[16/11] rounded-[var(--radius-card)]" />
+        ) : slides.length > 0 ? (
+          <HeroSlider products={slides} />
+        ) : null}
+
+        <Section title="Специально для тебя" icon={Sparkles} hint={skinLabel ? `Кожа: ${skinLabel.toLowerCase()}` : undefined}>
+          {forYou.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {forYou.map((product) => (
+                <div key={product.id} className="w-40 shrink-0 snap-start">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Link
+              href="/skin-profile"
+              className="bg-card rounded-[var(--radius-card)] border border-border p-4.5 flex items-center justify-between gap-4 shadow-[var(--shadow-card)] transition hover:border-accent/30 active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-3.5">
+                <span className="flex items-center justify-center w-11 h-11 rounded-full bg-accent-soft text-accent shrink-0">
+                  <Wand2 className="size-5" strokeWidth={1.85} aria-hidden />
+                </span>
+                <div>
+                  <div className="font-display text-lg leading-tight">Расскажите о своей коже</div>
+                  <div className="text-xs text-muted mt-0.5">Заполните анкету — подберём подходящие товары</div>
+                </div>
+              </div>
+              <ChevronRight className="size-4.5 text-muted shrink-0" strokeWidth={2} aria-hidden />
+            </Link>
+          )}
+        </Section>
+
+        <Section title="Популярные товары" action={{ href: "/catalog", label: "Весь каталог" }}>
+          {loading ? (
+            <ProductGridSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {popular.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </Section>
+
         <Link
-          href="/skin-profile"
-          className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          href="/routine"
+          className="bg-accent-soft rounded-[var(--radius-card)] p-5 flex items-center justify-between gap-4 transition hover:brightness-[0.98] active:scale-[0.99]"
         >
-          Настроить
+          <div>
+            <div className="font-display text-lg mb-1">Мой уход</div>
+            <div className="text-sm text-accent-strong/80">Порядок применения утром и вечером — по вашему типу кожи</div>
+          </div>
+          <ChevronRight className="size-5 text-accent shrink-0" strokeWidth={2} aria-hidden />
         </Link>
       </div>
-
-      <div className="text-sm text-muted mb-3">Категории</div>
-      <div className="grid grid-cols-2 gap-3 mb-8">
-        {CATEGORY_GROUPS.map((group, i) => (
-          <Link
-            key={group.name}
-            href={`/catalog?group=${encodeURIComponent(group.name)}`}
-            className={[
-              "bg-card rounded-2xl border border-black/5 p-4 flex items-center gap-3 transition hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-              // Last tile spans both columns when the count is odd, matching the design mockup.
-              i === CATEGORY_GROUPS.length - 1 && CATEGORY_GROUPS.length % 2 === 1 ? "col-span-2" : "",
-            ].join(" ")}
-          >
-            <span className="text-2xl shrink-0">{group.emoji}</span>
-            <div className="flex flex-col">
-              <span className="font-display text-base leading-snug">{group.name}</span>
-              <span className="text-xs text-muted">
-                {group.children.length > 0 ? `${group.children.length} разделов` : "все товары"}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {recommended.length > 0 && (
-        <>
-          <div className="text-sm text-muted mb-3">Подобрано для вас</div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-            {recommended.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </>
-      )}
-
-      <div className="text-sm text-muted mb-3">Ярлыки</div>
-      <div className="grid grid-cols-2 gap-4">
-        {CARDS.map((card) => (
-          <Link
-            key={card.title}
-            href={card.href}
-            className="bg-card rounded-2xl border border-black/5 p-5 flex flex-col gap-2 transition hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <span className="text-3xl">{card.emoji}</span>
-            <span className="font-display text-lg leading-snug">{card.title}</span>
-            <span className="text-sm text-muted">{card.text}</span>
-          </Link>
-        ))}
-      </div>
     </main>
+  );
+}
+
+function Section({
+  title,
+  icon: Icon,
+  hint,
+  action,
+  children,
+}: {
+  title: string;
+  icon?: typeof Sparkles;
+  hint?: string;
+  action?: { href: string; label: string };
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="flex items-end justify-between mb-3">
+        <div>
+          <div className="flex items-center gap-1.5">
+            {Icon && <Icon className="size-4 text-accent" strokeWidth={2} aria-hidden />}
+            <h2 className="font-display text-xl">{title}</h2>
+          </div>
+          {hint && <div className="text-xs text-muted mt-0.5">{hint}</div>}
+        </div>
+        {action && (
+          <Link href={action.href} className="text-xs font-medium text-accent flex items-center gap-0.5 hover:underline pb-0.5">
+            {action.label}
+            <ChevronRight className="size-3.5" strokeWidth={2} aria-hidden />
+          </Link>
+        )}
+      </div>
+      {children}
+    </div>
   );
 }

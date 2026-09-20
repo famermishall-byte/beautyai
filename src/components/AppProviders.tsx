@@ -9,6 +9,7 @@ import { AccessDeniedBanner } from "@/components/AccessDeniedBanner";
 import { NavHeader } from "@/components/NavHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { CartDrawer } from "@/components/CartDrawer";
+import { FirstRunFlow } from "@/components/FirstRunFlow";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -23,6 +24,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <div className="pb-20">{children}</div>
             <CartDrawer />
             <BottomNav />
+            <FirstRunFlow />
           </AppSplashGate>
         </MyBagProvider>
       </CartProvider>

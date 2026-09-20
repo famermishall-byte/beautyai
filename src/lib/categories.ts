@@ -1,3 +1,5 @@
+import { Droplet, Palette, Scissors, type LucideIcon } from "lucide-react";
+
 // The flat list of product categories, as stored on products.category.
 export const CATEGORIES = [
   "Уход за лицом",
@@ -14,7 +16,7 @@ export const CATEGORIES = [
 
 export type CategoryGroup = {
   name: string;
-  emoji: string;
+  icon: LucideIcon;
   /** Sub-categories shown as chips once this group is picked. Empty means the tile goes straight to the filtered catalog. */
   children: string[];
 };
@@ -25,9 +27,9 @@ export type CategoryGroup = {
 export const CATEGORY_GROUPS: CategoryGroup[] = [
   {
     name: "Уход за лицом",
-    emoji: "🧴",
+    icon: Droplet,
     children: ["Очищение", "Тоники", "Сыворотки", "Кремы", "SPF", "Маски", "Уход за глазами"],
   },
-  { name: "Макияж", emoji: "💄", children: [] },
-  { name: "Уход за волосами", emoji: "💇‍♀️", children: [] },
+  { name: "Макияж", icon: Palette, children: [] },
+  { name: "Уход за волосами", icon: Scissors, children: [] },
 ];

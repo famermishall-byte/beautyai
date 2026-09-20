@@ -1,29 +1,87 @@
 @import "tailwindcss";
 
 :root {
+  /* Brand — sourced from the client's real logo/Instagram identity; keep. */
   --background: #fbe3ec;
   --foreground: #241f1d;
   --accent: #c8135f;
+  --accent-strong: #970e49;
   --accent-soft: #f8dbe9;
   --card: #ffffff;
   --muted: #6b5c62;
+  --border: rgba(36, 31, 29, 0.09);
+  --border-strong: rgba(36, 31, 29, 0.16);
+
+  /* Semantic status colors — one family each, tuned to sit next to the brand pink. */
+  --success: #1a7f4e;
+  --success-soft: #e3f5ec;
+  --warning: #b6560f;
+  --warning-soft: #fdead4;
+  --error: #c81f3d;
+  --error-soft: #fbe4e8;
+
+  /* Elevation: tight contact shadow + a soft, brand-tinted ambient glow. */
+  --shadow-card: 0 1px 2px rgba(36, 15, 20, 0.05), 0 12px 28px -18px rgba(151, 14, 73, 0.35);
+  --shadow-float: 0 6px 16px -4px rgba(151, 14, 73, 0.32), 0 2px 6px rgba(36, 15, 20, 0.12);
+  --shadow-sheet: 0 -16px 40px -16px rgba(36, 15, 20, 0.28);
+
+  --radius-card: 18px;
+  --radius-control: 13px;
+
+  /* The bottom nav's own content height (excludes the safe-area inset it
+     also pads for) — anything else pinned above it (a PDP's sticky action
+     bar) offsets by this plus the same inset, so the two never overlap. */
+  --bottom-nav-h: 64px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
   --color-card: var(--card);
   --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
   --font-sans: var(--font-inter);
   --font-display: var(--font-playfair);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* A visible, on-brand focus ring for keyboard users, everywhere at once —
+   layered on top of the per-component focus-visible:ring-accent utilities
+   already in use, not a replacement for them. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @keyframes splash-in {
@@ -36,7 +94,120 @@ body {
     transform: translateY(0) scale(1);
   }
 }
-
 .animate-splash-in {
   animation: splash-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise-in {
+  animation: rise-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.animate-sheet-in {
+  animation: sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -300px 0;
+  }
+  to {
+    background-position: 300px 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--accent-soft) 25%, #ffffff 37%, var(--accent-soft) 63%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-splash-in,
+  .animate-rise-in,
+  .animate-sheet-in,
+  .animate-pop,
+  .skeleton {
+    animation: none !important;
+  }
+}
+
+/* Logo intro (first run): mark scales in, two rings ripple out, name fades up. */
+@keyframes intro-logo {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes intro-ring {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+@keyframes intro-text {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.intro-logo {
+  animation: intro-logo 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.intro-ring {
+  animation: intro-ring 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.intro-text {
+  animation: intro-text 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-logo,
+  .intro-ring,
+  .intro-text {
+    animation: none !important;
+  }
 }

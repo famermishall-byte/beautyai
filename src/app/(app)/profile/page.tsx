@@ -2,10 +2,22 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import {
+  ChevronRight,
+  ShoppingBag,
+  Heart,
+  MapPin,
+  Store,
+  MessageCircle,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useSession, type Session } from "@/lib/session-context";
 import { skinTypeLabel, skinConcernLabel } from "@/lib/skincare";
+import { Button } from "@/components/ui/Button";
 
 export default function ProfilePage() {
   const { session, loading, isAdmin, signOut, refresh } = useSession();
@@ -153,15 +165,16 @@ export default function ProfilePage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-black/10 bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
+  const cardClass = "bg-card rounded-[var(--radius-card)] border border-border p-5 mb-4 shadow-[var(--shadow-card)]";
 
   return (
-    <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
+    <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
       <h1 className="font-display text-3xl mb-1">Профиль</h1>
-      <p className="text-muted mb-8">{session?.email}</p>
+      <p className="text-muted text-sm mb-7">{session?.email}</p>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
-        <h2 className="font-medium mb-3">Имя</h2>
+      <div className={cardClass}>
+        <h2 className="font-medium mb-3 text-sm">Имя</h2>
         <form onSubmit={handleSaveName} className="flex gap-2">
           <input
             value={displayName}
@@ -169,20 +182,16 @@ export default function ProfilePage() {
             placeholder="Как вас называть?"
             className={inputClass}
           />
-          <button
-            type="submit"
-            disabled={nameSubmitting}
-            className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-          >
+          <Button type="submit" size="sm" disabled={nameSubmitting} className="shrink-0">
             {nameSaved ? "Сохранено ✓" : nameSubmitting ? "Сохраняем…" : "Сохранить"}
-          </button>
+          </Button>
         </form>
       </div>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
+      <div className={cardClass}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">Моя кожа</h2>
-          <Link href="/skin-profile" className="text-sm text-accent underline">
+          <h2 className="font-medium text-sm">Моя кожа</h2>
+          <Link href="/skin-profile" className="text-sm text-accent font-medium hover:underline">
             Изменить
           </Link>
         </div>
@@ -199,13 +208,15 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
-        <h2 className="font-medium mb-3">Email</h2>
+      <div className={cardClass}>
+        <h2 className="font-medium mb-3 text-sm">Email</h2>
         {emailNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-3">{emailNotice}</p>
+          <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3 mb-3">
+            {emailNotice}
+          </p>
         )}
         {emailError && (
-          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{emailError}</p>
+          <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mb-3">{emailError}</p>
         )}
         <form onSubmit={handleChangeEmail} className="flex gap-2">
           <input
@@ -215,25 +226,17 @@ export default function ProfilePage() {
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
           />
-          <button
-            type="submit"
-            disabled={emailSubmitting || !newEmail.trim()}
-            className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-          >
+          <Button type="submit" size="sm" disabled={emailSubmitting || !newEmail.trim()} className="shrink-0">
             {emailSubmitting ? "Отправляем…" : "Изменить"}
-          </button>
+          </Button>
         </form>
       </div>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
+      <div className={cardClass}>
         <div className="flex items-center justify-between">
-          <h2 className="font-medium">Пароль</h2>
+          <h2 className="font-medium text-sm">Пароль</h2>
           {!showPasswordForm && (
-            <button
-              type="button"
-              onClick={() => setShowPasswordForm(true)}
-              className="text-sm text-accent underline"
-            >
+            <button type="button" onClick={() => setShowPasswordForm(true)} className="text-sm text-accent font-medium hover:underline">
               Изменить пароль
             </button>
           )}
@@ -242,10 +245,12 @@ export default function ProfilePage() {
         {showPasswordForm && (
           <>
             {passwordNotice && (
-              <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mt-3">{passwordNotice}</p>
+              <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3 mt-3">
+                {passwordNotice}
+              </p>
             )}
             {passwordError && (
-              <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mt-3">{passwordError}</p>
+              <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mt-3">{passwordError}</p>
             )}
             <form onSubmit={handleChangePassword} className="flex flex-col gap-3 mt-3">
               <PasswordInput
@@ -263,103 +268,94 @@ export default function ProfilePage() {
                 autoComplete="new-password"
               />
               <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={passwordSubmitting || !newPassword}
-                  className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
-                >
+                <Button type="submit" size="sm" disabled={passwordSubmitting || !newPassword}>
                   {passwordSubmitting ? "Сохраняем…" : "Сохранить пароль"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelPasswordForm}
-                  className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5"
-                >
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={handleCancelPasswordForm}>
                   Отмена
-                </button>
+                </Button>
               </div>
             </form>
           </>
         )}
       </div>
 
-      <div className="flex flex-col gap-2 mb-6">
-        <Link href="/orders" className="text-sm text-accent underline">
-          Мои покупки
-        </Link>
-        <Link href="/mybag" className="text-sm text-accent underline">
-          Моя косметичка
-        </Link>
-        <Link href="/city" className="text-sm text-accent underline">
-          Мой город
-        </Link>
-        <Link href="/branches" className="text-sm text-accent underline">
-          Магазины
-        </Link>
-        <Link href="/feedback" className="text-sm text-accent underline">
-          Обратная связь
-        </Link>
+      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-6 mt-2">
+        <MenuRow href="/orders" icon={ShoppingBag} label="Мои покупки" />
+        <MenuRow href="/mybag" icon={Heart} label="Моя косметичка" />
+        <MenuRow href="/city" icon={MapPin} label="Мой город" />
+        <MenuRow href="/branches" icon={Store} label="Магазины" />
+        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isAdmin} />
         {isAdmin && (
           <>
-            <Link href="/admin" className="text-sm text-accent underline">
-              Админ-панель магазина
-            </Link>
-            <Link href="/admin/settings" className="text-sm text-accent underline">
-              Настройки магазина
-            </Link>
+            <MenuRow href="/admin" icon={LayoutDashboard} label="Админ-панель магазина" />
+            <MenuRow href="/admin/settings" icon={Settings} label="Настройки магазина" last />
           </>
         )}
       </div>
 
-      <button
-        onClick={handleSignOut}
-        className="w-full rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      >
+      <Button variant="ghost" size="lg" fullWidth onClick={handleSignOut}>
+        <LogOut className="size-4.5" strokeWidth={1.85} aria-hidden />
         Выйти
-      </button>
+      </Button>
 
       <button
         type="button"
         onClick={() => setShowDeleteConfirm(true)}
-        className="w-full text-center text-xs text-muted underline mt-6 transition hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+        className="w-full text-center text-xs text-muted underline mt-6 transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
       >
         Удалить аккаунт
       </button>
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => !deleting && setShowDeleteConfirm(false)}
-          />
-          <div className="relative w-full max-w-sm bg-background rounded-2xl shadow-xl p-6">
+          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => !deleting && setShowDeleteConfirm(false)} />
+          <div className="relative w-full max-w-sm bg-background rounded-[var(--radius-card)] shadow-xl p-6 animate-rise-in">
             <h2 className="font-display text-xl mb-3">Удалить аккаунт?</h2>
-            <p className="text-sm text-muted mb-6">
+            <p className="text-sm text-muted mb-6 leading-relaxed">
               Вы уверены, что хотите удалить аккаунт? Все сохранённые данные, информация о коже,
               косметичка и история покупок будут удалены без возможности восстановления.
             </p>
-            {deleteError && <p className="text-sm text-red-600 mb-4">{deleteError}</p>}
+            {deleteError && <p className="text-sm text-error mb-4">{deleteError}</p>}
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleting}
-                className="flex-1 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 disabled:opacity-50"
-              >
+              <Button variant="ghost" className="flex-1" disabled={deleting} onClick={() => setShowDeleteConfirm(false)}>
                 Отмена
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleting}
-                className="flex-1 rounded-full bg-red-600 text-white px-4 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
-              >
-                {deleting ? "Удаляем…" : "Удалить аккаунт"}
-              </button>
+              </Button>
+              <Button variant="danger" className="flex-1" disabled={deleting} onClick={handleDeleteAccount}>
+                {deleting ? "Удаляем…" : "Удалить"}
+              </Button>
             </div>
           </div>
         </div>
       )}
     </main>
+  );
+}
+
+function MenuRow({
+  href,
+  icon: Icon,
+  label,
+  last = false,
+}: {
+  href: string;
+  icon: typeof ShoppingBag;
+  label: string;
+  last?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "flex items-center gap-3.5 px-5 py-4 transition hover:bg-black/[0.02] active:bg-black/[0.04]",
+        !last ? "border-b border-border" : "",
+      ].join(" ")}
+    >
+      <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
+        <Icon className="size-4.5" strokeWidth={1.85} aria-hidden />
+      </span>
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      <ChevronRight className="size-4 text-muted" strokeWidth={2} aria-hidden />
+    </Link>
   );
 }

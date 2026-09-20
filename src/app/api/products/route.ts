@@ -18,6 +18,7 @@ function toProduct(
     purpose: p.purpose,
     inStock: p.in_stock,
     imageUrl: p.image_url,
+    createdAt: p.created_at,
     ...(branchInfo ? { branchQuantity: branchInfo.quantity, availableAtOtherBranch: branchInfo.availableAtOtherBranch } : {}),
   };
 }
