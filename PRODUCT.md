@@ -88,7 +88,6 @@ a bare admin tool.
   `scripts/build-brand-assets.mjs`.
 - Typeface: Manrope everywhere (client's explicit choice, 2026-09-20; supersedes the
   earlier Playfair Display + Inter pairing).
-  premium feel, not a decided constraint to keep verbatim.
 
 ## Evidence on Hand
 
