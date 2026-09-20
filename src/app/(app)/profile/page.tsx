@@ -21,18 +21,16 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useSession } from "@/lib/session-context";
 import { getStoredCity } from "@/lib/city";
-import { skinTypeLabel, skinConcernLabel, type SkinType, type SkinConcern } from "@/lib/skincare";
-import { hairTypeLabel, hairConcernLabel, type HairType, type HairConcern } from "@/lib/haircare";
+import type { SkinType, SkinConcern } from "@/lib/skincare";
+import type { HairType, HairConcern } from "@/lib/haircare";
 import { buildCareKit } from "@/lib/kit";
-import { ageFromBirthDate, formatBirthDate, yearsLabel } from "@/lib/birthdate";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AvatarUploader } from "@/components/profile/AvatarUploader";
+import { QuestionnaireSummary } from "@/components/profile/QuestionnaireSummary";
 import { QuestionnaireForm } from "@/components/profile/QuestionnaireForm";
 import { CareKitView } from "@/components/profile/CareKitView";
 import type { Product } from "@/types";
-
-const GENDER_LABELS: Record<string, string> = { female: "Женский", male: "Мужской" };
 
 export default function ProfilePage() {
   const { session, loading, isAdmin, signOut, refresh } = useSession();
@@ -184,26 +182,6 @@ export default function ProfilePage() {
   const cardClass = "bg-card rounded-[var(--radius-card)] border border-border p-5 mb-4 shadow-[var(--shadow-card)]";
   const initial = (session.displayName ?? session.email ?? "").trim().charAt(0).toUpperCase();
 
-  const birthLabel = session.birthDate
-    ? `${formatBirthDate(session.birthDate)} (${ageFromBirthDate(session.birthDate)} ${yearsLabel(ageFromBirthDate(session.birthDate))})`
-    : "не указана";
-
-  const summary: { label: string; value: string }[] = [
-    { label: "Имя", value: session.displayName ?? "не указано" },
-    { label: "Дата рождения", value: birthLabel },
-    { label: "Пол", value: session.gender ? (GENDER_LABELS[session.gender] ?? "не указан") : "не указан" },
-    {
-      label: "Кожа",
-      value:
-        [skinTypeLabel(skinType), ...skinConcerns.map(skinConcernLabel)].filter(Boolean).join(", ") || "не указана",
-    },
-    {
-      label: "Волосы",
-      value:
-        [hairTypeLabel(hairType), ...hairConcerns.map(hairConcernLabel)].filter(Boolean).join(", ") || "не указаны",
-    },
-  ];
-
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
       <h1 className="font-title text-3xl leading-tight mb-6 text-center">Личный кабинет</h1>
@@ -245,14 +223,14 @@ export default function ProfilePage() {
             />
           </>
         ) : (
-          <dl className="flex flex-col gap-2.5">
-            {summary.map((row) => (
-              <div key={row.label} className="flex gap-3 text-sm">
-                <dt className="w-20 shrink-0 text-muted">{row.label}</dt>
-                <dd className="flex-1">{row.value}</dd>
-              </div>
-            ))}
-          </dl>
+          <QuestionnaireSummary
+            birthDate={session.birthDate}
+            gender={session.gender}
+            skinType={skinType}
+            skinConcerns={skinConcerns}
+            hairType={hairType}
+            hairConcerns={hairConcerns}
+          />
         )}
       </div>
 
