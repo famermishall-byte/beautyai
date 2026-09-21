@@ -16,6 +16,8 @@ import {
   Smile,
   Sun,
   SprayCan,
+  Sparkles,
+  Wind,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +35,9 @@ export const CATEGORIES = [
   "Массажеры",
   "Макияж",
   "Уход за волосами",
+  "Шампуни",
+  "Кондиционеры",
+  "Маски для волос",
 ];
 
 /** A second-level choice inside a group (e.g. "СПФ" inside "Уход за кожей"). */
@@ -41,6 +46,8 @@ export type CategorySection = {
   icon: LucideIcon;
   /** products.category values this section covers. */
   categories: string[];
+  /** Optional attribute filter: a product must mention one of these (in purpose / characteristics / name), e.g. "тип волос: сухие". */
+  keywords?: string[];
 };
 
 export type CategoryGroup = {
@@ -83,11 +90,36 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
       { label: "Уход для тела", icon: PersonStanding, categories: ["Уход для тела"] },
       { label: "СПФ", icon: Sun, categories: ["SPF"] },
       { label: "Массажеры", icon: Hand, categories: ["Массажеры"] },
+      { label: "Кремы", icon: Droplet, categories: ["Кремы"] },
+      { label: "Сыворотки", icon: FlaskConical, categories: ["Сыворотки"] },
+      { label: "Маски для лица", icon: Smile, categories: ["Маски"] },
     ],
   },
   { name: "Макияж", icon: Brush, children: [] },
   { name: "Парфюм", icon: SprayCan, children: [] },
-  { name: "Уход за волосами", label: "Волосы", icon: Scissors, children: [] },
+  {
+    name: "Уход за волосами",
+    label: "Волосы",
+    icon: Scissors,
+    children: ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"],
+    sections: [
+      { label: "Шампуни", icon: Droplets, categories: ["Шампуни"] },
+      { label: "Кондиционеры", icon: Wind, categories: ["Кондиционеры"] },
+      { label: "Маски для волос", icon: Sparkles, categories: ["Маски для волос"] },
+      {
+        label: "Для сухих волос",
+        icon: Sun,
+        categories: ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"],
+        keywords: ["тип волос: сухие"],
+      },
+      {
+        label: "Для жирных волос",
+        icon: Droplet,
+        categories: ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"],
+        keywords: ["тип волос: жирные"],
+      },
+    ],
+  },
   { name: "Аптечная косметика", icon: FlaskConical, children: [] },
   { name: "Личная гигиена", icon: ShieldCheck, children: [] },
   { name: "Нижнее бельё", icon: Heart, children: [] },

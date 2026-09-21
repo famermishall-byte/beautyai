@@ -136,6 +136,13 @@ function CatalogContent() {
 
   const visible = useMemo(() => {
     let list = products;
+    const keywords = activeSection?.keywords;
+    if (keywords) {
+      list = list.filter((p) => {
+        const text = [p.purpose, p.characteristics, p.name].filter(Boolean).join(" ").toLowerCase();
+        return keywords.some((k) => text.includes(k));
+      });
+    }
     if (brand) list = list.filter((p) => p.brand === brand);
     if (onlyInStock) list = list.filter((p) => p.branchQuantity === undefined || (p.branchQuantity ?? 0) > 0);
     list = [...list].sort((a, b) => {
@@ -144,7 +151,7 @@ function CatalogContent() {
       return a.name.localeCompare(b.name, "ru");
     });
     return list;
-  }, [products, brand, onlyInStock, sort]);
+  }, [products, brand, onlyInStock, sort, activeSection]);
 
   // The search screen opens as a grid of category tiles; anything that narrows
   // the catalog (a query, a tile, "Все продукты", the budget shortcut) swaps

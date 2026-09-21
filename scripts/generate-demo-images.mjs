@@ -22,6 +22,13 @@ const ITEMS = {
   "KD-01": ["bottle", 1], "KD-02": ["tube", 5], "KD-03": ["tube", 0],
   "AC-01": ["brush", 3], "AC-02": ["scrunchies", 0], "AC-03": ["bag", 0],
   "MR-01": ["bag", 3], "MR-02": ["hoodie", 0], "MR-03": ["mug", 4],
+  "HS-01": ["bottle", 2], "HS-02": ["bottle", 4], "HS-03": ["bottle", 1], "HS-04": ["pump", 1],
+  "HC-01": ["bottle", 3], "HC-02": ["bottle", 5], "HC-03": ["pump", 0],
+  "HK-01": ["jar", 4], "HK-02": ["jar", 1], "HK-03": ["jar", 0], "HR-04": ["dropper", 3],
+  "FF-01": ["tube", 4], "FF-02": ["bottle", 4], "FF-03": ["tube", 1],
+  "FC-01": ["jar", 4], "FC-02": ["jar", 2], "FC-03": ["tube", 1], "FC-04": ["tube", 0],
+  "FS-01": ["dropper", 3], "FS-02": ["dropper", 4], "FS-03": ["dropper", 1], "FS-04": ["dropper", 2],
+  "FM-01": ["pack", 1], "FM-02": ["jar", 3],
   "GF-01": ["box", 0], "GF-02": ["box", 2], "GF-03": ["card", 4],
 };
 
