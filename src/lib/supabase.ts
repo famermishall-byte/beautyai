@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
+import type { OrderItem } from "@/types";
 
 // Клиент без авторизации пользователя — RLS теперь ограничивает доступ к данным
 // (products/branches/orders/stores) только авторизованным пользователям своего
@@ -61,6 +62,9 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
     statusSource: (row.status_source as string | null | undefined) ?? null,
     statusChangedAt: (row.status_changed_at as string | null | undefined) ?? null,
     branch: row.branches ? mapBranch(row.branches) : null,
-    items: row.items_json as { name: string; brand: string; price: number; quantity: number }[],
+    originalTotal: (row.original_total as number | null | undefined) ?? null,
+    editedAt: (row.edited_at as string | null | undefined) ?? null,
+    editedBy: (row.edited_by as string | null | undefined) ?? null,
+    items: row.items_json as OrderItem[],
   };
 }

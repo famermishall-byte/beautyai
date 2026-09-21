@@ -45,19 +45,29 @@ export default function OrdersPage() {
               </div>
               <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString("ru-RU")}</div>
               <div className="flex flex-col gap-1 mb-3">
-                {order.items.map((item, i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span>
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span>{(item.price * item.quantity).toLocaleString("ru-RU")} сом</span>
-                  </div>
-                ))}
+                {order.items.map((item, i) => {
+                  const ordered = item.orderedQuantity ?? item.quantity;
+                  return (
+                    <div key={i} className="flex justify-between gap-3 text-sm">
+                      <span className={item.quantity === 0 ? "line-through text-muted" : ""}>
+                        {item.name} × {item.quantity === 0 ? ordered : item.quantity}
+                        {item.quantity === 0 && <span className="no-underline text-xs text-error ml-2 inline-block">нет в наличии</span>}
+                        {item.quantity > 0 && item.quantity < ordered && <span className="text-xs text-error ml-2">было {ordered}</span>}
+                      </span>
+                      <span className="shrink-0">{item.quantity === 0 ? "—" : `${(item.price * item.quantity).toLocaleString("ru-RU")} сом`}</span>
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex justify-between font-display text-lg pt-2 border-t border-black/10">
                 <span>Итого</span>
                 <span>{order.totalPrice.toLocaleString("ru-RU")} сом</span>
               </div>
+              {order.originalTotal !== null && order.originalTotal !== order.totalPrice && (
+                <div className="text-xs text-muted text-right">
+                  Заказ изменён продавцом: было {order.originalTotal.toLocaleString("ru-RU")} сом, стало {order.totalPrice.toLocaleString("ru-RU")} сом
+                </div>
+              )}
               <div className="text-xs text-muted mt-2">
                 Филиал: {order.branch.name} · {order.branch.address}
               </div>

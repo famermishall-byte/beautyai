@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Order } from "@/types";
+import { useEffect, useRef, useState } from "react";
+import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
+import type { Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
+import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import {
   NEXT_ORDER_STEP,
   ORDER_STATUSES,
@@ -29,7 +31,19 @@ const PERIODS = [
 ] as const;
 type Period = (typeof PERIODS)[number]["key"];
 
+// The work queue first: orders that still need the seller's action.
+const GROUPS = [
+  { key: "action", label: "Требуют действия", statuses: ["sent", "confirmed"] },
+  { key: "problems", label: "Нет в наличии", statuses: ["sent", "confirmed"] },
+  { key: "paid", label: "Оплачены", statuses: ["paid", "shipped"] },
+  { key: "done", label: "Выполнены", statuses: ["completed"] },
+  { key: "cancelled", label: "Отменены", statuses: ["cancelled"] },
+  { key: "all", label: "Все", statuses: [] as string[] },
+] as const;
+type GroupKey = (typeof GROUPS)[number]["key"];
+
 const money = (n: number) => `${n.toLocaleString("ru-RU")} сом`;
+const isOpen = (o: Order) => o.status === "sent" || o.status === "confirmed";
 
 function inPeriod(iso: string, period: Period) {
   if (period === "all") return true;
@@ -37,6 +51,34 @@ function inPeriod(iso: string, period: Period) {
   const now = new Date();
   if (period === "today") return d.toDateString() === now.toDateString();
   return now.getTime() - d.getTime() <= Number(period) * 86_400_000;
+}
+
+/** Lines the branch may not be able to fill (only for orders still waiting for action). */
+function stockIssues(order: Order): { item: OrderItem; left: number }[] {
+  if (!isOpen(order)) return [];
+  return order.items
+    .filter((it) => it.quantity > 0 && it.stock && it.stock.quantity !== null && it.stock.quantity < it.quantity)
+    .map((it) => ({ item: it, left: it.stock!.quantity! }));
+}
+
+function beep() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    for (const [i, freq] of [880, 1175].entries()) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      gain.gain.value = 0.15;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.15);
+    }
+  } catch {
+    // звук недоступен — не страшно
+  }
 }
 
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
@@ -53,38 +95,64 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   );
 }
 
-function OrderRow({ order, onUpdated }: { order: Order; onUpdated: (updated: Order) => void }) {
+function OrderRow({
+  order,
+  canEdit,
+  selected,
+  onSelect,
+  onUpdated,
+}: {
+  order: Order;
+  canEdit: boolean;
+  selected: boolean;
+  onSelect: (checked: boolean) => void;
+  onUpdated: (updated: Order) => void;
+}) {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<number[]>(order.items.map((i) => i.quantity));
   const next = isOrderStatus(order.status) ? NEXT_ORDER_STEP[order.status] : undefined;
+  const issues = stockIssues(order);
+  const reduced = isReduced(order.items);
 
-  async function change(status: string) {
+  async function send(url: string, method: "PUT" | "PATCH", body: object, okText: string) {
     setSaving(true);
     setResult(null);
     try {
-      const res = await fetch(`/api/admin/orders/${order.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        onUpdated(data.order);
-        setResult({ ok: true, text: `✓ Статус: «${getOrderStatusAdminLabel(status)}»` });
-      } else {
-        setResult({ ok: false, text: data.error ?? "Не удалось изменить статус." });
+        onUpdated({ ...data.order, items: data.order.items.map((it: OrderItem, i: number) => ({ ...it, stock: order.items[i]?.stock })) });
+        setResult({ ok: true, text: okText });
+        return true;
       }
+      setResult({ ok: false, text: data.error ?? "Не удалось выполнить действие." });
     } catch {
-      setResult({ ok: false, text: "Нет связи с сервером. Статус не изменён." });
+      setResult({ ok: false, text: "Нет связи с сервером. Изменения не сохранены." });
     } finally {
       setSaving(false);
     }
+    return false;
   }
 
+  const changeStatus = (status: string) => send(`/api/admin/orders/${order.id}`, "PUT", { status }, `✓ Статус: «${getOrderStatusAdminLabel(status)}»`);
+
+  async function saveEdit() {
+    if (await send(`/api/admin/orders/${order.id}`, "PATCH", { quantities: draft }, "✓ Заказ изменён, сумма обновлена")) setEditing(false);
+  }
+
+  const draftTotal = orderTotal(order.items, draft);
+
   return (
-    <div className="border border-black/5 rounded-xl p-4">
+    <div className={["border rounded-xl p-4", issues.length > 0 ? "border-warning/50" : "border-black/5"].join(" ")}>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <span className="font-medium">#{order.number}</span>
+        <label className="flex items-center gap-2 font-medium">
+          {isOpen(order) && (
+            <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={`Выбрать заказ ${order.number}`} className="size-4 accent-[var(--accent)]" />
+          )}
+          #{order.number}
+        </label>
         <span className={["text-xs font-medium rounded-full px-2.5 py-1", PILL[order.status] ?? "bg-border text-muted"].join(" ")}>
           {getOrderStatusAdminLabel(order.status)}
         </span>
@@ -99,20 +167,72 @@ function OrderRow({ order, onUpdated }: { order: Order; onUpdated: (updated: Ord
       <div className="text-sm mb-2">
         {order.customerName} · {order.customerPhone}
       </div>
-      <div className="flex flex-col gap-1 mb-3">
-        {order.items.map((item, i) => (
-          <div key={i} className="flex justify-between text-sm">
-            <span>
-              {item.name} × {item.quantity}
-            </span>
-            <span>{(item.price * item.quantity).toLocaleString("ru-RU")} сом</span>
-          </div>
-        ))}
+
+      {issues.length > 0 && (
+        <div className="rounded-lg bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
+          ⚠ Проверьте наличие: {issues.map(({ item, left }) => `${item.name} — нужно ${item.quantity}, ${left === 0 ? "нет в наличии" : `осталось ${left}`}`).join("; ")}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1.5 mb-3">
+        {order.items.map((item, i) => {
+          const q = editing ? draft[i] : item.quantity;
+          const max = orderedQty(item);
+          const cut = item.quantity < max;
+          const stockQ = item.stock?.quantity;
+          const lineIssue = isOpen(order) && item.quantity > 0 && stockQ !== null && stockQ !== undefined && stockQ < item.quantity;
+          return (
+            <div key={i} className="flex items-start justify-between gap-3 text-sm">
+              <div className="min-w-0">
+                <span className={q === 0 ? "line-through text-muted" : ""}>
+                  {item.name} × {q}
+                </span>
+                {cut && !editing && (
+                  <span className="text-xs text-error ml-2">{item.quantity === 0 ? "нет в наличии" : `заказано ${max}`}</span>
+                )}
+                {isOpen(order) && item.stock && stockQ !== null && stockQ !== undefined && (
+                  <span className={["text-xs ml-2", lineIssue ? "text-warning font-medium" : "text-muted"].join(" ")}>
+                    в филиале: {stockQ === 0 ? "нет" : stockQ}
+                  </span>
+                )}
+              </div>
+              {editing ? (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.max(0, v - 1) : v)))}
+                    disabled={saving || draft[i] <= 0}
+                    aria-label="Уменьшить"
+                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
+                  >
+                    <Minus className="size-3.5" aria-hidden />
+                  </button>
+                  <button
+                    onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.min(max, v + 1) : v)))}
+                    disabled={saving || draft[i] >= max}
+                    aria-label="Увеличить"
+                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
+                  >
+                    <Plus className="size-3.5" aria-hidden />
+                  </button>
+                </div>
+              ) : (
+                <span className="shrink-0">{(item.price * item.quantity).toLocaleString("ru-RU")} сом</span>
+              )}
+            </div>
+          );
+        })}
       </div>
+
       <div className="flex justify-between font-display text-lg pt-2 border-t border-black/10">
         <span>Итого</span>
-        <span>{money(order.totalPrice)}</span>
+        <span>{money(editing ? draftTotal : order.totalPrice)}</span>
       </div>
+      {(reduced || order.originalTotal !== null) && (
+        <div className="text-xs text-muted text-right">
+          было {money(order.originalTotal ?? order.totalPrice)} · изменён {order.editedBy === "whatsapp" ? "продавцом в WhatsApp" : "в приложении"}
+          {order.editedAt ? ` · ${new Date(order.editedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
+        </div>
+      )}
       {order.branch && (
         <div className="text-xs text-muted mt-2">
           Филиал: {order.branch.name} · {order.branch.address}
@@ -120,29 +240,67 @@ function OrderRow({ order, onUpdated }: { order: Order; onUpdated: (updated: Ord
       )}
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
-        {next && (
-          <button
-            onClick={() => change(next.status)}
-            disabled={saving}
-            className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            {saving ? "Сохраняем…" : next.label}
-          </button>
+        {editing ? (
+          <>
+            <button
+              onClick={saveEdit}
+              disabled={saving || draft.every((q, i) => q === order.items[i].quantity)}
+              className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+            >
+              {saving ? "Сохраняем…" : `Сохранить · ${money(draftTotal)}`}
+            </button>
+            <button
+              onClick={() => {
+                setEditing(false);
+                setDraft(order.items.map((i) => i.quantity));
+              }}
+              className="text-sm text-muted underline"
+            >
+              Отмена
+            </button>
+          </>
+        ) : (
+          <>
+            {next && (
+              <button
+                onClick={() => changeStatus(next.status)}
+                disabled={saving}
+                className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {saving ? "Сохраняем…" : next.label}
+              </button>
+            )}
+            {canEdit && order.status !== "cancelled" && (
+              <button
+                onClick={() => {
+                  setDraft(order.items.map((i) => i.quantity));
+                  setEditing(true);
+                }}
+                className="rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:border-accent/40"
+              >
+                Изменить состав
+              </button>
+            )}
+            <select
+              value={order.status}
+              disabled={saving}
+              onChange={(e) => changeStatus(e.target.value)}
+              aria-label="Изменить статус заказа"
+              className="rounded-full bg-accent-soft text-accent text-xs px-3 py-2 outline-none disabled:opacity-50"
+            >
+              {ORDER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {ORDER_STATUS_ADMIN_LABELS[status]}
+                </option>
+              ))}
+            </select>
+          </>
         )}
-        <select
-          value={order.status}
-          disabled={saving}
-          onChange={(e) => change(e.target.value)}
-          aria-label="Изменить статус заказа"
-          className="rounded-full bg-accent-soft text-accent text-xs px-3 py-2 outline-none disabled:opacity-50"
-        >
-          {ORDER_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {ORDER_STATUS_ADMIN_LABELS[status]}
-            </option>
-          ))}
-        </select>
-        {result && <span aria-live="polite" className={["text-sm font-medium", result.ok ? "text-success" : "text-error"].join(" ")}>{result.text}</span>}
+        {result && (
+          <span aria-live="polite" className={["text-sm font-medium", result.ok ? "text-success" : "text-error"].join(" ")}>
+            {result.text}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -214,7 +372,8 @@ function SalesSummary({ orders, allBranches }: { orders: Order[]; allBranches: b
       )}
 
       <p className="text-xs text-muted mt-3">
-        В продажи входят заказы со статусом «Оплачен», «Передан курьеру» и «Выполнен». Новые, неоплаченные и отменённые заказы не считаются.
+        В продажи входят заказы со статусом «Оплачен», «Передан курьеру» и «Выполнен» — по их итоговой сумме (после изменений состава). Новые, неоплаченные и
+        отменённые заказы не считаются.
       </p>
     </div>
   );
@@ -228,19 +387,39 @@ export function OrderManager() {
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [group, setGroup] = useState<GroupKey>("action");
   const [branchFilter, setBranchFilter] = useState<string>("all");
+  const [query, setQuery] = useState("");
   const [shown, setShown] = useState(PAGE);
-
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkResult, setBulkResult] = useState("");
+  const [soundOn, setSoundOn] = useState(false);
+  const [alert, setAlert] = useState("");
+  const knownNew = useRef<Set<string> | null>(null);
+  const soundRef = useRef(false);
 
   async function load() {
     const res = await fetch("/api/admin/orders");
     const data = await res.json();
     if (!res.ok) setError(data.error ?? "Не удалось загрузить заказы.");
     else setError("");
-    setOrders(data.orders ?? []);
+    const list: Order[] = data.orders ?? [];
+    setOrders(list);
     setUpdatedAt(new Date());
+
+    // A new order arrived → tell the seller (banner + optional sound) so they don't have to watch WhatsApp chats.
+    const newIds = new Set(list.filter((o) => o.status === "sent").map((o) => o.id));
+    if (knownNew.current) {
+      const fresh = [...newIds].filter((id) => !knownNew.current!.has(id));
+      if (fresh.length > 0) {
+        setAlert(fresh.length === 1 ? "Новый заказ!" : `Новых заказов: ${fresh.length}`);
+        if (soundRef.current) beep();
+      }
+    }
+    knownNew.current = newIds;
+    document.title = newIds.size > 0 ? `(${newIds.size}) Заказы` : "Заказы";
   }
 
   useEffect(() => {
@@ -249,7 +428,8 @@ export function OrderManager() {
     // — not a derived-state case, so there's no render-time equivalent here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
-    // A seller taps a link in WhatsApp → the status changes in the database. Re-read every 20 s (and when the tab
+    const prevTitle = document.title;
+    // A seller taps a link in WhatsApp → the order changes in the database. Re-read every 20 s (and when the tab
     // comes back into focus) so the admin sees it without reloading.
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") load();
@@ -259,11 +439,19 @@ export function OrderManager() {
     return () => {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      document.title = prevTitle;
     };
   }, []);
 
+  function toggleSound() {
+    const on = !soundOn;
+    setSoundOn(on);
+    soundRef.current = on;
+    if (on) beep(); // also unlocks audio in the browser (needs a tap)
+  }
+
   function handleUpdated(updated: Order) {
-    setOrders((prev) => (prev ? prev.map((o) => (o.id === updated.id ? updated : o)) : prev));
+    setOrders((prev) => (prev ? prev.map((o) => (o.id === updated.id ? { ...updated, branch: updated.branch ?? o.branch } : o)) : prev));
   }
 
   const list = orders ?? [];
@@ -271,21 +459,72 @@ export function OrderManager() {
     (a, b) => a.city.localeCompare(b.city, "ru") || a.name.localeCompare(b.name, "ru")
   );
   const byBranch = branchFilter === "all" ? list : list.filter((o) => o.branch?.id === branchFilter);
-  const countOf = (s: string) => (s === "all" ? byBranch.length : byBranch.filter((o) => o.status === s).length);
-  const filtered = statusFilter === "all" ? byBranch : byBranch.filter((o) => o.status === statusFilter);
+  const q = query.trim().toLowerCase();
+  const searched = q ? byBranch.filter((o) => [o.number, o.customerName, o.customerPhone].some((v) => v?.toLowerCase().includes(q))) : byBranch;
+
+  const inGroup = (o: Order, key: GroupKey) => {
+    const g = GROUPS.find((x) => x.key === key)!;
+    if (key === "all") return true;
+    if (key === "problems") return isOpen(o) && stockIssues(o).length > 0;
+    return (g.statuses as readonly string[]).includes(o.status);
+  };
+  const countOf = (key: GroupKey) => searched.filter((o) => inGroup(o, key)).length;
+  const filtered = searched
+    .filter((o) => inGroup(o, group))
+    // the queue works oldest-first (whoever waits longest goes first); archives newest-first
+    .sort((a, b) => (group === "action" || group === "problems" ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt)));
+
+  const visibleOpenIds = filtered.slice(0, shown).filter(isOpen).map((o) => o.id);
+  const selectedIds = [...selected].filter((id) => filtered.some((o) => o.id === id));
+
+  async function markSelectedPaid() {
+    setBulkBusy(true);
+    setBulkResult("");
+    let done = 0;
+    for (const id of selectedIds) {
+      try {
+        const res = await fetch(`/api/admin/orders/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "paid" }) });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          handleUpdated(data.order);
+          done++;
+        }
+      } catch {
+        // пропускаем — итог покажем ниже
+      }
+    }
+    setSelected(new Set());
+    setBulkBusy(false);
+    setBulkResult(done === selectedIds.length ? `✓ Отмечено оплаченными: ${done}` : `Отмечено ${done} из ${selectedIds.length} — остальные не удалось, попробуйте ещё раз.`);
+  }
 
   return (
     <div>
       {orders !== null && <SalesSummary orders={list} allBranches={allBranches} />}
 
       <div className="bg-card rounded-2xl border border-black/5 p-6">
-        <h2 className="font-medium mb-1">Заказы</h2>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h2 className="font-medium">Заказы</h2>
+          <button
+            onClick={toggleSound}
+            className={["flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition", soundOn ? "bg-success-soft text-success" : "bg-accent-soft text-accent"].join(" ")}
+          >
+            {soundOn ? <Volume2 className="size-3.5" aria-hidden /> : <VolumeX className="size-3.5" aria-hidden />}
+            {soundOn ? "Звук включён" : "Включить звук"}
+          </button>
+        </div>
         <p className="text-sm text-muted mb-1">
-          Продавец отмечает заказ ссылкой в WhatsApp («Подтвердить», «Оплата получена») — статус появляется здесь сам. Можно также менять кнопкой ниже.
+          Это ваша очередь: сверху заказы, которые ждут действия. Продавец отмечает заказ по ссылке из WhatsApp — здесь всё появляется само.
         </p>
         <p className="text-xs text-muted mb-4">
-          Список обновляется сам каждые 20 секунд{updatedAt ? ` · обновлено ${updatedAt.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
+          Обновляется каждые 20 секунд{updatedAt ? ` · ${updatedAt.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
         </p>
+
+        {alert && (
+          <button onClick={() => setAlert("")} className="w-full text-left rounded-xl bg-accent text-white px-4 py-3 text-sm font-semibold mb-3">
+            🔔 {alert} <span className="font-normal opacity-80">— нажмите, чтобы скрыть</span>
+          </button>
+        )}
 
         {error && <p className="text-sm text-error font-medium mb-3">{error}</p>}
         {orders === null && <p className="text-muted text-sm">Загружаем…</p>}
@@ -293,6 +532,19 @@ export function OrderManager() {
 
         {orders && orders.length > 0 && (
           <>
+            <div className="relative mb-3">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted" strokeWidth={2} aria-hidden />
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShown(PAGE);
+                }}
+                placeholder="Номер заказа, имя или телефон"
+                className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+
             {allBranches && branches.length > 1 && (
               <select
                 value={branchFilter}
@@ -313,25 +565,64 @@ export function OrderManager() {
             )}
 
             <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
-              {["all", ...ORDER_STATUSES].map((s) => (
+              {GROUPS.map((g) => (
                 <Chip
-                  key={s}
-                  label={`${s === "all" ? "Все" : ORDER_STATUS_ADMIN_LABELS[s as keyof typeof ORDER_STATUS_ADMIN_LABELS]} · ${countOf(s)}`}
-                  active={statusFilter === s}
+                  key={g.key}
+                  label={`${g.label} · ${countOf(g.key)}`}
+                  active={group === g.key}
                   onClick={() => {
-                    setStatusFilter(s);
+                    setGroup(g.key);
                     setShown(PAGE);
+                    setSelected(new Set());
                   }}
                 />
               ))}
             </div>
 
+            {bulkResult && <p className="text-sm font-medium text-success mb-3">{bulkResult}</p>}
+
+            {(group === "action" || group === "problems") && visibleOpenIds.length > 1 && (
+              <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
+                <button onClick={() => setSelected(new Set(visibleOpenIds))} className="text-accent underline">
+                  Выбрать все
+                </button>
+                {selectedIds.length > 0 && (
+                  <>
+                    <button onClick={() => setSelected(new Set())} className="text-muted underline">
+                      Снять выбор
+                    </button>
+                    <button
+                      onClick={markSelectedPaid}
+                      disabled={bulkBusy}
+                      className="rounded-full bg-success text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                    >
+                      {bulkBusy ? "Отмечаем…" : `Оплата получена (${selectedIds.length})`}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {filtered.length === 0 ? (
-              <p className="text-muted text-sm">Нет заказов с таким статусом.</p>
+              <p className="text-muted text-sm">{group === "action" ? "Все заказы обработаны 🎉" : "Нет заказов в этой группе."}</p>
             ) : (
               <div className="flex flex-col gap-4">
                 {filtered.slice(0, shown).map((order) => (
-                  <OrderRow key={order.id} order={order} onUpdated={handleUpdated} />
+                  <OrderRow
+                    key={order.id}
+                    order={order}
+                    canEdit={order.status !== "paid" && order.status !== "shipped" && order.status !== "completed" ? true : allBranches}
+                    selected={selected.has(order.id)}
+                    onSelect={(checked) =>
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (checked) next.add(order.id);
+                        else next.delete(order.id);
+                        return next;
+                      })
+                    }
+                    onUpdated={handleUpdated}
+                  />
                 ))}
               </div>
             )}

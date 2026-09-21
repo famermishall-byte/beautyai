@@ -62,6 +62,19 @@ export type Feedback = {
   authorName: string | null;
 };
 
+/** A line of an order. `quantity` is what is left after the seller's changes; `orderedQuantity` is what was ordered. */
+export type OrderItem = {
+  name: string;
+  brand: string;
+  price: number;
+  quantity: number;
+  orderedQuantity?: number;
+  productId?: string;
+  sku?: string;
+  /** Admin views only: current stock of this product in the order's branch (null = no data). */
+  stock?: { quantity: number | null };
+};
+
 export type Order = {
   id: string;
   number: string;
@@ -76,6 +89,10 @@ export type Order = {
   statusSource: string | null;
   statusChangedAt: string | null;
   branch: Branch;
-  items: { name: string; brand: string; price: number; quantity: number }[];
+  /** Total before the seller / admin changed the order (null = never changed). */
+  originalTotal: number | null;
+  editedAt: string | null;
+  editedBy: string | null;
+  items: OrderItem[];
 };
 

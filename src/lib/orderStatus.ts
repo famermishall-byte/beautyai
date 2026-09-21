@@ -24,8 +24,8 @@ export const SALE_STATUSES: readonly string[] = ["paid", "shipped", "completed"]
 
 /** The next step of the normal flow, for the one-tap button. */
 export const NEXT_ORDER_STEP: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
-  sent: { status: "confirmed", label: "Подтвердить заказ" },
-  confirmed: { status: "paid", label: "Отметить оплаченным" },
+  sent: { status: "paid", label: "Оплата получена" },
+  confirmed: { status: "paid", label: "Оплата получена" },
   paid: { status: "completed", label: "Заказ выдан / доставлен" },
   shipped: { status: "completed", label: "Заказ выдан / доставлен" },
 };
