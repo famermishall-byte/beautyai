@@ -58,9 +58,15 @@ export async function GET() {
     if (error) throw error;
 
     const mapped = orders.map(mapOrder);
-    await attachStock(supabase, profile.storeId, mapped);
+    try {
+      await attachStock(supabase, profile.storeId, mapped);
+    } catch (e) {
+      console.error("attachStock failed — listing orders without stock info", e);
+    }
     return NextResponse.json({ orders: mapped });
-  } catch {
-    return NextResponse.json({ orders: [], error: "База данных недоступна." });
+  } catch (e) {
+    console.error("admin orders failed", e);
+    // A real error status, so the screen shows the problem instead of a misleading "no orders yet".
+    return NextResponse.json({ orders: [], error: "Не удалось загрузить заказы. Обновите страницу." }, { status: 500 });
   }
 }
