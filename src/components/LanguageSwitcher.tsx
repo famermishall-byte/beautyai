@@ -1,14 +1,15 @@
 "use client";
 
+import { Globe } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { rememberLocale } from "@/lib/locale-cookie";
 
-const LABELS: Record<Locale, string> = { ru: "RU", ky: "KY" };
+const LABELS: Record<Locale, string> = { ky: "KG", ru: "RUS" };
 
 /**
- * RU / KY switch. Changes the /ru | /ky URL prefix (keeping the page and query string) and remembers the
+ * KG / RUS switch (globe icon + two buttons, Kyrgyz first). Changes the /ru | /ky URL prefix (keeping the page and query string) and remembers the
  * choice in the NEXT_LOCALE cookie, so the next visit opens in the same language.
  */
 export function LanguageSwitcher({ className = "" }: { className?: string }) {
@@ -27,8 +28,9 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
     <div
       role="group"
       aria-label={t("language")}
-      className={`shrink-0 flex items-center rounded-full bg-black/[0.05] p-0.5 ${className}`}
+      className={`shrink-0 flex items-center gap-1 rounded-full bg-black/[0.05] py-0.5 pl-2 pr-0.5 ${className}`}
     >
+      <Globe className="size-4 text-accent" strokeWidth={2} aria-hidden />
       {routing.locales.map((code) => {
         const active = code === locale;
         return (

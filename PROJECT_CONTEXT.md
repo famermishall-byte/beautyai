@@ -916,8 +916,8 @@ Supabase+Vercel в менеджере паролей; значения `SUPABASE
 + остальные файлы воспроизводят схему 1-в-1 (нужен пробный пустой проект Supabase).
 
 ## Два языка (RU/KY) — ветка feature/i18n, 21.09
-next-intl: адреса /ru и /ky (RU по умолчанию), `messages/ru.json` + `messages/ky.json` (KY пока копия RU — владелец переводит сама),
-переключатель RU/KY в шапке и на экране входа, выбор в cookie NEXT_LOCALE. Все страницы переехали в `src/app/[locale]/`;
+next-intl: адреса /ky и /ru (KY первый и по умолчанию — по просьбе владельца), `messages/ru.json` + `messages/ky.json` (KY пока копия RU — владелец переводит сама),
+переключатель KG/RUS с иконкой глобуса в шапке и на экране входа, выбор в cookie NEXT_LOCALE. Все страницы переехали в `src/app/[locale]/`;
 маршрутизация языка встроена в `src/proxy.ts` (Next 16: proxy вместо middleware) вместе с проверкой входа/ролей.
 Ссылки/переходы — только через `@/i18n/navigation`. Инструкция по переводу: `docs/TRANSLATION.md`.
 Проверено: tsc, eslint (0 ошибок), `npm run build`, localhost:3000 (редиректы, cookie, переключатель в браузере).
