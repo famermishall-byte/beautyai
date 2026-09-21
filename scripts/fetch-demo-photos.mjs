@@ -25,6 +25,21 @@ const MAP = {
   "FS-01": "pd4rqJMd51Q", "FS-02": "9PnU-U7V6YE", "FS-03": "LeWrouH2qto",
   "FC-03": "UYJTgxZtUmk",
   "FM-01": "DNohKoNoKEk",
+  // Similar-category photos for everything that has no exact-match photo (demo only)
+  "BD-02": "omY18KP7_Cw", "SP-03": "XanILp6v_Eg",
+  "MS-01": "mSHRwz_FlLY", "MS-02": "mSHRwz_FlLY", "MS-03": "mSHRwz_FlLY",
+  "HS-04": "nl3uvcm1w5M", "HC-03": "nl3uvcm1w5M", "HK-01": "omY18KP7_Cw", "HK-03": "omY18KP7_Cw",
+  "AP-01": "20h-C0vaNBA", "AP-03": "UYJTgxZtUmk",
+  "GG-01": "cxAZxTuL7Sk", "GG-02": "nl3uvcm1w5M", "GG-03": "cxAZxTuL7Sk",
+  "UW-02": "Z00Dhp_tk38", "UW-03": "Z00Dhp_tk38",
+  "SO-01": "nl3uvcm1w5M", "SO-02": "YwgaLtnYX4k",
+  "HM-03": "7JxP1pYYIUo",
+  "KD-01": "Ui7QkgvUBZ0", "KD-02": "lpFTFW9BZSU", "KD-03": "ED3F5UhUv5s",
+  "AC-02": "I7C5S7868Jk", "AC-03": "rO20Sn1FWo4",
+  "MR-02": "g5GXUqF_QDI", "GF-03": "ZLTlHeKbh04",
+  "FF-01": "UYJTgxZtUmk", "FF-02": "20h-C0vaNBA", "FF-03": "XanILp6v_Eg",
+  "FC-01": "omY18KP7_Cw", "FC-02": "lpFTFW9BZSU", "FC-04": "XanILp6v_Eg",
+  "FS-04": "9PnU-U7V6YE", "FM-02": "2bQ82FvUAFg",
 };
 
 const DIR = "public/demo/photos";
