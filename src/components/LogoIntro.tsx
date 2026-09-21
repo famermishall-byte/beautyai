@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const SHOW_MS = 3200;
 const FADE_MS = 350;
 
 export function LogoIntro({ storeName, onDone }: { storeName: string; onDone: () => void }) {
+  const t = useTranslations("intro");
   const [leaving, setLeaving] = useState(false);
   // Held in a ref so a parent re-render (new inline callback) never restarts the timer.
   const onDoneRef = useRef(onDone);
@@ -27,7 +29,7 @@ export function LogoIntro({ storeName, onDone }: { storeName: string; onDone: ()
     <div
       onClick={() => setLeaving(true)}
       role="dialog"
-      aria-label="Заставка"
+      aria-label={t("label")}
       className={[
         "fixed inset-0 z-[80] flex flex-col items-center justify-center bg-accent text-white px-6 transition-opacity",
         leaving ? "opacity-0" : "opacity-100",
@@ -51,11 +53,11 @@ export function LogoIntro({ storeName, onDone }: { storeName: string; onDone: ()
         {storeName}
       </h1>
       <p className="intro-text text-white/75 text-sm mt-2" style={{ animationDelay: "1s" }}>
-        Красота начинается с правильного ухода
+        {t("tagline")}
       </p>
 
       <span className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] text-xs text-white/60">
-        Нажмите, чтобы пропустить
+        {t("skip")}
       </span>
     </div>
   );

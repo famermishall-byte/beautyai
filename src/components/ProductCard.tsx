@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { Heart, Plus, Check, Sparkle } from "lucide-react";
 import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { LOW_STOCK_MAX } from "@/lib/stock";
+import { Link } from "@/i18n/navigation";
 
 export function ProductCard({ product }: { product: Product | RecommendedProduct }) {
+  const t = useTranslations("product");
+  const price = usePrice();
   const { addItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const [justAdded, setJustAdded] = useState(false);
@@ -53,19 +57,19 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
         {(discount > 0 || isHit) && (
           <div className="absolute top-0 left-0 flex flex-col text-[11px] font-bold text-white leading-none">
             {discount > 0 && <span className="bg-[#f470b4] px-2 py-1.5 rounded-br-md">-{discount}%</span>}
-            {isHit && <span className="bg-[#7fcf50] px-2 py-1.5 rounded-br-md">ХИТ</span>}
+            {isHit && <span className="bg-[#7fcf50] px-2 py-1.5 rounded-br-md">{t("hit")}</span>}
           </div>
         )}
 
         {outOfStock && (
           <div className="absolute inset-x-0 bottom-0 bg-foreground/75 backdrop-blur-sm text-white text-[11px] font-medium text-center py-1.5">
-            Нет в наличии
+            {t("outOfStock")}
           </div>
         )}
 
         <button
           onClick={handleToggleSaved}
-          aria-label={saved ? "Убрать из косметички" : "Сохранить в косметичку"}
+          aria-label={saved ? t("removeFromBag") : t("saveToBag")}
           aria-pressed={saved}
           className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
@@ -88,24 +92,24 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
 
         {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
           <div className={["text-[11px] font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
-            {product.branchQuantity <= LOW_STOCK_MAX ? "Мало осталось" : "В наличии"}
+            {product.branchQuantity <= LOW_STOCK_MAX ? t("lowStock") : t("inStock")}
           </div>
         )}
         {product.branchQuantity === 0 && product.availableAtOtherBranch && (
-          <div className="text-[11px] text-muted">Есть в другом филиале</div>
+          <div className="text-[11px] text-muted">{t("otherBranch")}</div>
         )}
 
         <div className="mt-auto pt-2.5 flex items-end justify-between gap-2">
           <span className="flex flex-col leading-tight">
-            <span className="font-display text-lg tabular-nums">{product.price.toLocaleString("ru-RU")} сом</span>
+            <span className="font-display text-lg tabular-nums">{price(product.price)}</span>
             {discount > 0 && oldPrice && (
-              <span className="text-xs text-muted line-through tabular-nums">{oldPrice.toLocaleString("ru-RU")} сом</span>
+              <span className="text-xs text-muted line-through tabular-nums">{price(oldPrice)}</span>
             )}
           </span>
           <button
             onClick={handleAdd}
             disabled={outOfStock}
-            aria-label={`Добавить «${product.name}» в корзину`}
+            aria-label={t("addToCartNamed", { name: product.name })}
             className={[
               "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",

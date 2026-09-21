@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Check, Lightbulb, Plus, ShoppingBag, Sparkle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
 import type { CareKit } from "@/lib/kit";
 import type { Product } from "@/types";
+import { Link } from "@/i18n/navigation";
 
 function KitRow({ label, product }: { label: string; product: Product | null }) {
   const { addItem } = useCart();

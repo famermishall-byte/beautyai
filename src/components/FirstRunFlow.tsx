@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Bell, Tag, Package, Sparkles, MapPin, Store, Navigation } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { setStoredCity } from "@/lib/city";
@@ -86,6 +87,8 @@ function requestPosition(): Promise<GeolocationPosition | null> {
 }
 
 export function FirstRunFlow() {
+  const t = useTranslations("firstRun");
+  const tMeta = useTranslations("meta");
   const { session, loading, isAdmin } = useSession();
   const [step, setStep] = useState<Step>(null);
   const [busy, setBusy] = useState(false);
@@ -152,14 +155,14 @@ export function FirstRunFlow() {
     return (
       <PermissionScreen
         icon={Bell}
-        title="Включить уведомления?"
-        description="Будем сообщать самое важное — только по делу, без лишнего."
+        title={t("notif.title")}
+        description={t("notif.description")}
         perks={[
-          { icon: Package, text: "Статус вашего заказа" },
-          { icon: Sparkles, text: "Новинки в каталоге" },
-          { icon: Tag, text: "Акции и специальные предложения" },
+          { icon: Package, text: t("notif.perkOrder") },
+          { icon: Sparkles, text: t("notif.perkNew") },
+          { icon: Tag, text: t("notif.perkPromo") },
         ]}
-        allowLabel="Включить уведомления"
+        allowLabel={t("notif.allow")}
         busy={busy}
         onAllow={allowNotifications}
         onSkip={skipNotifications}
@@ -171,13 +174,13 @@ export function FirstRunFlow() {
     return (
       <PermissionScreen
         icon={MapPin}
-        title="Разрешить геолокацию?"
-        description="Так мы поймём, в каком вы городе, и подскажем ближайшие магазины."
+        title={t("geo.title")}
+        description={t("geo.description")}
         perks={[
-          { icon: Navigation, text: "Автоматически выберем ваш город" },
-          { icon: Store, text: "Покажем магазины поблизости" },
+          { icon: Navigation, text: t("geo.perkCity") },
+          { icon: Store, text: t("geo.perkStores") },
         ]}
-        allowLabel="Разрешить геолокацию"
+        allowLabel={t("geo.allow")}
         busy={busy}
         onAllow={allowGeolocation}
         onSkip={skipGeolocation}
@@ -188,7 +191,7 @@ export function FirstRunFlow() {
   if (step === "intro") {
     return (
       <LogoIntro
-        storeName={session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}
+        storeName={session?.storeName || tMeta("title")}
         onDone={() => {
           write(INTRO_KEY, "1");
           setStep(null);

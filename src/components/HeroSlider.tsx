@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { Sparkle } from "lucide-react";
 import type { Product } from "@/types";
+import { Link } from "@/i18n/navigation";
 
 const AUTO_MS = 4500;
 
 export function HeroSlider({ products }: { products: Product[] }) {
+  const t = useTranslations("home");
+  const price = usePrice();
   const trackRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
   const [index, setIndex] = useState(0);
@@ -62,7 +66,7 @@ export function HeroSlider({ products }: { products: Product[] }) {
             <div className="absolute inset-x-0 bottom-0 p-4 pb-9 text-white">
               <div className="text-[11px] uppercase tracking-wide text-white/80 font-medium mb-0.5">{p.brand}</div>
               <div className="font-display text-xl leading-snug line-clamp-2">{p.name}</div>
-              <div className="mt-1 text-sm font-medium tabular-nums">{p.price.toLocaleString("ru-RU")} сом</div>
+              <div className="mt-1 text-sm font-medium tabular-nums">{price(p.price)}</div>
             </div>
           </Link>
         ))}
@@ -73,7 +77,7 @@ export function HeroSlider({ products }: { products: Product[] }) {
           <button
             key={p.id}
             onClick={() => goTo(i)}
-            aria-label={`Слайд ${i + 1}`}
+            aria-label={t("slide", { n: i + 1 })}
             className={["h-1.5 rounded-full transition-all duration-300", i === index ? "w-5 bg-white" : "w-1.5 bg-white/55"].join(" ")}
           />
         ))}

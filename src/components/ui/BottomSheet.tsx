@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
 export function BottomSheet({
@@ -16,6 +17,7 @@ export function BottomSheet({
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
+  const t = useTranslations("common");
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
@@ -40,7 +42,7 @@ export function BottomSheet({
           <h2 className="font-display text-xl">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t("close")}
             className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-black/5 active:scale-90"
           >
             <X className="size-4.5" strokeWidth={2} aria-hidden />

@@ -4,21 +4,9 @@ import type { Product } from "@/types";
 // ("Сухие волосы", "Жирные волосы"…). One product can carry several values, so it
 // shows up in every matching collection without being duplicated in the database.
 
-export const HAIR_TYPE_LABELS: Record<string, string> = {
-  dry: "Сухие",
-  oily: "Жирные",
-  normal: "Нормальные",
-  damaged: "Повреждённые",
-  colored: "Окрашенные",
-};
-
-export const SKIN_TYPE_LABELS: Record<string, string> = {
-  dry: "Сухая",
-  oily: "Жирная",
-  combination: "Комбинированная",
-  normal: "Нормальная",
-  sensitive: "Чувствительная",
-};
+// Shown text: messages "attributes.hairTypes.<key>" / "attributes.skinTypes.<key>".
+export const HAIR_TYPE_KEYS = ["dry", "oily", "normal", "damaged", "colored"];
+export const SKIN_TYPE_KEYS = ["dry", "oily", "combination", "normal", "sensitive"];
 
 const LEGACY_HAIR_WORDS: Record<string, string> = {
   сухие: "dry",

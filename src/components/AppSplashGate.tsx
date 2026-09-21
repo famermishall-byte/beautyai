@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
 import { BrandMark } from "@/components/BrandMark";
 
 const MIN_SPLASH_MS = 900;
 
 export function AppSplashGate({ children }: { children: ReactNode }) {
+  const t = useTranslations("intro");
+  const tMeta = useTranslations("meta");
   const { session, loading } = useSession();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
@@ -30,9 +33,9 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
             <BrandMark size={30} />
           </div>
           <h1 className="font-display text-3xl sm:text-4xl leading-tight">
-            {session?.storeName || "ОПТОВЫЕ ЦЕНЫ 01"}
+            {session?.storeName || tMeta("title")}
           </h1>
-          <p className="text-muted mt-2">Добро пожаловать!</p>
+          <p className="text-muted mt-2">{t("welcome")}</p>
         </div>
       </div>
       <div className={showSplash ? "invisible" : "visible"}>{children}</div>

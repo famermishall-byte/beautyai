@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 
 export type Perk = { icon: LucideIcon; text: string };
@@ -11,7 +12,7 @@ export function PermissionScreen({
   description,
   perks,
   allowLabel,
-  skipLabel = "Не сейчас",
+  skipLabel,
   busy,
   onAllow,
   onSkip,
@@ -26,6 +27,7 @@ export function PermissionScreen({
   onAllow: () => void;
   onSkip: () => void;
 }) {
+  const t = useTranslations("common");
   return (
     <div
       className="fixed inset-0 z-[70] bg-background flex flex-col items-center px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
@@ -65,7 +67,7 @@ export function PermissionScreen({
           {allowLabel}
         </Button>
         <Button variant="ghost" size="lg" fullWidth disabled={busy} onClick={onSkip} className="border-transparent">
-          {skipLabel}
+          {skipLabel ?? t("notNow")}
         </Button>
       </div>
     </div>

@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Home, Search, Heart, User } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 
 const ITEMS = [
-  { href: "/", match: "/", label: "Главная", icon: Home },
-  { href: "/profile", match: "/profile", label: "Профиль", icon: User },
-  { href: "/catalog?tab=search", match: "/catalog", label: "Поиск", icon: Search },
-  { href: "/mybag", match: "/mybag", label: "Косметичка", icon: Heart },
+  { href: "/", match: "/", labelKey: "home", icon: Home },
+  { href: "/profile", match: "/profile", labelKey: "profile", icon: User },
+  { href: "/catalog?tab=search", match: "/catalog", labelKey: "search", icon: Search },
+  { href: "/mybag", match: "/mybag", labelKey: "myBag", icon: Heart },
 ];
 
 export function BottomNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { isAdmin } = useSession();
 
@@ -21,7 +22,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="max-w-5xl mx-auto grid grid-cols-4" style={{ height: "var(--bottom-nav-h)" }}>
-        {ITEMS.map(({ href, match, label, icon: Icon }) => {
+        {ITEMS.map(({ href, match, labelKey, icon: Icon }) => {
           const active = match === "/" ? pathname === "/" : pathname.startsWith(match);
           return (
             <Link
@@ -48,7 +49,7 @@ export function BottomNav() {
                   " "
                 )}
               >
-                {label}
+                {t(labelKey)}
               </span>
             </Link>
           );

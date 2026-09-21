@@ -5,52 +5,38 @@ export type HairType = "dry" | "oily" | "normal" | "combination";
 
 export type HairConcern = "hairloss" | "breakage" | "dandruff" | "dullness" | "splitends" | "frizz" | "colored";
 
-export const HAIR_TYPES: { value: HairType; label: string }[] = [
-  { value: "dry", label: "Сухие" },
-  { value: "oily", label: "Жирные" },
-  { value: "normal", label: "Нормальные" },
-  { value: "combination", label: "Жирные у корней, сухие на концах" },
+// Display text lives in messages (namespace "hair": types.*, concerns.*, typeTips.*, concernTips.*).
+export const HAIR_TYPES: { value: HairType }[] = [
+  { value: "dry" },
+  { value: "oily" },
+  { value: "normal" },
+  { value: "combination" },
 ];
 
-export const HAIR_CONCERNS: { value: HairConcern; label: string }[] = [
-  { value: "hairloss", label: "Выпадение" },
-  { value: "breakage", label: "Ломкость" },
-  { value: "dandruff", label: "Перхоть" },
-  { value: "dullness", label: "Тусклость" },
-  { value: "splitends", label: "Секущиеся кончики" },
-  { value: "frizz", label: "Пушатся" },
-  { value: "colored", label: "Окрашенные" },
+export const HAIR_CONCERNS: { value: HairConcern }[] = [
+  { value: "hairloss" },
+  { value: "breakage" },
+  { value: "dandruff" },
+  { value: "dullness" },
+  { value: "splitends" },
+  { value: "frizz" },
+  { value: "colored" },
 ];
 
-export function hairTypeLabel(value: string | null): string | null {
-  return HAIR_TYPES.find((t) => t.value === value)?.label ?? null;
+type HairT = (key: string) => string;
+
+export function hairTypeLabel(t: HairT, value: string | null): string | null {
+  return HAIR_TYPES.some((x) => x.value === value) ? t(`types.${value}`) : null;
 }
 
-export function hairConcernLabel(value: string): string {
-  return HAIR_CONCERNS.find((c) => c.value === value)?.label ?? value;
+export function hairConcernLabel(t: HairT, value: string): string {
+  return HAIR_CONCERNS.some((c) => c.value === value) ? t(`concerns.${value}`) : value;
 }
 
-const TYPE_TIPS: Record<HairType, string> = {
-  dry: "Мойте голову тёплой, а не горячей водой и не забывайте про маску или бальзам после шампуня.",
-  oily: "Наносите шампунь на кожу головы, а бальзам — только на длину, не касаясь корней.",
-  normal: "Достаточно мягкого шампуня и бальзама; маску можно использовать раз в неделю.",
-  combination: "Шампунь — на корни, маска или масло — только на кончики.",
-};
-
-const CONCERN_TIPS: Record<HairConcern, string> = {
-  hairloss: "При заметном выпадении лучше проконсультироваться с врачом-трихологом; уходовые средства лишь помогают.",
-  breakage: "Расчёсывайте волосы мягкой щёткой, начиная с кончиков, и не расчёсывайте мокрые волосы.",
-  dandruff: "Подберите шампунь для чувствительной кожи головы и не пользуйтесь слишком горячей водой.",
-  dullness: "Ополаскивайте волосы прохладной водой в конце мытья — чешуйки закрываются, появляется блеск.",
-  splitends: "Регулярно подравнивайте кончики и наносите на них несмываемое масло или сыворотку.",
-  frizz: "Промокайте волосы полотенцем, а не растирайте, и используйте несмываемый уход.",
-  colored: "Выбирайте средства для окрашенных волос — они помогают дольше сохранять цвет.",
-};
-
-export function buildHairTips(type: HairType | null, concerns: HairConcern[]): string[] {
+export function buildHairTips(t: HairT, type: HairType | null, concerns: HairConcern[]): string[] {
   const tips: string[] = [];
-  if (type) tips.push(TYPE_TIPS[type]);
-  for (const c of concerns) tips.push(CONCERN_TIPS[c]);
+  if (type) tips.push(t(`typeTips.${type}`));
+  for (const c of concerns) tips.push(t(`concernTips.${c}`));
   return tips;
 }
 

@@ -43,9 +43,35 @@ export type CatalogSub = {
   attr?: { hairType?: string };
 };
 
+/** Stable translation key of a products.category value (messages: categories.<key>). Unknown values keep their own text. */
+export const CATEGORY_KEYS: Record<string, string> = {
+  "Уход за лицом": "face",
+  "Очищение": "cleansing",
+  "Тоники": "toners",
+  "Сыворотки": "serums",
+  "Кремы": "creams",
+  "SPF": "spf",
+  "Маски": "masks",
+  "Уход за глазами": "eyeCare",
+  "Уход для тела": "bodyCare",
+  "Массажеры": "massagers",
+  "Макияж": "makeup",
+  "Уход за волосами": "hairCare",
+  "Шампуни": "shampoos",
+  "Кондиционеры": "conditioners",
+  "Маски для волос": "hairMasks",
+};
+
+/** Key of a sub-category inside messages: catalogGroups.<group.key>.subs.<subKey(sub)>. */
+export function subKey(sub: CatalogSub): string {
+  return sub.tag ?? `hair_${sub.attr?.hairType}`;
+}
+
 export type CategoryGroup = {
-  /** Identifier used in the URL (?group=...). */
+  /** Identifier used in the URL (?group=...) — stays Russian, it is data; the shown text comes from messages. */
   name: string;
+  /** Translation key (messages: catalogGroups.<key>.title / .subs.*). */
+  key: string;
   /** Tile caption on the search screen, when it differs from `name`. */
   label?: string;
   icon: LucideIcon;
@@ -76,6 +102,7 @@ const ICONS: Record<string, LucideIcon> = {
 // compiled to catalog-structure.json by `node scripts/build-catalog.mjs`.
 export const CATEGORY_GROUPS: CategoryGroup[] = structure.groups.map((g) => ({
   name: g.name,
+  key: g.icon,
   label: (g as { label?: string }).label,
   icon: ICONS[g.icon] ?? Smile,
   categories: g.categories,

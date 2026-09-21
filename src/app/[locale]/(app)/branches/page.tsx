@@ -1,0 +1,173 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { MapPin, Phone, Clock, MessageCircle, Navigation, Store } from "lucide-react";
+import type { Branch } from "@/types";
+import { getStoredCity } from "@/lib/city";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { BranchMap } from "@/components/BranchMap";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Link } from "@/i18n/navigation";
+
+type Coords = { latitude: number; longitude: number };
+
+function distanceKm(a: Coords, b: Coords): number {
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b.latitude - a.latitude);
+  const dLon = rad(b.longitude - a.longitude);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(h));
+}
+
+function formatDistance(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(1).replace(".", ",")} км`;
+}
+
+export default function BranchesPage() {
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [city, setCity] = useState<string | null>(null);
+  const [user, setUser] = useState<Coords | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Read after mount (SSR has no localStorage) — see the same rationale in page.tsx (home).
+    Promise.resolve().then(() => {
+      setCity(getStoredCity());
+      try {
+        const raw = localStorage.getItem("beautyai-coords");
+        if (raw) {
+          const c = JSON.parse(raw) as Coords;
+          if (Number.isFinite(c.latitude) && Number.isFinite(c.longitude)) setUser(c);
+        }
+      } catch {
+        // нет сохранённого местоположения — расстояния просто не показываем
+      }
+    });
+    fetch("/api/branches")
+      .then((res) => (res.ok ? res.json() : { branches: [] }))
+      .then((data: { branches: Branch[] }) => setBranches(data.branches ?? []))
+      .catch(() => setBranches([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Nearest first when we know where the person is, otherwise their chosen city's branches first.
+  const ordered = useMemo(() => {
+    const withDistance = branches.map((b) => ({
+      branch: b,
+      km: user && b.latitude !== null && b.longitude !== null ? distanceKm(user, { latitude: b.latitude, longitude: b.longitude }) : null,
+    }));
+    return withDistance.sort((a, b) => {
+      if (a.km !== null && b.km !== null) return a.km - b.km;
+      if (a.km !== null) return -1;
+      if (b.km !== null) return 1;
+      return Number(b.branch.city === city) - Number(a.branch.city === city);
+    });
+  }, [branches, user, city]);
+
+  function selectBranch(id: string) {
+    setSelectedId(id);
+    document.getElementById("branch-map")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  return (
+    <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
+      <h1 className="font-display text-3xl mb-1.5">Магазины</h1>
+      <div className="flex items-center gap-1.5 text-sm text-muted mb-5">
+        <MapPin className="size-4" strokeWidth={2} aria-hidden />
+        <span>{city ? `Ваш город: ${city}` : "Все филиалы"}</span>
+        <Link href="/city" className="text-accent font-medium hover:underline ml-0.5">
+          Изменить
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-72 rounded-[var(--radius-card)]" />
+          <Skeleton className="h-40 rounded-[var(--radius-card)]" />
+        </div>
+      ) : ordered.length === 0 ? (
+        <EmptyState icon={Store} title="Магазинов пока нет" description="Филиалы появятся здесь, как только магазин их добавит." />
+      ) : (
+        <>
+          <div id="branch-map" className="mb-5 scroll-mt-20">
+            <BranchMap branches={branches} selectedId={selectedId} onSelect={setSelectedId} userPosition={user} />
+          </div>
+
+          <div className="flex flex-col gap-3.5">
+            {ordered.map(({ branch, km }, i) => {
+              const hasPoint = branch.latitude !== null && branch.longitude !== null;
+              const active = branch.id === selectedId;
+              return (
+                <div
+                  key={branch.id}
+                  className={[
+                    "animate-rise-in bg-card rounded-[var(--radius-card)] border p-5 shadow-[var(--shadow-card)] transition-colors",
+                    active ? "border-accent" : "border-border",
+                  ].join(" ")}
+                  style={{ animationDelay: `${i * 45}ms` }}
+                >
+                  <button
+                    onClick={() => hasPoint && selectBranch(branch.id)}
+                    disabled={!hasPoint}
+                    className="w-full flex items-start justify-between gap-3 mb-3.5 text-left disabled:cursor-default"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-soft text-accent shrink-0">
+                        <Store className="size-5" strokeWidth={1.85} aria-hidden />
+                      </span>
+                      <div>
+                        <h2 className="font-display text-lg leading-tight">{branch.name}</h2>
+                        {km !== null && <div className="text-xs text-accent font-medium mt-0.5">{formatDistance(km)} от вас</div>}
+                      </div>
+                    </div>
+                    {hasPoint && <span className="text-xs text-accent font-medium shrink-0 mt-1">На карте</span>}
+                  </button>
+
+                  <div className="flex flex-col gap-2 text-sm text-muted mb-4 pl-[3.25rem]">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                      {branch.address}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                      {branch.phone}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                      {branch.hours}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={buildWhatsAppUrl(branch.whatsapp, `Здравствуйте! Пишу по поводу филиала «${branch.name}».`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:bg-accent-strong active:scale-95"
+                    >
+                      <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
+                      WhatsApp
+                    </a>
+                    {hasPoint && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${branch.latitude},${branch.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full bg-accent-soft text-accent-strong px-5 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-white active:scale-95"
+                      >
+                        <Navigation className="size-4" strokeWidth={2} aria-hidden />
+                        Маршрут
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </main>
+  );
+}

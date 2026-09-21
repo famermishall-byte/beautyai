@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { ShoppingBag, X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useRouter, usePathname } from "@/i18n/navigation";
 
 export function CartDrawer() {
+  const t = useTranslations("cart");
+  const price = usePrice();
   const { items, totalCount, totalPrice, changeQuantity, removeItem } = useCart();
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -32,12 +36,12 @@ export function CartDrawer() {
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Открыть корзину"
+        aria-label={t("open")}
         style={onProduct ? { bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 5.5rem)" } : undefined}
         className={["fixed right-4 z-40", onProduct ? "" : "bottom-24"].join(" ") + " rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
       >
         <ShoppingBag className="size-4.5" strokeWidth={2} aria-hidden />
-        <span className="text-sm font-medium">Корзина</span>
+        <span className="text-sm font-medium">{t("title")}</span>
         {totalCount > 0 && (
           <span className="bg-white text-accent rounded-full text-xs font-semibold min-w-[20px] h-5 px-1 flex items-center justify-center">
             {totalCount}
@@ -50,10 +54,10 @@ export function CartDrawer() {
           <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-sm bg-background h-full shadow-xl flex flex-col animate-sheet-in">
             <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-border">
-              <h2 className="font-display text-2xl">Корзина</h2>
+              <h2 className="font-display text-2xl">{t("title")}</h2>
               <button
                 onClick={() => setOpen(false)}
-                aria-label="Закрыть корзину"
+                aria-label={t("close")}
                 className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-black/5 active:scale-90"
               >
                 <X className="size-4.5" strokeWidth={2} aria-hidden />
@@ -62,7 +66,7 @@ export function CartDrawer() {
 
             {items.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
-                <EmptyState icon={ShoppingBag} title="Корзина пуста" description="Добавьте товары из каталога." />
+                <EmptyState icon={ShoppingBag} title={t("empty")} description={t("emptyHint")} />
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto px-5 flex flex-col gap-4 py-4">
@@ -75,7 +79,7 @@ export function CartDrawer() {
                         <div className="flex items-center gap-1 bg-accent-soft rounded-full px-1 py-1">
                           <button
                             onClick={() => changeQuantity(item.product.id, -1)}
-                            aria-label={`Уменьшить количество: ${item.product.name}`}
+                            aria-label={t("decrease", { name: item.product.name })}
                             className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
                           >
                             <Minus className="size-3" strokeWidth={2.5} aria-hidden />
@@ -83,7 +87,7 @@ export function CartDrawer() {
                           <span className="text-xs font-medium w-5 text-center tabular-nums">{item.quantity}</span>
                           <button
                             onClick={() => changeQuantity(item.product.id, 1)}
-                            aria-label={`Увеличить количество: ${item.product.name}`}
+                            aria-label={t("increase", { name: item.product.name })}
                             className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
                           >
                             <Plus className="size-3" strokeWidth={2.5} aria-hidden />
@@ -91,7 +95,7 @@ export function CartDrawer() {
                         </div>
                         <button
                           onClick={() => removeItem(item.product.id)}
-                          aria-label={`Удалить: ${item.product.name}`}
+                          aria-label={t("remove", { name: item.product.name })}
                           className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
                         >
                           <Trash2 className="size-3.5" strokeWidth={1.85} aria-hidden />
@@ -99,7 +103,7 @@ export function CartDrawer() {
                       </div>
                     </div>
                     <div className="text-sm font-display tabular-nums shrink-0">
-                      {(item.product.price * item.quantity).toLocaleString("ru-RU")} сом
+                      {price(item.product.price * item.quantity)}
                     </div>
                   </div>
                 ))}
@@ -108,16 +112,16 @@ export function CartDrawer() {
 
             <div className="px-5 pt-4 pb-5 border-t border-border bg-card/60">
               <div className="flex justify-between font-display text-xl mb-3.5">
-                <span>Итого</span>
-                <span className="tabular-nums">{totalPrice.toLocaleString("ru-RU")} сом</span>
+                <span>{t("total")}</span>
+                <span className="tabular-nums">{price(totalPrice)}</span>
               </div>
               {items.length > 0 && (
                 <Button variant="primary" size="lg" fullWidth onClick={goToCheckout} className="mb-2.5">
-                  Оформить заказ
+                  {t("checkout")}
                 </Button>
               )}
               <p className="text-xs text-muted text-center leading-relaxed">
-                Оплата пока не подключена — заказ передаётся продавцу через WhatsApp.
+                {t("paymentNote")}
               </p>
             </div>
           </div>

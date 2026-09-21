@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type PasswordInputProps = {
   value: string;
@@ -19,6 +20,7 @@ export function PasswordInput({
   className,
   autoComplete,
 }: PasswordInputProps) {
+  const t = useTranslations("common");
   const [visible, setVisible] = useState(false);
 
   return (
@@ -36,7 +38,7 @@ export function PasswordInput({
         type="button"
         onClick={() => setVisible((v) => !v)}
         tabIndex={-1}
-        aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
+        aria-label={visible ? t("hidePassword") : t("showPassword")}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition"
       >
         {visible ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 // One step back in history; when the page was opened directly (no history to
 // return to, e.g. a shared link or a fresh PWA launch) go to the fallback.
