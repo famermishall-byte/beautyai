@@ -473,7 +473,18 @@ export function OrderManager() {
   );
   const byBranch = branchFilter === "all" ? list : list.filter((o) => o.branch?.id === branchFilter);
   const q = query.trim().toLowerCase();
-  const searched = q ? byBranch.filter((o) => [o.number, o.customerName, o.customerPhone].some((v) => v?.toLowerCase().includes(q))) : byBranch;
+  const qDigits = q.replace(/D/g, "").replace(/^0+/, "");
+  const matchesQuery = (o: Order) => {
+    const text = [o.number, o.customerName, o.customerPhone, ...o.items.map((i) => i.name)].join(" ").toLowerCase();
+    if (text.includes(q)) return true;
+    // "17" / "00017" find BA-00017; digits of a phone find it however it was typed
+    if (qDigits.length >= 2) {
+      if (o.number.replace(/D/g, "").replace(/^0+/, "").includes(qDigits)) return true;
+      if (o.customerPhone.replace(/D/g, "").includes(qDigits)) return true;
+    }
+    return false;
+  };
+  const searched = q ? byBranch.filter(matchesQuery) : byBranch;
 
   const inGroup = (o: Order, key: GroupKey) => {
     const g = GROUPS.find((x) => x.key === key)!;
@@ -483,7 +494,7 @@ export function OrderManager() {
   };
   const countOf = (key: GroupKey) => searched.filter((o) => inGroup(o, key)).length;
   const filtered = searched
-    .filter((o) => inGroup(o, group))
+    .filter((o) => (q ? true : inGroup(o, group)))
     // Newest first by default (a fresh order is at the top); "сначала старые" puts whoever has waited longest first.
     .sort((a, b) => (newestFirst ? b.createdAt.localeCompare(a.createdAt) : a.createdAt.localeCompare(b.createdAt)));
 
@@ -553,10 +564,20 @@ export function OrderManager() {
                   setQuery(e.target.value);
                   setShown(PAGE);
                 }}
-                placeholder="Номер заказа, имя или телефон"
+                placeholder="Номер заказа, имя, телефон или товар"
                 className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
+            {q && (
+              <div className="flex items-center justify-between gap-3 mb-3 text-sm">
+                <span className="font-medium">
+                  Найдено заказов: {filtered.length} <span className="font-normal text-muted">(ищем среди всех заказов)</span>
+                </span>
+                <button onClick={() => setQuery("")} className="text-accent underline shrink-0">
+                  Сбросить поиск
+                </button>
+              </div>
+            )}
 
             <label className="flex items-center justify-between gap-3 mb-3 text-sm text-muted">
               Порядок
@@ -629,7 +650,7 @@ export function OrderManager() {
             )}
 
             {filtered.length === 0 ? (
-              <p className="text-muted text-sm">{group === "action" ? "Все заказы обработаны 🎉" : "Нет заказов в этой группе."}</p>
+              <p className="text-muted text-sm">{q ? `По запросу «${query.trim()}» ничего не найдено.` : group === "action" ? "Все заказы обработаны 🎉" : "Нет заказов в этой группе."}</p>
             ) : (
               <div className="flex flex-col gap-4">
                 {filtered.slice(0, shown).map((order) => (
