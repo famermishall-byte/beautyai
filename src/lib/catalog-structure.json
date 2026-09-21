@@ -1,0 +1,564 @@
+{
+  "groups": [
+    {
+      "name": "Уход за лицом",
+      "icon": "Smile",
+      "categories": [
+        "Уход за лицом",
+        "Очищение",
+        "Тоники",
+        "Сыворотки",
+        "Кремы",
+        "Маски",
+        "Уход за глазами",
+        "SPF",
+        "Массажеры"
+      ],
+      "subs": [
+        {
+          "label": "Очищение и умывание",
+          "tag": "cleansing"
+        },
+        {
+          "label": "Снятие макияжа",
+          "tag": "makeup-removal"
+        },
+        {
+          "label": "Тонеры и лосьоны",
+          "tag": "toner"
+        },
+        {
+          "label": "Сыворотки",
+          "tag": "serum"
+        },
+        {
+          "label": "Кремы",
+          "tag": "cream"
+        },
+        {
+          "label": "Маски",
+          "tag": "mask"
+        },
+        {
+          "label": "Скрабы и пилинги",
+          "tag": "scrub"
+        },
+        {
+          "label": "Пэды",
+          "tag": "pad"
+        },
+        {
+          "label": "Патчи",
+          "tag": "patch"
+        },
+        {
+          "label": "Для кожи вокруг глаз",
+          "tag": "eye"
+        },
+        {
+          "label": "Для губ",
+          "tag": "lips"
+        },
+        {
+          "label": "Средства от акне",
+          "tag": "problem"
+        },
+        {
+          "label": "Антивозрастной уход",
+          "tag": "antiage"
+        },
+        {
+          "label": "Средства с ПДРН",
+          "tag": "pdrn"
+        },
+        {
+          "label": "Средства с микроиглами",
+          "tag": "microneedle"
+        },
+        {
+          "label": "SPF-защита",
+          "tag": "spf-face"
+        },
+        {
+          "label": "Массажёры для лица",
+          "tag": "massage-face"
+        }
+      ]
+    },
+    {
+      "name": "Уход за телом",
+      "icon": "PersonStanding",
+      "categories": [
+        "Уход для тела",
+        "SPF",
+        "Массажеры"
+      ],
+      "subs": [
+        {
+          "label": "Гели для душа",
+          "tag": "body-shower"
+        },
+        {
+          "label": "Скрабы и пилинги",
+          "tag": "body-scrub"
+        },
+        {
+          "label": "Кремы для тела",
+          "tag": "body-cream"
+        },
+        {
+          "label": "Лосьоны и молочко",
+          "tag": "body-lotion"
+        },
+        {
+          "label": "Масла для тела",
+          "tag": "body-oil"
+        },
+        {
+          "label": "Дезодоранты",
+          "tag": "deodorant"
+        },
+        {
+          "label": "Для рук",
+          "tag": "body-hands"
+        },
+        {
+          "label": "Для ног",
+          "tag": "body-feet"
+        },
+        {
+          "label": "Антицеллюлитный уход",
+          "tag": "body-anticellulite"
+        },
+        {
+          "label": "Защита от солнца",
+          "tag": "spf-body"
+        },
+        {
+          "label": "Массажёры для тела",
+          "tag": "massage-body"
+        }
+      ]
+    },
+    {
+      "name": "Уход за волосами",
+      "label": "Волосы",
+      "icon": "Scissors",
+      "categories": [
+        "Уход за волосами",
+        "Шампуни",
+        "Кондиционеры",
+        "Маски для волос"
+      ],
+      "subs": [
+        {
+          "label": "Шампуни",
+          "tag": "shampoo"
+        },
+        {
+          "label": "Кондиционеры и бальзамы",
+          "tag": "conditioner"
+        },
+        {
+          "label": "Маски",
+          "tag": "hair-mask"
+        },
+        {
+          "label": "Сыворотки и масла",
+          "tag": "hair-care"
+        },
+        {
+          "label": "Сухие шампуни",
+          "tag": "dry-shampoo"
+        },
+        {
+          "label": "Укладка",
+          "tag": "styling"
+        },
+        {
+          "label": "Лаки для волос",
+          "tag": "hairspray"
+        },
+        {
+          "label": "Окрашивание",
+          "tag": "hair-color"
+        },
+        {
+          "label": "Уход за кожей головы",
+          "tag": "scalp"
+        },
+        {
+          "label": "Сухие волосы",
+          "attr": {
+            "hairType": "dry"
+          }
+        },
+        {
+          "label": "Жирные волосы",
+          "attr": {
+            "hairType": "oily"
+          }
+        },
+        {
+          "label": "Повреждённые волосы",
+          "attr": {
+            "hairType": "damaged"
+          }
+        },
+        {
+          "label": "Окрашенные волосы",
+          "attr": {
+            "hairType": "colored"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Макияж",
+      "icon": "Brush",
+      "categories": [
+        "Макияж"
+      ],
+      "subs": [
+        {
+          "label": "Тональные средства",
+          "tag": "foundation"
+        },
+        {
+          "label": "Консилеры",
+          "tag": "concealer"
+        },
+        {
+          "label": "Пудры",
+          "tag": "powder"
+        },
+        {
+          "label": "Румяна",
+          "tag": "blush"
+        },
+        {
+          "label": "Бронзеры и скульпторы",
+          "tag": "bronzer"
+        },
+        {
+          "label": "Хайлайтеры",
+          "tag": "highlighter"
+        },
+        {
+          "label": "Праймеры и фиксаторы",
+          "tag": "primer"
+        },
+        {
+          "label": "Тушь",
+          "tag": "mascara"
+        },
+        {
+          "label": "Тени",
+          "tag": "eyeshadow"
+        },
+        {
+          "label": "Карандаши и подводки",
+          "tag": "eyeliner"
+        },
+        {
+          "label": "Брови",
+          "tag": "brows"
+        },
+        {
+          "label": "Помады",
+          "tag": "lipstick"
+        },
+        {
+          "label": "Блески и бальзамы",
+          "tag": "lipgloss"
+        },
+        {
+          "label": "Лак для ногтей",
+          "tag": "nails"
+        }
+      ]
+    },
+    {
+      "name": "Парфюм",
+      "icon": "SprayCan",
+      "categories": [
+        "Парфюм"
+      ],
+      "subs": [
+        {
+          "label": "Женская парфюмерия",
+          "tag": "perfume-women"
+        },
+        {
+          "label": "Мужская парфюмерия",
+          "tag": "perfume-men"
+        },
+        {
+          "label": "Унисекс",
+          "tag": "perfume-unisex"
+        },
+        {
+          "label": "Наборы и миниатюры",
+          "tag": "perfume-set"
+        },
+        {
+          "label": "Мисты для тела и волос",
+          "tag": "mist"
+        },
+        {
+          "label": "Масляные духи и роллеры",
+          "tag": "perfume-roll"
+        }
+      ]
+    },
+    {
+      "name": "Аптечная косметика",
+      "icon": "FlaskConical",
+      "categories": [
+        "Аптечная косметика"
+      ],
+      "subs": [
+        {
+          "label": "Для чувствительной кожи",
+          "tag": "pharm-sensitive"
+        },
+        {
+          "label": "Против акне",
+          "tag": "pharm-acne"
+        },
+        {
+          "label": "Восстанавливающие",
+          "tag": "pharm-repair"
+        },
+        {
+          "label": "Витамины красоты",
+          "tag": "pharm-vitamins"
+        },
+        {
+          "label": "Для проблем с волосами",
+          "tag": "pharm-hair"
+        }
+      ]
+    },
+    {
+      "name": "Личная гигиена",
+      "icon": "ShieldCheck",
+      "categories": [
+        "Личная гигиена"
+      ],
+      "subs": [
+        {
+          "label": "Прокладки и тампоны",
+          "tag": "hyg-pads"
+        },
+        {
+          "label": "Интимная гигиена",
+          "tag": "hyg-intimate"
+        },
+        {
+          "label": "Уход за полостью рта",
+          "tag": "hyg-oral"
+        },
+        {
+          "label": "Бритьё",
+          "tag": "hyg-shaving"
+        },
+        {
+          "label": "Депиляция",
+          "tag": "hyg-depil"
+        }
+      ]
+    },
+    {
+      "name": "Нижнее бельё",
+      "icon": "Heart",
+      "categories": [
+        "Нижнее бельё"
+      ],
+      "subs": [
+        {
+          "label": "Комплекты белья",
+          "tag": "uw-sets"
+        },
+        {
+          "label": "Бюстгальтеры",
+          "tag": "uw-bras"
+        },
+        {
+          "label": "Трусики",
+          "tag": "uw-briefs"
+        },
+        {
+          "label": "Домашняя одежда",
+          "tag": "uw-sleep"
+        },
+        {
+          "label": "Носки и колготки",
+          "tag": "uw-hosiery"
+        },
+        {
+          "label": "Купальники",
+          "tag": "uw-swim"
+        }
+      ]
+    },
+    {
+      "name": "Мыломоющие средства",
+      "icon": "Droplets",
+      "categories": [
+        "Мыломоющие средства"
+      ],
+      "subs": [
+        {
+          "label": "Жидкое мыло",
+          "tag": "soap-liquid"
+        },
+        {
+          "label": "Гели для душа",
+          "tag": "soap-shower"
+        },
+        {
+          "label": "Твёрдое мыло",
+          "tag": "soap-bar"
+        },
+        {
+          "label": "Пена и соли для ванны",
+          "tag": "soap-bath"
+        }
+      ]
+    },
+    {
+      "name": "Для дома",
+      "icon": "House",
+      "categories": [
+        "Для дома"
+      ],
+      "subs": [
+        {
+          "label": "Свечи",
+          "tag": "home-candles"
+        },
+        {
+          "label": "Диффузоры",
+          "tag": "home-diffusers"
+        },
+        {
+          "label": "Спреи для дома и текстиля",
+          "tag": "home-textile"
+        },
+        {
+          "label": "Декор и аксессуары",
+          "tag": "home-decor"
+        }
+      ]
+    },
+    {
+      "name": "Для детей",
+      "icon": "Baby",
+      "categories": [
+        "Для детей"
+      ],
+      "subs": [
+        {
+          "label": "Уход за малышом",
+          "tag": "kids-care"
+        },
+        {
+          "label": "Купание и шампуни",
+          "tag": "kids-wash"
+        },
+        {
+          "label": "Гигиена полости рта",
+          "tag": "kids-oral"
+        },
+        {
+          "label": "Подгузники и салфетки",
+          "tag": "kids-diapers"
+        },
+        {
+          "label": "Игрушки и аксессуары",
+          "tag": "kids-toys"
+        }
+      ]
+    },
+    {
+      "name": "Аксессуары",
+      "icon": "Gem",
+      "categories": [
+        "Аксессуары"
+      ],
+      "subs": [
+        {
+          "label": "Расчёски и щётки",
+          "tag": "acc-brushes"
+        },
+        {
+          "label": "Резинки и заколки",
+          "tag": "acc-hair"
+        },
+        {
+          "label": "Косметички",
+          "tag": "acc-bags"
+        },
+        {
+          "label": "Кисти и спонжи",
+          "tag": "acc-tools"
+        },
+        {
+          "label": "Зеркала",
+          "tag": "acc-mirrors"
+        }
+      ]
+    },
+    {
+      "name": "Мерч",
+      "icon": "Shirt",
+      "categories": [
+        "Мерч"
+      ],
+      "subs": [
+        {
+          "label": "Сумки и шопперы",
+          "tag": "merch-bags"
+        },
+        {
+          "label": "Одежда",
+          "tag": "merch-clothing"
+        },
+        {
+          "label": "Кружки и бутылки",
+          "tag": "merch-mugs"
+        },
+        {
+          "label": "Канцелярия и стикеры",
+          "tag": "merch-stationery"
+        }
+      ]
+    },
+    {
+      "name": "Подарки",
+      "icon": "Gift",
+      "categories": [
+        "Подарки"
+      ],
+      "subs": [
+        {
+          "label": "Подарочные наборы",
+          "tag": "gift-sets"
+        },
+        {
+          "label": "Подарочные сертификаты",
+          "tag": "gift-cards"
+        },
+        {
+          "label": "Упаковка",
+          "tag": "gift-wrap"
+        },
+        {
+          "label": "Наборы для лица",
+          "tag": "gift-face"
+        }
+      ]
+    }
+  ]
+}
