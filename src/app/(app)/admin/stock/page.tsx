@@ -49,6 +49,8 @@ export default function AdminStockPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StockStatus | "all">("all");
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<"problems" | "name">("problems");
+  const [justSaved, setJustSaved] = useState<Record<string, true>>({});
 
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState(0);
@@ -61,7 +63,7 @@ export default function AdminStockPage() {
     fetch("/api/branches")
       .then((res) => (res.ok ? res.json() : { branches: [] }))
       .then((data: { branches: Branch[] }) => {
-        const list = data.branches ?? [];
+        const list = [...(data.branches ?? [])].sort((a, b) => a.city.localeCompare(b.city, "ru") || a.name.localeCompare(b.name, "ru"));
         setBranches(list);
         let stored: string | null = null;
         try {
@@ -85,7 +87,7 @@ export default function AdminStockPage() {
 
   useEffect(() => {
     if (!branchId) return;
-    const params = new URLSearchParams({ branchId, status, page: String(page) });
+    const params = new URLSearchParams({ branchId, status, page: String(page), sort });
     if (search) params.set("q", search);
     // Data fetching triggered by filter changes — React's documented fetch-in-effect pattern.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -101,7 +103,7 @@ export default function AdminStockPage() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [branchId, search, status, page]);
+  }, [branchId, search, status, page, sort]);
 
   function selectBranch(id: string) {
     setBranchId(id);
@@ -121,6 +123,8 @@ export default function AdminStockPage() {
     });
     const data = await res.json();
     if (!res.ok) return data.error ?? "Не удалось сохранить";
+    setJustSaved((f) => ({ ...f, [item.id]: true }));
+    setTimeout(() => setJustSaved((f) => Object.fromEntries(Object.entries(f).filter(([k]) => k !== item.id))), 2500);
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: data.quantity, updatedAt: data.updatedAt, status: data.status } : i)));
     setCounts((c) => {
       if (!c) return c;
@@ -183,6 +187,24 @@ export default function AdminStockPage() {
         ))}
       </div>
 
+      <div className="flex items-center justify-between gap-3 mb-3 text-sm">
+        <span className="text-muted">Показано {items.length} из {total}</span>
+        <label className="flex items-center gap-2 text-muted">
+          Порядок
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value as "problems" | "name");
+              setPage(1);
+            }}
+            className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="problems">Сначала проблемные</option>
+            <option value="name">По названию</option>
+          </select>
+        </label>
+      </div>
+
       {error && <div className="rounded-xl bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
 
       {loading && items.length === 0 ? (
@@ -192,7 +214,7 @@ export default function AdminStockPage() {
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
-            <StockRow key={`${item.id}:${item.quantity}`} item={item} onSave={saveQuantity} />
+            <StockRow key={`${item.id}:${item.quantity}`} item={item} onSave={saveQuantity} savedFlash={!!justSaved[item.id]} />
           ))}
         </ul>
       )}
@@ -210,7 +232,7 @@ export default function AdminStockPage() {
   );
 }
 
-function StockRow({ item, onSave }: { item: Item; onSave: (item: Item, quantity: number) => Promise<string | null> }) {
+function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Item, quantity: number) => Promise<string | null>; savedFlash: boolean }) {
   const [draft, setDraft] = useState(item.quantity === null ? "" : String(item.quantity));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -247,7 +269,13 @@ function StockRow({ item, onSave }: { item: Item; onSave: (item: Item, quantity:
         <div className="text-sm font-medium leading-snug line-clamp-2">{item.name}</div>
         <div className="flex items-center gap-2 mt-1">
           <span className={["text-[11px] font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{STOCK_STATUS_LABELS[item.status]}</span>
-          <span className="text-[11px] text-muted truncate">{formatWhen(item.updatedAt)}</span>
+          {savedFlash ? (
+            <span className="text-[11px] font-semibold text-success">✓ Сохранено</span>
+          ) : saving ? (
+            <span className="text-[11px] text-muted">Сохраняем…</span>
+          ) : (
+            <span className="text-[11px] text-muted truncate">{formatWhen(item.updatedAt)}</span>
+          )}
         </div>
         {error && <div className="text-[11px] text-error mt-1">{error}</div>}
       </div>

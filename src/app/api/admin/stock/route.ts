@@ -71,6 +71,13 @@ export async function GET(request: NextRequest) {
     const counts: Record<StockStatus | "all", number> = { all: all.length, out: 0, low: 0, ok: 0, unknown: 0 };
     for (const i of all) counts[i.status]++;
 
+    // Default order: problems first (нет → мало → не заполнено → в наличии), then by name;
+    // `sort=name` keeps plain alphabetical order.
+    if (sp.get("sort") !== "name") {
+      const rank: Record<StockStatus, number> = { out: 0, low: 1, unknown: 2, ok: 3 };
+      all.sort((a, b) => rank[a.status] - rank[b.status] || a.name.localeCompare(b.name, "ru"));
+    }
+
     const filtered = statusFilter === "all" ? all : all.filter((i) => i.status === statusFilter);
     const items = filtered.slice(0, page * PAGE_SIZE);
     return NextResponse.json({ items, total: filtered.length, counts });
