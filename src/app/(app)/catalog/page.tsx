@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, MapPin, PackageSearch } from "lucide-react";
+import Link from "next/link";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -31,8 +32,17 @@ function CatalogContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
 
+  // Arriving via a search-screen tile (?group=...): a group with subcategories
+  // shows them as chips (see render below); a group without any (e.g.
+  // "Макияж") filters straight to that category.
+  const groupParam = searchParams.get("group");
+  const showAll = searchParams.get("all") === "1";
+  const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
+
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(
+    activeGroup ? (activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name) : null
+  );
   const [budget, setBudget] = useState<number | null | undefined>(undefined);
   const [brand, setBrand] = useState<string | null>(null);
   const [onlyInStock, setOnlyInStock] = useState(false);
@@ -57,17 +67,10 @@ function CatalogContent() {
     if (initialTab === "budget") setFiltersOpen(true);
   }
 
-  // Arriving via a home-screen category tile (?group=...): a group with
-  // subcategories shows them as chips (see render below); a group without
-  // any (e.g. "Макияж") filters straight to every category in that group.
-  const groupParam = searchParams.get("group");
-  const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
   const [prevGroupParam, setPrevGroupParam] = useState(groupParam);
   if (groupParam !== prevGroupParam) {
     setPrevGroupParam(groupParam);
-    if (activeGroup) {
-      setCategory(activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name);
-    }
+    setCategory(activeGroup ? (activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name) : null);
   }
 
   useEffect(() => {
@@ -141,6 +144,11 @@ function CatalogContent() {
     return list;
   }, [products, brand, onlyInStock, sort]);
 
+  // The search screen opens as a grid of category tiles; anything that narrows
+  // the catalog (a query, a tile, "Все продукты", the budget shortcut) swaps
+  // the grid for the product list.
+  const browsing = !groupParam && !showAll && !query.trim() && category === null && initialTab !== "budget";
+
   const activeFilterCount = [brand, onlyInStock || null, typeof budget === "number" ? budget : null, sort !== "name" ? sort : null].filter(
     Boolean
   ).length;
@@ -153,8 +161,35 @@ function CatalogContent() {
   }
 
   return (
-    <main className="flex-1 px-4 pt-6 pb-8 max-w-5xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-5">Каталог</h1>
+    <main className="flex-1 px-4 pt-6 pb-32 max-w-5xl mx-auto w-full">
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />
+          <input
+            ref={searchInputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск"
+            className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent"
+          />
+        </div>
+        {!browsing && (
+          <button
+            onClick={() => setFiltersOpen(true)}
+            aria-label="Фильтры и сортировка"
+            className="relative shrink-0 w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center transition hover:border-accent/40 active:scale-95"
+          >
+            <SlidersHorizontal className="size-4.5" strokeWidth={2} aria-hidden />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
+
+      <h1 className="font-display text-3xl mb-4">Каталог</h1>
 
       {branches.length > 1 && (
         <div className="mb-4 -mx-4 px-4 overflow-x-auto">
@@ -179,31 +214,10 @@ function CatalogContent() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />
-          <input
-            ref={searchInputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Название, бренд, категория"
-            className="w-full rounded-[var(--radius-control)] border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent"
-          />
-        </div>
-        <button
-          onClick={() => setFiltersOpen(true)}
-          aria-label="Фильтры и сортировка"
-          className="relative shrink-0 w-12 h-12 rounded-[var(--radius-control)] bg-card border border-border flex items-center justify-center transition hover:border-accent/40 active:scale-95"
-        >
-          <SlidersHorizontal className="size-4.5" strokeWidth={2} aria-hidden />
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-      </div>
-
+      {browsing ? (
+        <CategoryTiles />
+      ) : (
+        <>
       <div className="mb-2 -mx-4 px-4 overflow-x-auto">
         <div className="text-xs font-medium text-muted mb-2">{activeGroup ? activeGroup.name : "Категория"}</div>
         <div className="flex gap-2 w-max">
@@ -256,6 +270,8 @@ function CatalogContent() {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
 
       <BottomSheet
@@ -327,6 +343,44 @@ function CatalogContent() {
         </FilterSection>
       </BottomSheet>
     </main>
+  );
+}
+
+function CategoryTiles() {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/catalog?all=1"
+          className="relative h-28 overflow-hidden rounded-[22px] bg-accent text-white p-3.5 transition active:scale-[0.98]"
+        >
+          <span className="text-[15px] font-semibold leading-tight">Все продукты</span>
+          <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
+        </Link>
+        {CATEGORY_GROUPS.map(({ name, label, icon: Icon }) => (
+          <Link
+            key={name}
+            href={`/catalog?group=${encodeURIComponent(name)}`}
+            className="relative h-28 overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] p-3.5 transition active:scale-[0.98]"
+          >
+            <span className="block max-w-[60%] text-[15px] font-semibold leading-tight">{label ?? name}</span>
+            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+              <Icon className="size-8" strokeWidth={1.6} aria-hidden />
+            </span>
+          </Link>
+        ))}
+      </div>
+      <Link
+        href="/catalog?all=1"
+        className="rounded-[22px] bg-gradient-to-r from-accent to-accent-strong text-white px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
+      >
+        <div>
+          <div className="font-display text-2xl leading-none">Акции</div>
+          <div className="text-sm text-white/85 mt-1.5">Скидки и выгодные предложения</div>
+        </div>
+        <Percent className="size-12 text-white/30 shrink-0" strokeWidth={1.75} aria-hidden />
+      </Link>
+    </div>
   );
 }
 
