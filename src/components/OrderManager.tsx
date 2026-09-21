@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
-import type { Order, OrderItem } from "@/types";
+import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import {
@@ -319,8 +319,21 @@ function OrderRow({
 }
 
 // Sales = orders that are paid (paid / handed to the courier / completed). Cancelled and unpaid ones are not sales.
-function SalesSummary({ orders, allBranches }: { orders: Order[]; allBranches: boolean }) {
+function SalesSummary({
+  orders,
+  allBranches,
+  branchOptions,
+  branchId,
+  onBranch,
+}: {
+  orders: Order[];
+  allBranches: boolean;
+  branchOptions: { id: string; name: string; city: string }[];
+  branchId: string;
+  onBranch: (id: string) => void;
+}) {
   const [period, setPeriod] = useState<Period>("30");
+  const oneBranch = branchId !== "all" ? branchOptions.find((b) => b.id === branchId) : undefined;
 
   const sales = orders.filter((o) => SALE_STATUSES.includes(o.status) && inPeriod(o.paidAt ?? o.createdAt, period));
   const total = sales.reduce((sum, o) => sum + o.totalPrice, 0);
@@ -338,8 +351,29 @@ function SalesSummary({ orders, allBranches }: { orders: Order[]; allBranches: b
   return (
     <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
       <div className="flex items-start justify-between gap-3 mb-3">
-        <h2 className="font-medium">{allBranches ? "Продажи по всем филиалам" : "Продажи вашего филиала"}</h2>
+        <h2 className="font-medium">
+          {!allBranches ? "Продажи вашего филиала" : oneBranch ? `Продажи филиала: ${oneBranch.name}` : "Продажи по всем филиалам"}
+        </h2>
       </div>
+
+      {allBranches && (
+        <label className="block mb-3">
+          <span className="block text-xs font-medium text-muted mb-1.5">Филиал</span>
+          <select
+            value={branchId}
+            onChange={(e) => onBranch(e.target.value)}
+            className="w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="all">Все филиалы (общая сумма)</option>
+            {branchOptions.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.city} — {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
         {PERIODS.map((p) => (
           <Chip key={p.key} label={p.label} active={period === p.key} onClick={() => setPeriod(p.key)} />
@@ -347,12 +381,12 @@ function SalesSummary({ orders, allBranches }: { orders: Order[]; allBranches: b
       </div>
 
       <div className="rounded-xl bg-accent-soft px-4 py-4 mb-3">
-        <div className="text-xs text-accent-strong/80">Итого продано</div>
+        <div className="text-xs text-accent-strong/80">{oneBranch ? `Продано в филиале «${oneBranch.name}»` : allBranches ? "Продано по всем филиалам" : "Итого продано"}</div>
         <div className="font-display text-3xl tabular-nums">{money(total)}</div>
         <div className="text-sm text-accent-strong/80 mt-0.5">Оплаченных заказов: {sales.length}</div>
       </div>
 
-      {allBranches && byBranch.length > 0 && (
+      {allBranches && !oneBranch && byBranch.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -401,6 +435,7 @@ export function OrderManager() {
   const [error, setError] = useState("");
   const [group, setGroup] = useState<GroupKey>("action");
   const [branchFilter, setBranchFilter] = useState<string>("all");
+  const [allBranchList, setAllBranchList] = useState<Branch[]>([]);
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(PAGE);
   const [newestFirst, setNewestFirst] = useState(true);
@@ -456,6 +491,14 @@ export function OrderManager() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!allBranches) return;
+    fetch("/api/admin/branches")
+      .then((res) => (res.ok ? res.json() : { branches: [] }))
+      .then((data: { branches?: Branch[] }) => setAllBranchList(data.branches ?? []))
+      .catch(() => {});
+  }, [allBranches]);
+
   function toggleSound() {
     const on = !soundOn;
     setSoundOn(on);
@@ -471,16 +514,19 @@ export function OrderManager() {
   const branches = [...new Map(list.filter((o) => o.branch).map((o) => [o.branch.id, o.branch])).values()].sort(
     (a, b) => a.city.localeCompare(b.city, "ru") || a.name.localeCompare(b.name, "ru")
   );
+  // Options for the branch selector: every branch of the store (even one with no orders yet), by city then name.
+  const branchOptions = (allBranchList.length > 0 ? allBranchList : branches).slice().sort((a, b) => a.city.localeCompare(b.city, "ru") || a.name.localeCompare(b.name, "ru"));
   const byBranch = branchFilter === "all" ? list : list.filter((o) => o.branch?.id === branchFilter);
+  const chosenBranch = branchFilter === "all" ? undefined : branchOptions.find((b) => b.id === branchFilter);
   const q = query.trim().toLowerCase();
-  const qDigits = q.replace(/D/g, "").replace(/^0+/, "");
+  const qDigits = q.replace(/\D/g, "").replace(/^0+/, "");
   const matchesQuery = (o: Order) => {
     const text = [o.number, o.customerName, o.customerPhone, ...o.items.map((i) => i.name)].join(" ").toLowerCase();
     if (text.includes(q)) return true;
     // "17" / "00017" find BA-00017; digits of a phone find it however it was typed
     if (qDigits.length >= 2) {
-      if (o.number.replace(/D/g, "").replace(/^0+/, "").includes(qDigits)) return true;
-      if (o.customerPhone.replace(/D/g, "").includes(qDigits)) return true;
+      if (o.number.replace(/\D/g, "").replace(/^0+/, "").includes(qDigits)) return true;
+      if (o.customerPhone.replace(/\D/g, "").includes(qDigits)) return true;
     }
     return false;
   };
@@ -524,7 +570,18 @@ export function OrderManager() {
 
   return (
     <div>
-      {orders !== null && <SalesSummary orders={list} allBranches={allBranches} />}
+      {orders !== null && (
+        <SalesSummary
+          orders={byBranch}
+          allBranches={allBranches}
+          branchOptions={branchOptions}
+          branchId={branchFilter}
+          onBranch={(id) => {
+            setBranchFilter(id);
+            setShown(PAGE);
+          }}
+        />
+      )}
 
       <div className="bg-card rounded-2xl border border-black/5 p-6">
         <div className="flex items-start justify-between gap-3 mb-1">
@@ -591,23 +648,15 @@ export function OrderManager() {
               </select>
             </label>
 
-            {allBranches && branches.length > 1 && (
-              <select
-                value={branchFilter}
-                onChange={(e) => {
-                  setBranchFilter(e.target.value);
-                  setShown(PAGE);
-                }}
-                aria-label="Филиал"
-                className="w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent mb-3"
-              >
-                <option value="all">Все филиалы</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.city} — {b.name}
-                  </option>
-                ))}
-              </select>
+            {allBranches && chosenBranch && (
+              <div className="flex items-center justify-between gap-3 mb-3 text-sm">
+                <span>
+                  Заказы филиала: <span className="font-semibold">{chosenBranch.name}</span>
+                </span>
+                <button onClick={() => setBranchFilter("all")} className="text-accent underline shrink-0">
+                  Показать все филиалы
+                </button>
+              </div>
             )}
 
             <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
