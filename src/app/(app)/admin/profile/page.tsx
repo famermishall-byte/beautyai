@@ -1,0 +1,74 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AdminPage } from "@/components/admin/AdminPage";
+
+export default function AdminProfilePage() {
+  const [storeName, setStoreName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Fetching data on mount — same pattern/rationale as BranchManager.tsx.
+    fetch("/api/admin/catalog")
+      .then((res) => res.json())
+      .then((data: { storeName?: string }) => setStoreName(data.storeName ?? ""))
+      .catch(() => {});
+  }, []);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!storeName.trim()) return;
+    setSaving(true);
+    setSaved(false);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/store", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: storeName.trim() }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Не удалось сохранить название.");
+      }
+    } catch {
+      setError("Нет связи с сервером. Название не сохранено.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <AdminPage title="Профиль магазина" subtitle="Название показывается покупателям в шапке приложения.">
+      <div className="bg-card rounded-2xl border border-black/5 p-6">
+        <form onSubmit={handleSave} className="flex flex-wrap items-center gap-2">
+          <input
+            value={storeName}
+            onChange={(e) => {
+              setStoreName(e.target.value);
+              setSaved(false);
+            }}
+            placeholder="Название магазина"
+            className="flex-1 min-w-[12rem] rounded-lg border border-black/10 bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent"
+          />
+          <button
+            type="submit"
+            disabled={saving || !storeName.trim()}
+            className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            {saving ? "Сохраняем…" : "Сохранить"}
+          </button>
+          <span aria-live="polite" className="text-sm">
+            {saved && <span className="text-success font-medium">✓ Название сохранено</span>}
+            {error && <span className="text-error font-medium">{error}</span>}
+          </span>
+        </form>
+      </div>
+    </AdminPage>
+  );
+}
