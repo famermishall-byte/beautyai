@@ -6,6 +6,7 @@ import { Heart, Plus, Check, Sparkle } from "lucide-react";
 import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
+import { LOW_STOCK_MAX } from "@/lib/stock";
 
 export function ProductCard({ product }: { product: Product | RecommendedProduct }) {
   const { addItem } = useCart();
@@ -86,7 +87,9 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
         )}
 
         {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
-          <div className="text-[11px] text-success font-medium">В наличии · {product.branchQuantity} шт.</div>
+          <div className={["text-[11px] font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
+            {product.branchQuantity <= LOW_STOCK_MAX ? "Мало осталось" : "В наличии"}
+          </div>
         )}
         {product.branchQuantity === 0 && product.availableAtOtherBranch && (
           <div className="text-[11px] text-muted">Есть в другом филиале</div>

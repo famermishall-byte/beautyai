@@ -7,6 +7,7 @@ import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { useGoBack } from "@/lib/use-go-back";
+import { LOW_STOCK_MAX } from "@/lib/stock";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -136,7 +137,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <div className="flex items-center justify-between mb-5">
           <span className="font-display text-3xl tabular-nums">{product.price.toLocaleString("ru-RU")} сом</span>
           {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
-            <span className="text-sm text-success font-medium">В наличии · {product.branchQuantity} шт.</span>
+            <span className={["text-sm font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
+              {product.branchQuantity <= LOW_STOCK_MAX ? "Мало осталось" : "В наличии"}
+            </span>
           )}
         </div>
 

@@ -66,6 +66,17 @@ export default function AdminPage() {
       </div>
       <p className="text-muted mb-8">Загрузите ассортимент товаров, чтобы покупатели могли их найти в каталоге.</p>
 
+      <Link
+        href="/admin/stock"
+        className="flex items-center justify-between gap-4 bg-accent-soft rounded-2xl p-5 mb-8 transition hover:brightness-[0.98] active:scale-[0.99]"
+      >
+        <div>
+          <div className="font-display text-lg">Остатки по филиалам</div>
+          <div className="text-sm text-accent-strong/80">Что есть в каждом филиале, что заканчивается — можно править прямо здесь</div>
+        </div>
+        <span className="text-accent text-xl" aria-hidden>→</span>
+      </Link>
+
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
         <h2 className="font-medium mb-3">Профиль магазина</h2>
         <form onSubmit={handleSaveStoreName} className="flex gap-2">
