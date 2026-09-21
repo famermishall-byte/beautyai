@@ -9,9 +9,23 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
 
   useEffect(() => {
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then((data) => setOrders(data.orders ?? []));
+    // The seller may change the order (or mark it paid) while the customer has this page open — re-read every
+    // 20 s and when the tab comes back into focus, so the new list and total appear without a manual refresh.
+    const load = () =>
+      fetch("/api/orders")
+        .then((res) => res.json())
+        .then((data) => setOrders(data.orders ?? []))
+        .catch(() => {});
+    load();
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 20_000);
+    const onVisible = () => document.visibilityState === "visible" && load();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   return (
@@ -44,6 +58,11 @@ export default function OrdersPage() {
                 </span>
               </div>
               <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString("ru-RU")}</div>
+              {order.editedAt && order.originalTotal !== null && order.originalTotal !== order.totalPrice && (
+                <div className="rounded-lg bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
+                  Продавец изменил ваш заказ (чего-то нет в наличии). Проверьте состав и новую сумму ниже.
+                </div>
+              )}
               <div className="flex flex-col gap-1 mb-3">
                 {order.items.map((item, i) => {
                   const ordered = item.orderedQuantity ?? item.quantity;
