@@ -47,6 +47,8 @@ export type CategorySection = {
   icon: LucideIcon;
   /** products.category values this section covers. */
   categories: string[];
+  /** A third level: opening the section shows this list (+ "Хиты") before any products. `tag` matches products.attributes.tags. */
+  items?: { label: string; tag: string }[];
   /** Optional attribute filter (products.attributes): a product must have this hair type — one product can sit in several such collections. */
   attr?: { hairType?: string };
 };
@@ -89,13 +91,57 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
         label: "Уход для лица",
         icon: Smile,
         categories: ["Уход за лицом", "Очищение", "Тоники", "Сыворотки", "Кремы", "Маски", "Уход за глазами"],
+        items: [
+          { label: "Средства с микроиглами", tag: "microneedle" },
+          { label: "Средства с ПДРН", tag: "pdrn" },
+          { label: "Умывание", tag: "cleansing" },
+          { label: "Снятие макияжа", tag: "makeup-removal" },
+          { label: "Кремы", tag: "cream" },
+          { label: "Тонеры и лосьоны", tag: "toner" },
+          { label: "Сыворотки", tag: "serum" },
+          { label: "Маски", tag: "mask" },
+          { label: "Скрабы и пилинги", tag: "scrub" },
+          { label: "Пэды", tag: "pad" },
+          { label: "Для кожи вокруг глаз", tag: "eye" },
+          { label: "Для губ", tag: "lips" },
+          { label: "Для проблемной кожи", tag: "problem" },
+          { label: "Антивозрастной уход", tag: "antiage" },
+          { label: "Патчи", tag: "patch" },
+        ],
       },
-      { label: "Уход для тела", icon: PersonStanding, categories: ["Уход для тела"] },
-      { label: "СПФ", icon: Sun, categories: ["SPF"] },
-      { label: "Массажеры", icon: Hand, categories: ["Массажеры"] },
-      { label: "Кремы", icon: Droplet, categories: ["Кремы"] },
-      { label: "Сыворотки", icon: FlaskConical, categories: ["Сыворотки"] },
-      { label: "Маски для лица", icon: Smile, categories: ["Маски"] },
+      {
+        label: "Уход для тела",
+        icon: PersonStanding,
+        categories: ["Уход для тела"],
+        items: [
+          { label: "Кремы и лосьоны", tag: "body-cream" },
+          { label: "Скрабы и пилинги", tag: "body-scrub" },
+          { label: "Масла для тела", tag: "body-oil" },
+          { label: "Антицеллюлитный уход", tag: "body-anticellulite" },
+          { label: "Для рук", tag: "body-hands" },
+          { label: "Для ног", tag: "body-feet" },
+        ],
+      },
+      {
+        label: "СПФ",
+        icon: Sun,
+        categories: ["SPF"],
+        items: [
+          { label: "Для лица", tag: "spf-face" },
+          { label: "Для тела", tag: "spf-body" },
+          { label: "Спреи и флюиды", tag: "spf-spray" },
+          { label: "Стики", tag: "spf-stick" },
+        ],
+      },
+      {
+        label: "Массажеры",
+        icon: Hand,
+        categories: ["Массажеры"],
+        items: [
+          { label: "Для лица", tag: "massage-face" },
+          { label: "Для тела", tag: "massage-body" },
+        ],
+      },
     ],
   },
   { name: "Макияж", icon: Brush, children: [] },

@@ -40,7 +40,10 @@ export async function GET(request: NextRequest) {
   const soldIds = new Set(sold.map((p) => p.id));
   const filler = pool
     .filter((p) => !soldIds.has(p.id))
-    .sort((a, b) => Number(Boolean(b.image_url)) - Number(Boolean(a.image_url)));
+    .sort((a, b) => {
+      const hit = (p: Record<string, unknown>) => Number(Boolean((p.attributes as { hit?: boolean } | null)?.hit));
+      return hit(b) - hit(a) || Number(Boolean(b.image_url)) - Number(Boolean(a.image_url));
+    });
 
   const picked = [...sold, ...filler].slice(0, LIMIT);
   return NextResponse.json({

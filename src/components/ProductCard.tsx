@@ -14,6 +14,9 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const reason = "reason" in product ? product.reason : null;
   const saved = isSaved(product.id);
   const outOfStock = product.branchQuantity === 0;
+  const oldPrice = product.attributes?.oldPrice;
+  const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
+  const isHit = Boolean(product.attributes?.hit);
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
@@ -43,6 +46,13 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Sparkle className="size-9 text-accent/35" strokeWidth={1.4} aria-hidden />
+          </div>
+        )}
+
+        {(discount > 0 || isHit) && (
+          <div className="absolute top-0 left-0 flex flex-col text-[11px] font-bold text-white leading-none">
+            {discount > 0 && <span className="bg-[#f470b4] px-2 py-1.5 rounded-br-md">-{discount}%</span>}
+            {isHit && <span className="bg-[#7fcf50] px-2 py-1.5 rounded-br-md">ХИТ</span>}
           </div>
         )}
 
@@ -83,7 +93,12 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
         )}
 
         <div className="mt-auto pt-2.5 flex items-end justify-between gap-2">
-          <span className="font-display text-lg tabular-nums">{product.price.toLocaleString("ru-RU")} сом</span>
+          <span className="flex flex-col leading-tight">
+            <span className="font-display text-lg tabular-nums">{product.price.toLocaleString("ru-RU")} сом</span>
+            {discount > 0 && oldPrice && (
+              <span className="text-xs text-muted line-through tabular-nums">{oldPrice.toLocaleString("ru-RU")} сом</span>
+            )}
+          </span>
           <button
             onClick={handleAdd}
             disabled={outOfStock}

@@ -10,6 +10,11 @@ export type ProductAttributes = {
   volume?: string;
   hairType?: string[];
   skinType?: string[];
+  /** Sub-section tags (e.g. "cleansing", "pad") — one product can carry several. */
+  tags?: string[];
+  /** Price before the discount; a card shows a badge and a struck-through price when it is above `price`. */
+  oldPrice?: number;
+  hit?: boolean;
 };
 
 export type Product = {

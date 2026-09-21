@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, Flame } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, Flame, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -38,9 +38,12 @@ function CatalogContent() {
   // "Макияж") filters straight to that category.
   const groupParam = searchParams.get("group");
   const subParam = searchParams.get("sub");
-  const showAll = searchParams.get("all") === "1";
+  const itemParam = searchParams.get("item");
+  const promo = searchParams.get("promo") === "1";
+  const showAll = searchParams.get("all") === "1" || promo;
   const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
   const activeSection = activeGroup?.sections?.find((s) => s.label === subParam) ?? null;
+  const activeItem = activeSection?.items?.find((i) => i.label === itemParam) ?? null;
   const groupFilter = activeGroup ? groupCategoryFilter(activeGroup, subParam) : null;
 
   const [query, setQuery] = useState("");
@@ -73,7 +76,7 @@ function CatalogContent() {
     if (initialTab === "budget") setFiltersOpen(true);
   }
 
-  const groupKey = `${groupParam ?? ""}|${subParam ?? ""}`;
+  const groupKey = `${groupParam ?? ""}|${subParam ?? ""}|${itemParam ?? ""}`;
   const [prevGroupKey, setPrevGroupKey] = useState(groupKey);
   if (groupKey !== prevGroupKey) {
     setPrevGroupKey(groupKey);
@@ -145,9 +148,14 @@ function CatalogContent() {
   // Products of the open collection: an attribute section (e.g. "Сухие волосы") narrows the
   // fetched category set by product attributes, without any duplicated rows in the database.
   const scoped = useMemo(() => {
+    let list = products;
     const want = activeSection?.attr?.hairType;
-    return want ? products.filter((p) => hairTypesOf(p).includes(want)) : products;
-  }, [products, activeSection]);
+    if (want) list = list.filter((p) => hairTypesOf(p).includes(want));
+    const tag = activeItem?.tag;
+    if (tag) list = list.filter((p) => p.attributes?.tags?.includes(tag));
+    if (promo) list = list.filter((p) => (p.attributes?.oldPrice ?? 0) > p.price);
+    return list;
+  }, [products, activeSection, activeItem, promo]);
 
   const brands = useMemo(() => [...new Set(scoped.map((p) => p.brand).filter(Boolean))].sort(), [scoped]);
   const productTypes = useMemo(() => [...new Set(scoped.map((p) => p.attributes?.productType).filter(Boolean) as string[])].sort(), [scoped]);
@@ -178,6 +186,8 @@ function CatalogContent() {
   // A group with sections (e.g. "Уход за кожей") opens its own menu of sections
   // + "Хит продаж" before the product list.
   const groupMenu = !!activeGroup?.sections && !subParam && !showAll && !query.trim();
+  // A section with a third level (e.g. "Уход для лица") opens a list of its sub-sections first.
+  const sectionMenu = !!activeSection?.items && !itemParam && !showAll && !query.trim();
 
   const activeFilterCount = [brand, productType, volume, hairType, skinType, onlyInStock || null, typeof budget === "number" ? budget : null, sort !== "name" ? sort : null].filter(
     Boolean
@@ -207,7 +217,7 @@ function CatalogContent() {
             className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent"
           />
         </div>
-        {!browsing && !groupMenu && (
+        {!browsing && !groupMenu && !sectionMenu && (
           <button
             onClick={() => setFiltersOpen(true)}
             aria-label="Фильтры и сортировка"
@@ -223,7 +233,7 @@ function CatalogContent() {
         )}
       </div>
 
-      <h1 className="font-display text-3xl mb-4">{activeSection ? activeSection.label : activeGroup && !browsing ? activeGroup.name : "Каталог"}</h1>
+      <h1 className="font-display text-3xl mb-4">{promo ? "Акции" : activeItem ? activeItem.label : activeSection ? activeSection.label : activeGroup && !browsing ? activeGroup.name : "Каталог"}</h1>
 
       {branches.length > 1 && (
         <div className="mb-4 -mx-4 px-4 overflow-x-auto">
@@ -252,6 +262,8 @@ function CatalogContent() {
         <CategoryTiles />
       ) : groupMenu ? (
         <GroupMenu group={activeGroup!} />
+      ) : sectionMenu ? (
+        <SectionMenu group={activeGroup!} section={activeSection!} />
       ) : (
         <>
       <div className="mb-2 -mx-4 px-4 overflow-x-auto">
@@ -452,7 +464,7 @@ function CategoryTiles() {
         ))}
       </div>
       <Link
-        href="/catalog?all=1"
+        href="/catalog?promo=1"
         className="tile-sheen relative overflow-hidden rounded-[22px] bg-gradient-to-r from-accent to-accent-strong text-white px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
       >
         <div className="relative">
@@ -522,6 +534,60 @@ function GroupMenu({ group }: { group: CategoryGroup }) {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+// Third level: the list of sub-sections of a section (e.g. "Уход для лица" → Умывание, Кремы…) and "Хиты".
+function SectionMenu({ group, section }: { group: CategoryGroup; section: NonNullable<CategoryGroup["sections"]>[number] }) {
+  const [hits, setHits] = useState<Product[]>([]);
+  const filter = groupCategoryFilter(group, section.label);
+  const base = `/catalog?group=${encodeURIComponent(group.name)}&sub=${encodeURIComponent(section.label)}`;
+
+  useEffect(() => {
+    fetch(`/api/products/bestsellers?category=${encodeURIComponent(filter)}`)
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setHits(data.products ?? []))
+      .catch(() => setHits([]));
+  }, [filter]);
+
+  const rows = [{ label: "Все продукты", href: `${base}&item=Все` }, ...(section.items ?? []).map((i) => ({ label: i.label, href: `${base}&item=${encodeURIComponent(i.label)}` }))];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="bg-card rounded-[28px] px-5 py-1 shadow-[var(--shadow-card)]">
+        {rows.map((r) => (
+          <Link
+            key={r.label}
+            href={r.href}
+            className="flex items-center justify-between gap-3 py-4 text-[17px] border-b border-border last:border-b-0 transition active:opacity-60"
+          >
+            {r.label}
+            <ChevronRight className="size-5 text-foreground shrink-0" strokeWidth={2} aria-hidden />
+          </Link>
+        ))}
+      </div>
+
+      {hits.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-2xl">Хиты</h2>
+            <Link
+              href={`${base}&item=Все`}
+              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium"
+            >
+              Все <ChevronRight className="size-4" strokeWidth={2} aria-hidden />
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {hits.map((product) => (
+              <div key={product.id} className="w-44 shrink-0 snap-start">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
