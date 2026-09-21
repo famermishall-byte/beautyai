@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Beauty (бывший BeautyAI)
 
-## Getting Started
+Каталог и заказы для оптового магазина косметики: витрина, роли (владелец / администратор / управляющий филиала /
+покупатель), остатки по филиалам, заказы через WhatsApp. Next.js (App Router) + Supabase + Vercel, мобильная
+оболочка на Capacitor.
 
-First, run the development server:
+> ⚠️ Нестандартная версия Next.js (16.x) — перед правкой кода читайте `node_modules/next/dist/docs/` и `AGENTS.md`.
 
+## Быстрый старт
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/famermishall-byte/beautyai.git
+cd beautyai
+npm ci
+cp .env.example .env    # вписать SUPABASE_URL и SUPABASE_ANON_KEY (или оставить: есть значения по умолчанию)
+npm run dev             # http://localhost:3000
 ```
+Требуется Node.js ≥ 20.9 (разработка велась на Node 24 / npm 11).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Документы
+- **[docs/RECOVERY.md](docs/RECOVERY.md)** — восстановление с нуля на новом компьютере, переезд Supabase/Vercel, секреты, резервные копии.
+- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) — состояние проекта, договорённости, история решений (читать первым).
+- [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md) — продукт и дизайн.
+- `supabase/` — SQL базы данных; порядок запуска — в docs/RECOVERY.md (начинается с `00_base_schema.sql`).
+- `.env.example` — список переменных окружения (без значений).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Команды
+`npm run dev` · `npm run build` · `npm run lint` · `npm run cap:sync` · `npm run cap:android` · `npm run cap:ios`
