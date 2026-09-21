@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import {
   ChevronRight,
   ChevronDown,
@@ -33,6 +34,10 @@ import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
+  const tKit = useTranslations("kit");
+  const tSkin = useTranslations("skin");
+  const tHair = useTranslations("hair");
   const { session, loading, isManager, signOut, refresh } = useSession();
 
   const [city, setCity] = useState<string | null>(null);
@@ -83,8 +88,8 @@ export default function ProfilePage() {
   }, [savedTick]);
 
   const kit = useMemo(
-    () => (products ? buildCareKit(products, skinType, skinConcerns, hairType, hairConcerns) : null),
-    [products, skinType, skinConcerns, hairType, hairConcerns]
+    () => (products ? buildCareKit(products, skinType, skinConcerns, hairType, hairConcerns, { kit: tKit, skin: tSkin, hair: tHair }) : null),
+    [products, skinType, skinConcerns, hairType, hairConcerns, tKit, tSkin, tHair]
   );
 
   async function handleQuestionnaireSaved() {
@@ -104,11 +109,11 @@ export default function ProfilePage() {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
       if (error) {
-        setEmailError(`Не удалось изменить email: ${error.message}`);
+        setEmailError(t("emailFailed", { message: error.message }));
         return;
       }
       setEmailNotice(
-        `Мы отправили письмо для подтверждения на ${newEmail.trim()}. Email изменится после перехода по ссылке из письма.`
+        t("emailSent", { email: newEmail.trim() })
       );
       setNewEmail("");
     } finally {
@@ -122,11 +127,11 @@ export default function ProfilePage() {
     setPasswordError(null);
 
     if (newPassword.length < 6) {
-      setPasswordError("Пароль должен быть не короче 6 символов.");
+      setPasswordError(t("passwordShort"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("Пароли не совпадают.");
+      setPasswordError(t("passwordMismatch"));
       return;
     }
 
@@ -135,10 +140,10 @@ export default function ProfilePage() {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) {
-        setPasswordError(`Не удалось изменить пароль: ${error.message}`);
+        setPasswordError(t("passwordFailed", { message: error.message }));
         return;
       }
-      setPasswordNotice("Пароль обновлён.");
+      setPasswordNotice(t("passwordUpdated"));
       setNewPassword("");
       setConfirmPassword("");
     } finally {
@@ -153,7 +158,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/account", { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setDeleteError(data.error ?? "Не удалось удалить аккаунт.");
+        setDeleteError(data.error ?? t("deleteFailed"));
         return;
       }
       try {
@@ -184,19 +189,19 @@ export default function ProfilePage() {
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-title text-3xl leading-tight mb-6 text-center">Личный кабинет</h1>
+      <h1 className="font-title text-3xl leading-tight mb-6 text-center">{t("title")}</h1>
 
       <div className={`${cardClass} flex flex-col items-center pt-6`}>
         <AvatarUploader avatarUrl={session.avatarUrl} initial={initial} onChanged={refresh} />
         <div className="text-center mt-4">
-          <div className="font-display text-xl leading-tight">{session.displayName ?? "Добро пожаловать!"}</div>
+          <div className="font-display text-xl leading-tight">{session.displayName ?? t("welcome")}</div>
           <div className="text-sm text-muted mt-0.5">{session.email}</div>
         </div>
       </div>
 
       <div className={cardClass}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl">Моя анкета</h2>
+          <h2 className="font-display text-xl">{t("myQuestionnaire")}</h2>
           {!isEditing && (
             <button
               type="button"
@@ -204,7 +209,7 @@ export default function ProfilePage() {
               className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline"
             >
               <Pencil className="size-3.5" strokeWidth={2} aria-hidden />
-              Изменить
+              {t("edit")}
             </button>
           )}
         </div>
@@ -213,7 +218,7 @@ export default function ProfilePage() {
           <>
             {!hasAnswers && (
               <p className="text-sm text-muted mb-5 leading-relaxed">
-                Ответьте на несколько вопросов — мы подберём набор средств и дадим советы по уходу.
+                {t("questionnaireIntro")}
               </p>
             )}
             <QuestionnaireForm
@@ -238,22 +243,22 @@ export default function ProfilePage() {
         <div ref={kitRef} className="mb-6 scroll-mt-20 animate-rise-in">
           <div className="flex items-center gap-1.5 mb-3">
             <Sparkles className="size-4 text-accent" strokeWidth={2} aria-hidden />
-            <h2 className="font-display text-xl">Ваш набор</h2>
+            <h2 className="font-display text-xl">{t("yourKit")}</h2>
           </div>
           {kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-[var(--radius-card)]" />}
         </div>
       )}
 
       <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-4">
-        <MenuRow href="/city" icon={MapPin} label="Мой город" hint={city ?? "Не выбран"} />
-        <MenuRow href="/branches" icon={Store} label="Магазины" hint="Карта филиалов" />
-        <MenuRow href="/mybag" icon={Heart} label="Моя косметичка" hint="Избранные товары" />
-        <MenuRow href="/orders" icon={ShoppingBag} label="Мои покупки" hint="Все заказы" />
-        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isManager} />
+        <MenuRow href="/city" icon={MapPin} label={t("menu.city")} hint={city ?? t("menu.cityNotChosen")} />
+        <MenuRow href="/branches" icon={Store} label={t("menu.stores")} hint={t("menu.storesHint")} />
+        <MenuRow href="/mybag" icon={Heart} label={t("menu.myBag")} hint={t("menu.myBagHint")} />
+        <MenuRow href="/orders" icon={ShoppingBag} label={t("menu.orders")} hint={t("menu.ordersHint")} />
+        <MenuRow href="/feedback" icon={MessageCircle} label={t("menu.feedback")} last={!isManager} />
         {isManager && (
           <>
-            <MenuRow href="/admin" icon={LayoutDashboard} label="Админ-панель магазина" />
-            <MenuRow href="/admin/settings" icon={Settings} label="Настройки магазина" last />
+            <MenuRow href="/admin" icon={LayoutDashboard} label={t("menu.adminPanel")} />
+            <MenuRow href="/admin/settings" icon={Settings} label={t("menu.storeSettings")} last />
           </>
         )}
       </div>
@@ -268,7 +273,7 @@ export default function ProfilePage() {
           <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
             <KeyRound className="size-4.5" strokeWidth={1.85} aria-hidden />
           </span>
-          <span className="flex-1 text-sm font-medium">Email и пароль</span>
+          <span className="flex-1 text-sm font-medium">{t("emailAndPassword")}</span>
           <ChevronDown className={["size-4 text-muted transition-transform", showAccount ? "rotate-180" : ""].join(" ")} strokeWidth={2} aria-hidden />
         </button>
 
@@ -285,19 +290,19 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 <input
                   type="email"
-                  placeholder="Новый email"
+                  placeholder={t("newEmail")}
                   className={inputClass}
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                 />
                 <Button type="submit" size="sm" disabled={emailSubmitting || !newEmail.trim()} className="shrink-0">
-                  {emailSubmitting ? "Отправляем…" : "Изменить"}
+                  {emailSubmitting ? t("sending") : t("change")}
                 </Button>
               </div>
             </form>
 
             <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
-              <h3 className="text-sm font-medium">Пароль</h3>
+              <h3 className="text-sm font-medium">{t("password")}</h3>
               {passwordNotice && (
                 <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3">{passwordNotice}</p>
               )}
@@ -305,21 +310,21 @@ export default function ProfilePage() {
                 <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{passwordError}</p>
               )}
               <PasswordInput
-                placeholder="Новый пароль (минимум 6 символов)"
+                placeholder={t("newPassword")}
                 className={inputClass}
                 value={newPassword}
                 onChange={setNewPassword}
                 autoComplete="new-password"
               />
               <PasswordInput
-                placeholder="Повторите пароль"
+                placeholder={t("repeatPassword")}
                 className={inputClass}
                 value={confirmPassword}
                 onChange={setConfirmPassword}
                 autoComplete="new-password"
               />
               <Button type="submit" size="sm" disabled={passwordSubmitting || !newPassword} className="self-start">
-                {passwordSubmitting ? "Сохраняем…" : "Сохранить пароль"}
+                {passwordSubmitting ? t("saving") : t("savePassword")}
               </Button>
             </form>
           </div>
@@ -328,7 +333,7 @@ export default function ProfilePage() {
 
       <Button variant="ghost" size="lg" fullWidth onClick={() => signOut()}>
         <LogOut className="size-4.5" strokeWidth={1.85} aria-hidden />
-        Выйти
+        {t("signOut")}
       </Button>
 
       <button
@@ -336,25 +341,24 @@ export default function ProfilePage() {
         onClick={() => setShowDeleteConfirm(true)}
         className="w-full text-center text-xs text-muted underline mt-6 transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
       >
-        Удалить аккаунт
+        {t("deleteAccount")}
       </button>
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => !deleting && setShowDeleteConfirm(false)} />
           <div className="relative w-full max-w-sm bg-background rounded-[var(--radius-card)] shadow-xl p-6 animate-rise-in">
-            <h2 className="font-display text-xl mb-3">Удалить аккаунт?</h2>
+            <h2 className="font-display text-xl mb-3">{t("deleteTitle")}</h2>
             <p className="text-sm text-muted mb-6 leading-relaxed">
-              Вы уверены, что хотите удалить аккаунт? Все сохранённые данные, фото, информация о коже и волосах,
-              косметичка и история покупок будут удалены без возможности восстановления.
+              {t("deleteWarning")}
             </p>
             {deleteError && <p className="text-sm text-error mb-4">{deleteError}</p>}
             <div className="flex gap-2">
               <Button variant="ghost" className="flex-1" disabled={deleting} onClick={() => setShowDeleteConfirm(false)}>
-                Отмена
+                {t("cancel")}
               </Button>
               <Button variant="danger" className="flex-1" disabled={deleting} onClick={handleDeleteAccount}>
-                {deleting ? "Удаляем…" : "Удалить"}
+                {deleting ? t("deleting") : t("delete")}
               </Button>
             </div>
           </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { Check, Lightbulb, Plus, ShoppingBag, Sparkle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +11,8 @@ import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
 function KitRow({ label, product }: { label: string; product: Product | null }) {
+  const t = useTranslations("kit");
+  const price = usePrice();
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -18,7 +22,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
         <div className="w-14 h-14 rounded-[var(--radius-control)] bg-accent-soft/60 shrink-0" aria-hidden />
         <div>
           <div className="text-[11px] uppercase tracking-wide text-muted font-medium">{label}</div>
-          <div className="text-sm text-muted">Подходящего товара пока нет в каталоге</div>
+          <div className="text-sm text-muted">{t("noProduct")}</div>
         </div>
       </div>
     );
@@ -39,7 +43,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
           <div className="text-[11px] uppercase tracking-wide text-accent font-medium">{label}</div>
           <div className="text-sm font-medium leading-snug line-clamp-2">{product.name}</div>
           <div className="text-xs text-muted tabular-nums">
-            {product.brand} · {product.price.toLocaleString("ru-RU")} сом
+            {product.brand} · {price(product.price)}
           </div>
         </div>
       </Link>
@@ -49,7 +53,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
           setAdded(true);
           setTimeout(() => setAdded(false), 1200);
         }}
-        aria-label={`Добавить «${product.name}» в корзину`}
+        aria-label={t("addToCartNamed", { name: product.name })}
         className={[
           "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90",
           added ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong",
@@ -62,6 +66,8 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
 }
 
 export function CareKitView({ kit }: { kit: CareKit }) {
+  const t = useTranslations("kit");
+  const price = usePrice();
   const { addItem } = useCart();
   const [addedAll, setAddedAll] = useState(false);
 
@@ -80,7 +86,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
       {kit.skinSteps.length > 0 && (
         <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden">
           <div className="px-4 pt-4 pb-2">
-            <h3 className="font-display text-lg">Для кожи лица</h3>
+            <h3 className="font-display text-lg">{t("forFace")}</h3>
           </div>
           <div className="divide-y divide-border">
             {kit.skinSteps.map((step) => (
@@ -93,13 +99,13 @@ export function CareKitView({ kit }: { kit: CareKit }) {
       {(kit.hairProducts.length > 0 || kit.hairTips.length > 0) && (
         <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden">
           <div className="px-4 pt-4 pb-2">
-            <h3 className="font-display text-lg">Для волос</h3>
+            <h3 className="font-display text-lg">{t("forHair")}</h3>
           </div>
           <div className="divide-y divide-border">
             {kit.hairProducts.length > 0 ? (
-              kit.hairProducts.map((p) => <KitRow key={p.id} label="Уход за волосами" product={p} />)
+              kit.hairProducts.map((p) => <KitRow key={p.id} label={t("hairCare")} product={p} />)
             ) : (
-              <KitRow label="Уход за волосами" product={null} />
+              <KitRow label={t("hairCare")} product={null} />
             )}
           </div>
         </div>
@@ -109,12 +115,12 @@ export function CareKitView({ kit }: { kit: CareKit }) {
         <Button size="lg" fullWidth onClick={addAll} variant={addedAll ? "secondary" : "primary"}>
           {addedAll ? (
             <>
-              <Check className="size-4.5" strokeWidth={2.5} aria-hidden /> Набор в корзине
+              <Check className="size-4.5" strokeWidth={2.5} aria-hidden /> {t("kitInCart")}
             </>
           ) : (
             <>
               <ShoppingBag className="size-4.5" strokeWidth={2} aria-hidden />
-              Добавить весь набор · {total.toLocaleString("ru-RU")} сом
+              {t("addAll", { total: price(total) })}
             </>
           )}
         </Button>
@@ -124,7 +130,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
         <div className="bg-accent-soft rounded-[var(--radius-card)] p-5">
           <div className="flex items-center gap-2 mb-3 text-accent-strong">
             <Lightbulb className="size-4.5" strokeWidth={2} aria-hidden />
-            <h3 className="font-display text-lg">Советы</h3>
+            <h3 className="font-display text-lg">{t("tips")}</h3>
           </div>
           <ul className="flex flex-col gap-2.5 text-sm text-accent-strong/90 leading-relaxed">
             {[...kit.skinTips, ...kit.hairTips].map((tip) => (

@@ -2,16 +2,17 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getOrderStatusLabel } from "@/lib/orderStatus";
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 const LINK_STATUSES = new Set(["confirmed", "paid", "shipped", "completed", "cancelled"]);
 const LEGACY_STATUSES = new Set(["confirmed", "completed", "cancelled"]);
 
-function Result({ title, text }: { title: string; text: string }) {
+function Result({ title, text, backLabel }: { title: string; text: string; backLabel: string }) {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <Link
         href="/"
-        aria-label="Назад"
+        aria-label={backLabel}
         className="fixed top-3 left-3 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center transition hover:bg-black/5 active:scale-90"
       >
         <ArrowLeft className="size-5" strokeWidth={2} aria-hidden />
@@ -28,9 +29,12 @@ export default async function OrderStatusLinkPage({
   params: Promise<{ token: string; status: string }>;
 }) {
   const { token, status } = await params;
+  const t = await getTranslations("orderLink");
+  const ts = await getTranslations("orderStatus");
+  const back = (await getTranslations("common"))("back");
 
   if (!LINK_STATUSES.has(status)) {
-    return <Result title="Некорректная ссылка" text="Такой статус нельзя установить по ссылке." />;
+    return <Result title={t("badLink")} text={t("badStatus")} backLabel={back} />;
   }
 
   // set_order_status_by_token (supabase/order_payments.sql) knows every status; until it is installed the
@@ -52,16 +56,18 @@ export default async function OrderStatusLinkPage({
   if (error || !order) {
     return (
       <Result
-        title="Ссылка не сработала"
-        text="Заказ не найден — возможно, ссылка устарела или введена неверно."
+        title={t("linkFailed")}
+        text={t("orderNotFound")}
+        backLabel={back}
       />
     );
   }
 
   return (
     <Result
-      title={`Заказ #${order.number}`}
-      text={`Статус обновлён: «${getOrderStatusLabel(order.status)}» ✅`}
+      title={t("orderTitle", { number: order.number })}
+      text={t("statusUpdated", { status: getOrderStatusLabel(ts, order.status) })}
+      backLabel={back}
     />
   );
 }

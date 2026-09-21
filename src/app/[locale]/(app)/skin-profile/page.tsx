@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSession, type Session } from "@/lib/session-context";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { useRouter } from "@/i18n/navigation";
 
 export default function SkinProfilePage() {
+  const t = useTranslations("skinProfile");
+  const tSkin = useTranslations("skin");
   const { session, loading, refresh } = useSession();
   const router = useRouter();
 
@@ -50,41 +53,41 @@ export default function SkinProfilePage() {
   if (loading) {
     return (
       <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">Загружаем…</p>
+        <p className="text-muted animate-pulse">{t("loading")}</p>
       </main>
     );
   }
 
   return (
     <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-2">Моя кожа</h1>
-      <p className="text-muted mb-8">Это поможет подобрать уход, который вам подходит.</p>
+      <h1 className="font-display text-3xl mb-2">{t("title")}</h1>
+      <p className="text-muted mb-8">{t("subtitle")}</p>
 
       <section className="mb-8">
-        <h2 className="font-medium mb-3">Тип кожи</h2>
+        <h2 className="font-medium mb-3">{t("skinType")}</h2>
         <div className="flex flex-wrap gap-2">
-          {SKIN_TYPES.map((t) => (
+          {SKIN_TYPES.map((s) => (
             <button
-              key={t.value}
+              key={s.value}
               onClick={() => {
-                setSkinType(t.value);
+                setSkinType(s.value);
                 setSaved(false);
               }}
               className={[
                 "rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                skinType === t.value
+                skinType === s.value
                   ? "bg-accent text-white"
                   : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
               ].join(" ")}
             >
-              {t.label}
+              {tSkin(`types.${s.value}`)}
             </button>
           ))}
         </div>
       </section>
 
       <section className="mb-8">
-        <h2 className="font-medium mb-3">Проблемы кожи</h2>
+        <h2 className="font-medium mb-3">{t("concerns")}</h2>
         <div className="flex flex-wrap gap-2">
           {SKIN_CONCERNS.map((c) => {
             const active = concerns.includes(c.value);
@@ -100,7 +103,7 @@ export default function SkinProfilePage() {
                     : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
                 ].join(" ")}
               >
-                {c.label}
+                {tSkin(`concerns.${c.value}`)}
               </button>
             );
           })}
@@ -113,13 +116,13 @@ export default function SkinProfilePage() {
           disabled={saving || !skinType}
           className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
-          {saving ? "Сохраняем…" : saved ? "Сохранено ✓" : "Сохранить"}
+          {saving ? t("saving") : saved ? t("saved") : t("save")}
         </button>
         <button
           onClick={() => router.push("/routine")}
           className="text-sm text-accent underline"
         >
-          Посмотреть мой уход
+          {t("viewRoutine")}
         </button>
       </div>
     </main>

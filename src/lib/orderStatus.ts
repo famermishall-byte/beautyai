@@ -6,38 +6,31 @@ export const ORDER_STATUSES = ["sent", "confirmed", "paid", "shipped", "complete
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-// What the customer sees in "Мои покупки".
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  sent: "Отправлен",
-  confirmed: "Подтверждён",
-  paid: "Оплачен",
-  shipped: "Передан курьеру",
-  completed: "Выполнен",
-  cancelled: "Отменён",
-};
-
-// What the branch sees: "sent" is a NEW order there, not something that was "sent" to the customer.
-export const ORDER_STATUS_ADMIN_LABELS: Record<OrderStatus, string> = { ...ORDER_STATUS_LABELS, sent: "Новый" };
+// Display text lives in messages (namespace "orderStatus": customer.<status>, admin.<status>, next.<key>).
+// Label helpers take the translator of that namespace: `const t = useTranslations("orderStatus")`.
+// Customer wording ("Мои покупки"): "sent" reads "Отправлен". Branch wording: "sent" is a NEW order there.
 
 /** A sale is counted once the order is paid: paid, handed to the courier, or completed. */
 export const SALE_STATUSES: readonly string[] = ["paid", "shipped", "completed"];
 
 /** The next step of the normal flow, for the one-tap button. */
-export const NEXT_ORDER_STEP: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
-  sent: { status: "paid", label: "Оплата получена" },
-  confirmed: { status: "paid", label: "Оплата получена" },
-  paid: { status: "completed", label: "Заказ выдан / доставлен" },
-  shipped: { status: "completed", label: "Заказ выдан / доставлен" },
+export const NEXT_ORDER_STEP: Partial<Record<OrderStatus, { status: OrderStatus; labelKey: "paid" | "completed" }>> = {
+  sent: { status: "paid", labelKey: "paid" },
+  confirmed: { status: "paid", labelKey: "paid" },
+  paid: { status: "completed", labelKey: "completed" },
+  shipped: { status: "completed", labelKey: "completed" },
 };
 
 export function isOrderStatus(value: string): value is OrderStatus {
   return (ORDER_STATUSES as readonly string[]).includes(value);
 }
 
-export function getOrderStatusLabel(status: string): string {
-  return isOrderStatus(status) ? ORDER_STATUS_LABELS[status] : status;
+type StatusT = (key: string) => string;
+
+export function getOrderStatusLabel(t: StatusT, status: string): string {
+  return isOrderStatus(status) ? t(`customer.${status}`) : status;
 }
 
-export function getOrderStatusAdminLabel(status: string): string {
-  return isOrderStatus(status) ? ORDER_STATUS_ADMIN_LABELS[status] : status;
+export function getOrderStatusAdminLabel(t: StatusT, status: string): string {
+  return isOrderStatus(status) ? t(`admin.${status}`) : status;
 }

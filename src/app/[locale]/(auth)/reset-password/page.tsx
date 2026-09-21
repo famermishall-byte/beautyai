@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("resetPassword");
   const [ready, setReady] = useState(false);
   const [hasValidSession, setHasValidSession] = useState(false);
   const [password, setPassword] = useState("");
@@ -31,11 +33,11 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (password.length < 6) {
-      setError("Пароль должен быть не короче 6 символов.");
+      setError(t("passwordShort"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Пароли не совпадают.");
+      setError(t("passwordMismatch"));
       return;
     }
 
@@ -44,7 +46,7 @@ export default function ResetPasswordPage() {
       const supabase = createBrowserSupabaseClient();
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError(`Не удалось сохранить пароль: ${updateError.message}`);
+        setError(t("saveFailed", { message: updateError.message }));
         return;
       }
       setDone(true);
@@ -63,7 +65,7 @@ export default function ResetPasswordPage() {
   if (!ready) {
     return (
       <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
-        <p className="text-muted animate-pulse">Проверяем ссылку…</p>
+        <p className="text-muted animate-pulse">{t("checking")}</p>
       </div>
     );
   }
@@ -71,17 +73,16 @@ export default function ResetPasswordPage() {
   if (!hasValidSession) {
     return (
       <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
-        <h1 className="font-display text-2xl mb-3">Ссылка недействительна</h1>
+        <h1 className="font-display text-2xl mb-3">{t("invalidTitle")}</h1>
         <p className="text-muted mb-6">
-          Эта ссылка для сброса пароля устарела или уже была использована. Запросите новую на
-          странице входа.
+          {t("invalidText")}
         </p>
-        <a
+        <Link
           href="/login"
           className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
         >
-          Вернуться ко входу
-        </a>
+          {t("backToLogin")}
+        </Link>
       </div>
     );
   }
@@ -90,8 +91,8 @@ export default function ResetPasswordPage() {
     return (
       <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
         <div className="text-4xl mb-3">💚</div>
-        <h1 className="font-display text-2xl mb-2">Пароль обновлён</h1>
-        <p className="text-muted">Переходим в приложение…</p>
+        <h1 className="font-display text-2xl mb-2">{t("updatedTitle")}</h1>
+        <p className="text-muted">{t("redirecting")}</p>
       </div>
     );
   }
@@ -99,8 +100,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
       <div className="text-center mb-6">
-        <h1 className="font-display text-2xl">Новый пароль</h1>
-        <p className="text-muted text-sm mt-1">Придумайте новый пароль для входа</p>
+        <h1 className="font-display text-2xl">{t("title")}</h1>
+        <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
       </div>
 
       {error && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4">{error}</p>}
@@ -108,7 +109,7 @@ export default function ResetPasswordPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <PasswordInput
           required
-          placeholder="Новый пароль (минимум 6 символов)"
+          placeholder={t("newPassword")}
           className={inputClass}
           value={password}
           onChange={setPassword}
@@ -116,7 +117,7 @@ export default function ResetPasswordPage() {
         />
         <PasswordInput
           required
-          placeholder="Повторите пароль"
+          placeholder={t("repeatPassword")}
           className={inputClass}
           value={confirmPassword}
           onChange={setConfirmPassword}
@@ -127,7 +128,7 @@ export default function ResetPasswordPage() {
           disabled={submitting}
           className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
-          {submitting ? "Сохраняем…" : "Сохранить пароль"}
+          {submitting ? t("saving") : t("save")}
         </button>
       </form>
     </div>

@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { useCart } from "@/lib/cart-context";
 import type { Branch } from "@/types";
 import { useRouter } from "@/i18n/navigation";
 
 type Step = "branch" | "contact" | "review" | "success";
 
-const STEP_LABELS: { key: Step; label: string }[] = [
-  { key: "branch", label: "Филиал" },
-  { key: "contact", label: "Контакты" },
-  { key: "review", label: "Подтверждение" },
-];
+const STEP_KEYS: Step[] = ["branch", "contact", "review"];
 
 export default function CheckoutPage() {
+  const t = useTranslations("checkout");
+  const price = usePrice();
+  const stepLabels = STEP_KEYS.map((key) => ({ key, label: t(`steps.${key}`) }));
   const { items, hydrated, totalPrice, clearCart } = useCart();
   const router = useRouter();
 
@@ -57,7 +58,7 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Не удалось оформить заказ.");
+        setError(data.error ?? t("failed"));
         return;
       }
 
@@ -66,7 +67,7 @@ export default function CheckoutPage() {
       setSuccessInfo({ orderNumber: data.orderNumber });
       setStep("success");
     } catch {
-      setError("Что-то пошло не так. Попробуйте ещё раз.");
+      setError(t("somethingWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -79,18 +80,18 @@ export default function CheckoutPage() {
     return (
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 text-center">
         <div className="text-5xl mb-4">💚</div>
-        <h1 className="font-display text-3xl mb-3">Заказ отправлен</h1>
+        <h1 className="font-display text-3xl mb-3">{t("sentTitle")}</h1>
         <p className="text-muted max-w-md mb-2">
-          Мы передали ваш заказ <span className="font-medium text-foreground">#{successInfo.orderNumber}</span> в выбранный магазин.
+          {t.rich("sentText", { number: successInfo.orderNumber, b: (chunks) => <span className="font-medium text-foreground">{chunks}</span> })}
         </p>
         <p className="text-muted max-w-md mb-8">
-          Продавец свяжется с вами для подтверждения заказа и оформления доставки.
+          {t("sentHint")}
         </p>
         <button
           onClick={() => router.push("/")}
           className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
-          Вернуться в каталог
+          {t("backToCatalog")}
         </button>
       </main>
     );
@@ -99,7 +100,7 @@ export default function CheckoutPage() {
   if (!hydrated) {
     return (
       <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">Загружаем корзину…</p>
+        <p className="text-muted animate-pulse">{t("loadingCart")}</p>
       </main>
     );
   }
@@ -110,12 +111,12 @@ export default function CheckoutPage() {
 
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-6">Оформление заказа</h1>
+      <h1 className="font-display text-3xl mb-6">{t("title")}</h1>
 
       <div className="flex items-center gap-2 mb-8">
-        {STEP_LABELS.map((s, i) => {
+        {stepLabels.map((s, i) => {
           const isActive = s.key === step;
-          const isDone = STEP_LABELS.findIndex((x) => x.key === step) > i;
+          const isDone = stepLabels.findIndex((x) => x.key === step) > i;
           return (
             <div key={s.key} className="flex items-center gap-2">
               <span
@@ -127,7 +128,7 @@ export default function CheckoutPage() {
                 {i + 1}
               </span>
               <span className={isActive ? "text-sm font-medium" : "text-sm text-muted"}>{s.label}</span>
-              {i < STEP_LABELS.length - 1 && <span className="w-6 h-px bg-black/10 mx-1" />}
+              {i < stepLabels.length - 1 && <span className="w-6 h-px bg-black/10 mx-1" />}
             </div>
           );
         })}
@@ -135,9 +136,9 @@ export default function CheckoutPage() {
 
       {step === "branch" && (
         <div>
-          <h2 className="font-medium mb-4">Выберите удобный филиал</h2>
+          <h2 className="font-medium mb-4">{t("chooseBranch")}</h2>
           {branches.length === 0 ? (
-            <p className="text-muted text-sm">Филиалы ещё не настроены магазином.</p>
+            <p className="text-muted text-sm">{t("noBranches")}</p>
           ) : (
             <div className="flex flex-col gap-3 mb-6">
               {branches.map((branch) => (
@@ -161,24 +162,24 @@ export default function CheckoutPage() {
             disabled={!branchId}
             className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            Далее
+            {t("next")}
           </button>
         </div>
       )}
 
       {step === "contact" && (
         <div>
-          <h2 className="font-medium mb-4">Ваши контакты</h2>
+          <h2 className="font-medium mb-4">{t("yourContacts")}</h2>
           <div className="flex flex-col gap-3 mb-6">
             <input
               className={inputClass}
-              placeholder="Ваше имя"
+              placeholder={t("namePlaceholder")}
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
             />
             <input
               className={inputClass}
-              placeholder="Номер телефона"
+              placeholder={t("phonePlaceholder")}
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
             />
@@ -188,14 +189,14 @@ export default function CheckoutPage() {
               onClick={() => setStep("branch")}
               className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              Назад
+              {t("back")}
             </button>
             <button
               onClick={() => setStep("review")}
               disabled={!customerName.trim() || !customerPhone.trim()}
               className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
-              Далее
+              {t("next")}
             </button>
           </div>
         </div>
@@ -203,31 +204,31 @@ export default function CheckoutPage() {
 
       {step === "review" && selectedBranch && (
         <div>
-          <h2 className="font-medium mb-4">Проверьте заказ</h2>
+          <h2 className="font-medium mb-4">{t("reviewTitle")}</h2>
 
           <div className="bg-card rounded-xl border border-black/5 p-4 mb-4">
-            <div className="text-sm text-muted mb-2">Товары</div>
+            <div className="text-sm text-muted mb-2">{t("products")}</div>
             <div className="flex flex-col gap-2">
               {items.map((item) => (
                 <div key={item.product.id} className="flex justify-between text-sm">
                   <span>
                     {item.product.name} × {item.quantity}
                   </span>
-                  <span>{(item.product.price * item.quantity).toLocaleString("ru-RU")} сом</span>
+                  <span>{price(item.product.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
             <div className="flex justify-between font-display text-lg mt-3 pt-3 border-t border-black/10">
-              <span>Итого</span>
-              <span>{totalPrice.toLocaleString("ru-RU")} сом</span>
+              <span>{t("total")}</span>
+              <span>{price(totalPrice)}</span>
             </div>
           </div>
 
           <div className="bg-card rounded-xl border border-black/5 p-4 mb-4">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-muted">Филиал</div>
+              <div className="text-sm text-muted">{t("branch")}</div>
               <button onClick={() => setStep("branch")} className="text-xs text-accent underline">
-                Изменить
+                {t("change")}
               </button>
             </div>
             <div className="font-medium">{selectedBranch.name}</div>
@@ -236,9 +237,9 @@ export default function CheckoutPage() {
 
           <div className="bg-card rounded-xl border border-black/5 p-4 mb-6">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-muted">Контакты</div>
+              <div className="text-sm text-muted">{t("contacts")}</div>
               <button onClick={() => setStep("contact")} className="text-xs text-accent underline">
-                Изменить
+                {t("change")}
               </button>
             </div>
             <div className="font-medium">{customerName}</div>
@@ -252,14 +253,14 @@ export default function CheckoutPage() {
               onClick={() => setStep("contact")}
               className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              Назад
+              {t("back")}
             </button>
             <button
               onClick={handleSubmitOrder}
               disabled={submitting}
               className="rounded-full bg-[#25D366] text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
-              {submitting ? "Отправляем…" : "Отправить заказ в WhatsApp"}
+              {submitting ? t("sending") : t("sendWhatsApp")}
             </button>
           </div>
         </div>

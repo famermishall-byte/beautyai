@@ -1,32 +1,33 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type FormEvent } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "@/i18n/navigation";
 
 type Mode = "login" | "register" | "forgot";
 
-const TABS: { key: Mode; label: string }[] = [
-  { key: "login", label: "Войти" },
-  { key: "register", label: "Регистрация" },
-  { key: "forgot", label: "Забыли пароль" },
-];
+const TABS: Mode[] = ["login", "register", "forgot"];
 
 type AuthErrorContext = "login" | "register" | "forgot";
 
-function translateAuthError(message: string, context: AuthErrorContext = "login"): string {
+// Maps Supabase's English auth errors to messages (namespace "login": errors.*).
+function translateAuthError(
+  t: (key: string, values?: Record<string, string>) => string,
+  message: string,
+  context: AuthErrorContext = "login"
+): string {
   const known: Record<string, string> = {
-    "Invalid login credentials": "Неверный email или пароль.",
-    "Email not confirmed": "Email ещё не подтверждён — проверьте почту и перейдите по ссылке из письма.",
-    "User already registered": "Этот email уже зарегистрирован. Войдите в аккаунт или восстановите пароль.",
-    "Password should be at least 6 characters": "Пароль должен быть не короче 6 символов.",
+    "Invalid login credentials": "invalidCredentials",
+    "Email not confirmed": "emailNotConfirmed",
+    "User already registered": "alreadyRegistered",
+    "Password should be at least 6 characters": "passwordShort",
   };
-  if (known[message]) return known[message];
-  if (context === "register") return `Не удалось создать аккаунт: ${message}`;
-  if (context === "login") return `Не удалось войти: ${message}`;
-  return `Что-то пошло не так: ${message}`;
+  if (known[message]) return t(`errors.${known[message]}`);
+  return t(`errors.${context}Failed`, { message });
 }
 
 /** Result of a registration attempt, shown instead of silently switching tabs. */
@@ -45,6 +46,9 @@ function clearStaleCart() {
 }
 
 export default function LoginPage() {
+  const t = useTranslations("login");
+  const tMeta = useTranslations("meta");
+  const locale = useLocale();
   const [mode, setMode] = useState<Mode>("login");
 
   const [email, setEmail] = useState("");
@@ -95,7 +99,7 @@ export default function LoginPage() {
       const supabase = createBrowserSupabaseClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
-        setError(translateAuthError(signInError.message, "login"));
+        setError(translateAuthError(t, signInError.message, "login"));
         return;
       }
       router.push("/");
@@ -112,11 +116,11 @@ export default function LoginPage() {
     setRegisterResult(null);
 
     if (password.length < 6) {
-      setError("Пароль должен быть не короче 6 символов.");
+      setError(t("errors.passwordShort"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Пароли не совпадают.");
+      setError(t("errors.passwordMismatch"));
       return;
     }
 
@@ -126,10 +130,10 @@ export default function LoginPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/login` },
+        options: { emailRedirectTo: `${window.location.origin}/${locale}/login` },
       });
       if (signUpError) {
-        setError(translateAuthError(signUpError.message, "register"));
+        setError(translateAuthError(t, signUpError.message, "register"));
         return;
       }
 
@@ -166,13 +170,13 @@ export default function LoginPage() {
       const { error: resendErr } = await supabase.auth.resend({
         type: "signup",
         email: registerResult.email,
-        options: { emailRedirectTo: `${window.location.origin}/login` },
+        options: { emailRedirectTo: `${window.location.origin}/${locale}/login` },
       });
       if (resendErr) {
-        setResendError(translateAuthError(resendErr.message, "register"));
+        setResendError(translateAuthError(t, resendErr.message, "register"));
         return;
       }
-      setResendNotice("Письмо отправлено повторно.");
+      setResendNotice(t("resent"));
     } finally {
       setResending(false);
     }
@@ -186,13 +190,13 @@ export default function LoginPage() {
     try {
       const supabase = createBrowserSupabaseClient();
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/${locale}/reset-password`,
       });
       if (resetError) {
-        setError(translateAuthError(resetError.message, "forgot"));
+        setError(translateAuthError(t, resetError.message, "forgot"));
         return;
       }
-      setNotice("Если такой email зарегистрирован, мы отправили на него ссылку для сброса пароля.");
+      setNotice(t("resetSent"));
     } finally {
       setSubmitting(false);
     }
@@ -203,25 +207,28 @@ export default function LoginPage() {
 
   return (
     <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
+      <div className="flex justify-end -mt-3 -mr-3 mb-1">
+        <LanguageSwitcher />
+      </div>
       <div className="text-center mb-6">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-white">
           <BrandMark size={26} />
         </div>
-        <h1 className="font-display text-2xl">ОПТОВЫЕ ЦЕНЫ 01</h1>
-        <p className="text-muted text-sm mt-1">Вход в личный кабинет магазина</p>
+        <h1 className="font-display text-2xl">{tMeta("title")}</h1>
+        <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
       </div>
 
       <div className="flex bg-accent-soft/60 rounded-full p-1 mb-6">
         {TABS.map((tab) => (
           <button
-            key={tab.key}
-            onClick={() => switchMode(tab.key)}
+            key={tab}
+            onClick={() => switchMode(tab)}
             className={[
               "flex-1 rounded-full py-2 text-sm font-medium transition",
-              mode === tab.key ? "bg-white shadow-sm text-foreground" : "text-muted hover:text-foreground",
+              mode === tab ? "bg-white shadow-sm text-foreground" : "text-muted hover:text-foreground",
             ].join(" ")}
           >
-            {tab.label}
+            {t(`tabs.${tab}`)}
           </button>
         ))}
       </div>
@@ -245,7 +252,7 @@ export default function LoginPage() {
           />
           <PasswordInput
             required
-            placeholder="Пароль"
+            placeholder={t("password")}
             className={inputClass}
             value={password}
             onChange={setPassword}
@@ -256,7 +263,7 @@ export default function LoginPage() {
             disabled={submitting}
             className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            {submitting ? "Входим…" : "Войти"}
+            {submitting ? t("signingIn") : t("signIn")}
           </button>
         </form>
       )}
@@ -264,8 +271,7 @@ export default function LoginPage() {
       {mode === "register" && registerResult?.kind === "check-email" && (
         <div className="flex flex-col gap-3">
           <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">
-            Аккаунт создан. Проверьте почту <span className="font-medium">{registerResult.email}</span> и
-            перейдите по ссылке из письма, чтобы подтвердить регистрацию.
+            {t.rich("accountCreated", { email: registerResult.email, b: (chunks) => <span className="font-medium">{chunks}</span> })}
           </p>
           {resendNotice && (
             <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">{resendNotice}</p>
@@ -279,14 +285,14 @@ export default function LoginPage() {
             disabled={resending}
             className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {resending ? "Отправляем…" : "Отправить письмо ещё раз"}
+            {resending ? t("sending") : t("resend")}
           </button>
           <button
             type="button"
             onClick={() => switchMode("login")}
             className="text-sm text-accent underline"
           >
-            У меня уже есть аккаунт — войти
+            {t("haveAccount")}
           </button>
         </div>
       )}
@@ -294,21 +300,21 @@ export default function LoginPage() {
       {mode === "register" && registerResult?.kind === "already-registered" && (
         <div className="flex flex-col gap-3">
           <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3">
-            Этот email уже зарегистрирован. Войдите в аккаунт или восстановите пароль.
+            {t("errors.alreadyRegistered")}
           </p>
           <button
             type="button"
             onClick={() => switchMode("login")}
             className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            Войти
+            {t("signIn")}
           </button>
           <button
             type="button"
             onClick={() => switchMode("forgot")}
             className="text-sm text-accent underline"
           >
-            Забыли пароль?
+            {t("forgotQuestion")}
           </button>
         </div>
       )}
@@ -325,7 +331,7 @@ export default function LoginPage() {
           />
           <PasswordInput
             required
-            placeholder="Пароль (минимум 6 символов)"
+            placeholder={t("passwordMin")}
             className={inputClass}
             value={password}
             onChange={setPassword}
@@ -333,7 +339,7 @@ export default function LoginPage() {
           />
           <PasswordInput
             required
-            placeholder="Повторите пароль"
+            placeholder={t("repeatPassword")}
             className={inputClass}
             value={confirmPassword}
             onChange={setConfirmPassword}
@@ -344,7 +350,7 @@ export default function LoginPage() {
             disabled={submitting}
             className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            {submitting ? "Создаём аккаунт…" : "Зарегистрироваться"}
+            {submitting ? t("creating") : t("register")}
           </button>
         </form>
       )}
@@ -364,7 +370,7 @@ export default function LoginPage() {
             disabled={submitting}
             className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            {submitting ? "Отправляем…" : "Отправить ссылку для сброса"}
+            {submitting ? t("sending") : t("sendReset")}
           </button>
         </form>
       )}

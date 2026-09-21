@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, MapPin, Check } from "lucide-react";
 import type { Branch } from "@/types";
 import { getStoredCity, setStoredCity } from "@/lib/city";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useRouter } from "@/i18n/navigation";
 
 export default function CityPage() {
+  const t = useTranslations("city");
   const router = useRouter();
   const [cities, setCities] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(() => getStoredCity());
@@ -44,15 +46,15 @@ export default function CityPage() {
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1.5">Выберите город</h1>
-      <p className="text-muted text-sm mb-6">Покажем ближайшие магазины и актуальный каталог.</p>
+      <h1 className="font-display text-3xl mb-1.5">{t("title")}</h1>
+      <p className="text-muted text-sm mb-6">{t("subtitle")}</p>
 
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Найти город"
+          placeholder={t("search")}
           className="w-full rounded-[var(--radius-control)] border border-border bg-card pl-11 pr-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent shadow-[var(--shadow-card)]"
         />
       </div>
@@ -64,20 +66,20 @@ export default function CityPage() {
           ))}
         </div>
       ) : cities.length === 0 ? (
-        <EmptyState icon={MapPin} title="Города пока не указаны" description="Магазин ещё не добавил ни одного города." />
+        <EmptyState icon={MapPin} title={t("noCities")} description={t("noCitiesHint")} />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Search} title="Ничего не нашлось" description={`Нет города по запросу «${query}».`} />
+        <EmptyState icon={Search} title={t("nothingFound")} description={t("nothingFoundHint", { query })} />
       ) : (
         <>
           {selected && !query && (
             <div className="mb-5">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted mb-2.5 px-1">Ваш город</div>
+              <div className="text-xs font-medium uppercase tracking-wide text-muted mb-2.5 px-1">{t("yourCity")}</div>
               <CityRow city={selected} active onSelect={handleSelect} />
             </div>
           )}
 
           <div className="text-xs font-medium uppercase tracking-wide text-muted mb-2.5 px-1">
-            {query ? "Результаты поиска" : "Все города"}
+            {query ? t("searchResults") : t("allCities")}
           </div>
           <div className="flex flex-col gap-2.5">
             {filtered

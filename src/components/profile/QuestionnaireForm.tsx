@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { HAIR_TYPES, HAIR_CONCERNS, type HairType, type HairConcern } from "@/lib/haircare";
 import type { Session } from "@/lib/session-context";
 
-const GENDERS = [
-  { value: "female", label: "Женский" },
-  { value: "male", label: "Мужской" },
-] as const;
+const GENDERS = ["female", "male"] as const;
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -25,6 +23,9 @@ export function QuestionnaireForm({
   onSaved: () => Promise<void>;
   onCancel?: () => void;
 }) {
+  const t = useTranslations("questionnaire");
+  const tSkin = useTranslations("skin");
+  const tHair = useTranslations("hair");
   const [name, setName] = useState(session.displayName ?? "");
   const [birthDate, setBirthDate] = useState(session.birthDate ?? "");
   const [gender, setGender] = useState<string | null>(session.gender);
@@ -56,7 +57,7 @@ export function QuestionnaireForm({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Не удалось сохранить.");
+        setError(data.error ?? t("saveFailed"));
         return;
       }
       await onSaved();
@@ -71,11 +72,11 @@ export function QuestionnaireForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div>
-        <h3 className="text-sm font-medium mb-3">О вас</h3>
+        <h3 className="text-sm font-medium mb-3">{t("aboutYou")}</h3>
         <div className="flex flex-col gap-3">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Как вас зовут?" className={inputClass} />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} className={inputClass} />
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-muted">Дата рождения</span>
+            <span className="text-xs text-muted">{t("birthDate")}</span>
             <input
               type="date"
               value={birthDate}
@@ -87,40 +88,40 @@ export function QuestionnaireForm({
           </label>
           <div className="flex flex-wrap gap-2">
             {GENDERS.map((g) => (
-              <Chip key={g.value} label={g.label} active={gender === g.value} onClick={() => setGender(gender === g.value ? null : g.value)} />
+              <Chip key={g} label={t(`gender.${g}`)} active={gender === g} onClick={() => setGender(gender === g ? null : g)} />
             ))}
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-medium mb-1">Кожа лица</h3>
-        <p className="text-xs text-muted mb-3">Какой у вас тип кожи?</p>
+        <h3 className="text-sm font-medium mb-1">{t("face")}</h3>
+        <p className="text-xs text-muted mb-3">{t("skinTypeQuestion")}</p>
         <div className="flex flex-wrap gap-2 mb-4">
-          {SKIN_TYPES.map((t) => (
-            <Chip key={t.value} label={t.label} active={skinType === t.value} onClick={() => setSkinType(skinType === t.value ? null : t.value)} />
+          {SKIN_TYPES.map((s) => (
+            <Chip key={s.value} label={tSkin(`types.${s.value}`)} active={skinType === s.value} onClick={() => setSkinType(skinType === s.value ? null : s.value)} />
           ))}
         </div>
-        <p className="text-xs text-muted mb-3">Что беспокоит? Можно выбрать несколько.</p>
+        <p className="text-xs text-muted mb-3">{t("concernsQuestion")}</p>
         <div className="flex flex-wrap gap-2">
           {SKIN_CONCERNS.map((c) => (
-            <Chip key={c.value} label={c.label} active={skinConcerns.includes(c.value)} onClick={() => setSkinConcerns(toggle(skinConcerns, c.value))} />
+            <Chip key={c.value} label={tSkin(`concerns.${c.value}`)} active={skinConcerns.includes(c.value)} onClick={() => setSkinConcerns(toggle(skinConcerns, c.value))} />
           ))}
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-medium mb-1">Волосы</h3>
-        <p className="text-xs text-muted mb-3">Какие у вас волосы?</p>
+        <h3 className="text-sm font-medium mb-1">{t("hair")}</h3>
+        <p className="text-xs text-muted mb-3">{t("hairTypeQuestion")}</p>
         <div className="flex flex-wrap gap-2 mb-4">
-          {HAIR_TYPES.map((t) => (
-            <Chip key={t.value} label={t.label} active={hairType === t.value} onClick={() => setHairType(hairType === t.value ? null : t.value)} />
+          {HAIR_TYPES.map((h) => (
+            <Chip key={h.value} label={tHair(`types.${h.value}`)} active={hairType === h.value} onClick={() => setHairType(hairType === h.value ? null : h.value)} />
           ))}
         </div>
-        <p className="text-xs text-muted mb-3">Что беспокоит? Можно выбрать несколько.</p>
+        <p className="text-xs text-muted mb-3">{t("concernsQuestion")}</p>
         <div className="flex flex-wrap gap-2">
           {HAIR_CONCERNS.map((c) => (
-            <Chip key={c.value} label={c.label} active={hairConcerns.includes(c.value)} onClick={() => setHairConcerns(toggle(hairConcerns, c.value))} />
+            <Chip key={c.value} label={tHair(`concerns.${c.value}`)} active={hairConcerns.includes(c.value)} onClick={() => setHairConcerns(toggle(hairConcerns, c.value))} />
           ))}
         </div>
       </div>
@@ -129,11 +130,11 @@ export function QuestionnaireForm({
 
       <div className="flex gap-2">
         <Button type="submit" size="lg" fullWidth loading={saving}>
-          Сохранить и подобрать набор
+          {t("submit")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" size="lg" onClick={onCancel} disabled={saving}>
-            Отмена
+            {t("cancel")}
           </Button>
         )}
       </div>

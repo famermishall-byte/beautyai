@@ -11,10 +11,4 @@ export function formatBirthDate(birthDate: string): string {
   return `${d}.${m}.${y}`;
 }
 
-export function yearsLabel(age: number): string {
-  const mod10 = age % 10;
-  const mod100 = age % 100;
-  if (mod10 === 1 && mod100 !== 11) return "год";
-  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return "года";
-  return "лет";
-}
+// The word for "N years" comes from messages ("common.years", an ICU plural) — see QuestionnaireSummary.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Camera, Loader2, User } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
@@ -32,6 +33,7 @@ export function AvatarUploader({
   initial: string;
   onChanged: () => Promise<void>;
 }) {
+  const t = useTranslations("avatar");
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export function AvatarUploader({
     if (!file) return;
     setError(null);
     if (!file.type.startsWith("image/")) {
-      setError("Выберите фотографию.");
+      setError(t("choosePhoto"));
       return;
     }
     setBusy(true);
@@ -71,7 +73,7 @@ export function AvatarUploader({
       await saveAvatarUrl(`${data.publicUrl}?v=${Date.now()}`);
       await onChanged();
     } catch {
-      setError("Не удалось загрузить фото. Попробуйте ещё раз.");
+      setError(t("uploadFailed"));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -90,7 +92,7 @@ export function AvatarUploader({
       await saveAvatarUrl(null);
       await onChanged();
     } catch {
-      setError("Не удалось удалить фото.");
+      setError(t("deleteFailed"));
     } finally {
       setBusy(false);
     }
@@ -102,7 +104,7 @@ export function AvatarUploader({
         <div className="w-24 h-24 rounded-full bg-accent-soft text-accent flex items-center justify-center overflow-hidden ring-4 ring-card shadow-[var(--shadow-card)]">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="Ваше фото" className="w-full h-full object-cover" />
+            <img src={avatarUrl} alt={t("yourPhoto")} className="w-full h-full object-cover" />
           ) : initial ? (
             <span className="font-display text-4xl">{initial}</span>
           ) : (
@@ -118,7 +120,7 @@ export function AvatarUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          aria-label={avatarUrl ? "Изменить фото" : "Добавить фото"}
+          aria-label={avatarUrl ? t("changePhoto") : t("addPhoto")}
           className="absolute -bottom-0.5 -right-0.5 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center shadow-[var(--shadow-float)] transition hover:bg-accent-strong active:scale-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <Camera className="size-4.5" strokeWidth={2} aria-hidden />
@@ -134,7 +136,7 @@ export function AvatarUploader({
 
       {avatarUrl && !busy && (
         <button type="button" onClick={handleRemove} className="mt-2.5 text-xs text-muted hover:text-error transition">
-          Удалить фото
+          {t("deletePhoto")}
         </button>
       )}
       {error && <p className="mt-2 text-xs text-error text-center">{error}</p>}

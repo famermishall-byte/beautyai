@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
 import { buildRoutine, skinTypeLabel, skinConcernLabel, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { Link } from "@/i18n/navigation";
 
+// (title/steps arrive already translated)
 function RoutineList({ title, steps }: { title: string; steps: string[] }) {
   return (
     <div className="bg-card rounded-2xl border border-black/5 p-5">
@@ -23,12 +25,14 @@ function RoutineList({ title, steps }: { title: string; steps: string[] }) {
 }
 
 export default function RoutinePage() {
+  const t = useTranslations("routine");
+  const tSkin = useTranslations("skin");
   const { session, loading } = useSession();
 
   if (loading) {
     return (
       <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">Загружаем…</p>
+        <p className="text-muted animate-pulse">{t("loading")}</p>
       </main>
     );
   }
@@ -39,37 +43,37 @@ export default function RoutinePage() {
     return (
       <main className="flex-1 px-4 py-16 max-w-2xl mx-auto w-full text-center">
         <div className="text-4xl mb-3">🧴</div>
-        <h1 className="font-display text-2xl mb-2">Сначала укажите тип кожи</h1>
-        <p className="text-muted mb-6">Чтобы подобрать порядок ухода, расскажите нам о своей коже.</p>
+        <h1 className="font-display text-2xl mb-2">{t("needSkinType")}</h1>
+        <p className="text-muted mb-6">{t("needSkinTypeHint")}</p>
         <Link
           href="/skin-profile"
           className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
         >
-          Настроить
+          {t("setUp")}
         </Link>
       </main>
     );
   }
 
   const concerns = (session?.skinConcerns as SkinConcern[]) ?? [];
-  const routine = buildRoutine(skinType, concerns);
+  const routine = buildRoutine(tSkin, skinType, concerns);
 
   return (
     <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">Мой уход</h1>
+      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
       <p className="text-muted mb-6">
-        Для типа кожи «{skinTypeLabel(skinType)}»
-        {concerns.length > 0 && <> · {concerns.map(skinConcernLabel).join(", ")}</>}
+        {t("forSkinType", { type: skinTypeLabel(tSkin, skinType) ?? "" })}
+        {concerns.length > 0 && <> · {concerns.map((c) => skinConcernLabel(tSkin, c)).join(", ")}</>}
       </p>
 
       <div className="flex flex-col gap-4 mb-6">
-        <RoutineList title="Утро" steps={routine.morning} />
-        <RoutineList title="Вечер" steps={routine.evening} />
+        <RoutineList title={t("morning")} steps={routine.morning} />
+        <RoutineList title={t("evening")} steps={routine.evening} />
       </div>
 
       {routine.tips.length > 0 && (
         <div className="bg-accent-soft text-accent rounded-2xl p-5">
-          <h2 className="font-medium mb-2">Советы</h2>
+          <h2 className="font-medium mb-2">{t("tips")}</h2>
           <ul className="flex flex-col gap-1.5 text-sm">
             {routine.tips.map((tip) => (
               <li key={tip}>• {tip}</li>
@@ -79,7 +83,7 @@ export default function RoutinePage() {
       )}
 
       <Link href="/skin-profile" className="inline-block mt-6 text-sm text-accent underline">
-        Изменить тип кожи или проблемы
+        {t("changeSkin")}
       </Link>
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { MapPin, Phone, Clock, MessageCircle, Navigation, Store } from "lucide-react";
 import type { Branch } from "@/types";
 import { getStoredCity } from "@/lib/city";
@@ -20,11 +21,12 @@ function distanceKm(a: Coords, b: Coords): number {
   return 6371 * 2 * Math.asin(Math.sqrt(h));
 }
 
-function formatDistance(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(1).replace(".", ",")} км`;
+function formatDistance(t: (key: string, values: Record<string, string | number>) => string, km: number): string {
+  return km < 1 ? t("meters", { n: Math.round(km * 1000) }) : t("kilometers", { n: km.toFixed(1) });
 }
 
 export default function BranchesPage() {
+  const t = useTranslations("branches");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [city, setCity] = useState<string | null>(null);
   const [user, setUser] = useState<Coords | null>(null);
@@ -73,12 +75,12 @@ export default function BranchesPage() {
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1.5">Магазины</h1>
+      <h1 className="font-display text-3xl mb-1.5">{t("title")}</h1>
       <div className="flex items-center gap-1.5 text-sm text-muted mb-5">
         <MapPin className="size-4" strokeWidth={2} aria-hidden />
-        <span>{city ? `Ваш город: ${city}` : "Все филиалы"}</span>
+        <span>{city ? t("yourCity", { city }) : t("allBranches")}</span>
         <Link href="/city" className="text-accent font-medium hover:underline ml-0.5">
-          Изменить
+          {t("change")}
         </Link>
       </div>
 
@@ -88,7 +90,7 @@ export default function BranchesPage() {
           <Skeleton className="h-40 rounded-[var(--radius-card)]" />
         </div>
       ) : ordered.length === 0 ? (
-        <EmptyState icon={Store} title="Магазинов пока нет" description="Филиалы появятся здесь, как только магазин их добавит." />
+        <EmptyState icon={Store} title={t("none")} description={t("noneHint")} />
       ) : (
         <>
           <div id="branch-map" className="mb-5 scroll-mt-20">
@@ -119,10 +121,10 @@ export default function BranchesPage() {
                       </span>
                       <div>
                         <h2 className="font-display text-lg leading-tight">{branch.name}</h2>
-                        {km !== null && <div className="text-xs text-accent font-medium mt-0.5">{formatDistance(km)} от вас</div>}
+                        {km !== null && <div className="text-xs text-accent font-medium mt-0.5">{t("fromYou", { distance: formatDistance(t, km) })}</div>}
                       </div>
                     </div>
-                    {hasPoint && <span className="text-xs text-accent font-medium shrink-0 mt-1">На карте</span>}
+                    {hasPoint && <span className="text-xs text-accent font-medium shrink-0 mt-1">{t("onMap")}</span>}
                   </button>
 
                   <div className="flex flex-col gap-2 text-sm text-muted mb-4 pl-[3.25rem]">
@@ -158,7 +160,7 @@ export default function BranchesPage() {
                         className="inline-flex items-center gap-2 rounded-full bg-accent-soft text-accent-strong px-5 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-white active:scale-95"
                       >
                         <Navigation className="size-4" strokeWidth={2} aria-hidden />
-                        Маршрут
+                        {t("route")}
                       </a>
                     )}
                   </div>

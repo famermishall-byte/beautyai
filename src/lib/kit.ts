@@ -5,6 +5,11 @@ import { fitByStems, skinFit } from "@/lib/personalization";
 
 export type KitStep = { label: string; category: string; product: Product | null };
 
+type T = (key: string) => string;
+type RawT = T & { raw: (key: string) => unknown };
+/** Translators for the namespaces the kit reads: "kit" (step names), "skin" and "hair" (tips). */
+export type KitTranslators = { kit: T; skin: RawT; hair: T };
+
 export type CareKit = {
   skinSteps: KitStep[];
   hairProducts: Product[];
@@ -14,13 +19,14 @@ export type CareKit = {
 
 // The steps of a basic routine, in order, and the catalog category each one
 // is filled from. Masks are a weekly extra, not a daily step.
-const SKIN_STEPS: { label: string; category: string }[] = [
-  { label: "Очищение", category: "Очищение" },
-  { label: "Тоник", category: "Тоники" },
-  { label: "Сыворотка", category: "Сыворотки" },
-  { label: "Крем", category: "Кремы" },
-  { label: "SPF днём", category: "SPF" },
-  { label: "Маска 1–2 раза в неделю", category: "Маски" },
+// (`key` -> message "kit.steps.<key>"; `category` is catalog data and stays as stored.)
+const SKIN_STEPS: { key: string; category: string }[] = [
+  { key: "cleansing", category: "Очищение" },
+  { key: "toner", category: "Тоники" },
+  { key: "serum", category: "Сыворотки" },
+  { key: "cream", category: "Кремы" },
+  { key: "spf", category: "SPF" },
+  { key: "mask", category: "Маски" },
 ];
 
 // A gentle nudge (not a filter): a concern prefers products that mention a
@@ -57,7 +63,8 @@ export function buildCareKit(
   skinType: SkinType | null,
   skinConcerns: SkinConcern[],
   hairType: HairType | null,
-  hairConcerns: HairConcern[]
+  hairConcerns: HairConcern[],
+  t: KitTranslators
 ): CareKit {
   const skinSteps: KitStep[] = [];
   if (skinType) {
@@ -70,7 +77,7 @@ export function buildCareKit(
         const text = textOf(p);
         return skinFit(p, skinType) + keywords.filter((k) => text.includes(k)).length * 0.5;
       });
-      skinSteps.push({ label: step.label, category: step.category, product });
+      skinSteps.push({ label: t.kit(`steps.${step.key}`), category: step.category, product });
     }
   }
 
@@ -88,7 +95,7 @@ export function buildCareKit(
   return {
     skinSteps,
     hairProducts,
-    skinTips: skinType ? buildRoutine(skinType, skinConcerns).tips : [],
-    hairTips: buildHairTips(hairType, hairConcerns),
+    skinTips: skinType ? buildRoutine(t.skin, skinType, skinConcerns).tips : [],
+    hairTips: buildHairTips(t.hair, hairType, hairConcerns),
   };
 }

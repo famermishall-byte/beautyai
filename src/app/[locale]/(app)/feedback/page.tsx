@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export default function FeedbackPage() {
+  const t = useTranslations("feedback");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function FeedbackPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Не удалось отправить сообщение.");
+        setError(data.error ?? t("failed"));
         return;
       }
       setSent(true);
@@ -51,15 +53,15 @@ export default function FeedbackPage() {
           <MessageCircle className="size-5" strokeWidth={1.85} aria-hidden />
         </span>
         <div>
-          <h1 className="font-display text-2xl leading-tight">Обратная связь</h1>
-          <p className="text-muted text-sm">Сообщение откроется в WhatsApp и сразу уйдёт нам</p>
+          <h1 className="font-display text-2xl leading-tight">{t("title")}</h1>
+          <p className="text-muted text-sm">{t("subtitle")}</p>
         </div>
       </div>
 
       {sent && (
         <div className="flex items-center gap-2.5 text-sm bg-success-soft text-success rounded-[var(--radius-control)] px-4 py-3 mb-4 animate-rise-in">
           <CheckCircle2 className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
-          Спасибо! Сообщение отправлено.
+          {t("thanks")}
         </div>
       )}
       {error && (
@@ -70,12 +72,12 @@ export default function FeedbackPage() {
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Ваше сообщение…"
+          placeholder={t("placeholder")}
           rows={6}
           className="w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none mb-4"
         />
         <Button type="submit" size="lg" loading={submitting} disabled={!message.trim()} fullWidth>
-          Отправить
+          {t("send")}
         </Button>
       </form>
     </main>
