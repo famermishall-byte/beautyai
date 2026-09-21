@@ -3,13 +3,13 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, Flame } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { CATEGORIES, CATEGORY_GROUPS } from "@/lib/categories";
+import { CATEGORIES, CATEGORY_GROUPS, groupCategoryFilter, type CategoryGroup } from "@/lib/categories";
 import type { Branch, Product } from "@/types";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
@@ -36,13 +36,14 @@ function CatalogContent() {
   // shows them as chips (see render below); a group without any (e.g.
   // "Макияж") filters straight to that category.
   const groupParam = searchParams.get("group");
+  const subParam = searchParams.get("sub");
   const showAll = searchParams.get("all") === "1";
   const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
+  const activeSection = activeGroup?.sections?.find((s) => s.label === subParam) ?? null;
+  const groupFilter = activeGroup ? groupCategoryFilter(activeGroup, subParam) : null;
 
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string | null>(
-    activeGroup ? (activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name) : null
-  );
+  const [category, setCategory] = useState<string | null>(groupFilter);
   const [budget, setBudget] = useState<number | null | undefined>(undefined);
   const [brand, setBrand] = useState<string | null>(null);
   const [onlyInStock, setOnlyInStock] = useState(false);
@@ -67,10 +68,11 @@ function CatalogContent() {
     if (initialTab === "budget") setFiltersOpen(true);
   }
 
-  const [prevGroupParam, setPrevGroupParam] = useState(groupParam);
-  if (groupParam !== prevGroupParam) {
-    setPrevGroupParam(groupParam);
-    setCategory(activeGroup ? (activeGroup.children.length > 0 ? activeGroup.children.join(",") : activeGroup.name) : null);
+  const groupKey = `${groupParam ?? ""}|${subParam ?? ""}`;
+  const [prevGroupKey, setPrevGroupKey] = useState(groupKey);
+  if (groupKey !== prevGroupKey) {
+    setPrevGroupKey(groupKey);
+    setCategory(groupFilter);
   }
 
   useEffect(() => {
@@ -148,6 +150,9 @@ function CatalogContent() {
   // the catalog (a query, a tile, "Все продукты", the budget shortcut) swaps
   // the grid for the product list.
   const browsing = !groupParam && !showAll && !query.trim() && category === null && initialTab !== "budget";
+  // A group with sections (e.g. "Уход за кожей") opens its own menu of sections
+  // + "Хит продаж" before the product list.
+  const groupMenu = !!activeGroup?.sections && !subParam && !showAll && !query.trim();
 
   const activeFilterCount = [brand, onlyInStock || null, typeof budget === "number" ? budget : null, sort !== "name" ? sort : null].filter(
     Boolean
@@ -173,7 +178,7 @@ function CatalogContent() {
             className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent"
           />
         </div>
-        {!browsing && (
+        {!browsing && !groupMenu && (
           <button
             onClick={() => setFiltersOpen(true)}
             aria-label="Фильтры и сортировка"
@@ -189,7 +194,7 @@ function CatalogContent() {
         )}
       </div>
 
-      <h1 className="font-display text-3xl mb-4">Каталог</h1>
+      <h1 className="font-display text-3xl mb-4">{activeSection ? activeSection.label : activeGroup && !browsing ? activeGroup.name : "Каталог"}</h1>
 
       {branches.length > 1 && (
         <div className="mb-4 -mx-4 px-4 overflow-x-auto">
@@ -216,6 +221,8 @@ function CatalogContent() {
 
       {browsing ? (
         <CategoryTiles />
+      ) : groupMenu ? (
+        <GroupMenu group={activeGroup!} />
       ) : (
         <>
       <div className="mb-2 -mx-4 px-4 overflow-x-auto">
@@ -223,12 +230,8 @@ function CatalogContent() {
         <div className="flex gap-2 w-max">
           {activeGroup && activeGroup.children.length > 0 ? (
             <>
-              <CategoryChip
-                label="Все"
-                active={category === activeGroup.children.join(",")}
-                onClick={() => setCategory(activeGroup.children.join(","))}
-              />
-              {activeGroup.children.map((c) => (
+              <CategoryChip label="Все" active={category === groupFilter} onClick={() => setCategory(groupFilter)} />
+              {(activeSection ? activeSection.categories : activeGroup.children).map((c) => (
                 <CategoryChip key={c} label={c} active={category === c} onClick={() => setCategory(c)} />
               ))}
             </>
@@ -346,24 +349,29 @@ function CatalogContent() {
   );
 }
 
+const TILE_BASE =
+  "tile-sheen relative h-28 overflow-hidden rounded-[22px] p-3.5 transition active:scale-[0.98] hover:shadow-[var(--shadow-float)]";
+
+function sheenDelay(i: number) {
+  return { ["--sheen-delay" as string]: `${(i % 6) * 0.7}s` } as React.CSSProperties;
+}
+
 function CategoryTiles() {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/catalog?all=1"
-          className="relative h-28 overflow-hidden rounded-[22px] bg-accent text-white p-3.5 transition active:scale-[0.98]"
-        >
-          <span className="text-[15px] font-semibold leading-tight">Все продукты</span>
+        <Link href="/catalog?all=1" className={`${TILE_BASE} bg-accent text-white`} style={sheenDelay(0)}>
+          <span className="relative text-[15px] font-semibold leading-tight">Все продукты</span>
           <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
         </Link>
-        {CATEGORY_GROUPS.map(({ name, label, icon: Icon }) => (
+        {CATEGORY_GROUPS.map(({ name, label, icon: Icon }, i) => (
           <Link
             key={name}
             href={`/catalog?group=${encodeURIComponent(name)}`}
-            className="relative h-28 overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] p-3.5 transition active:scale-[0.98]"
+            className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
+            style={sheenDelay(i + 1)}
           >
-            <span className="block max-w-[60%] text-[15px] font-semibold leading-tight">{label ?? name}</span>
+            <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{label ?? name}</span>
             <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
               <Icon className="size-8" strokeWidth={1.6} aria-hidden />
             </span>
@@ -372,14 +380,75 @@ function CategoryTiles() {
       </div>
       <Link
         href="/catalog?all=1"
-        className="rounded-[22px] bg-gradient-to-r from-accent to-accent-strong text-white px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
+        className="tile-sheen relative overflow-hidden rounded-[22px] bg-gradient-to-r from-accent to-accent-strong text-white px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
       >
-        <div>
+        <div className="relative">
           <div className="font-display text-2xl leading-none">Акции</div>
           <div className="text-sm text-white/85 mt-1.5">Скидки и выгодные предложения</div>
         </div>
-        <Percent className="size-12 text-white/30 shrink-0" strokeWidth={1.75} aria-hidden />
+        <Percent className="relative size-12 text-white/30 shrink-0" strokeWidth={1.75} aria-hidden />
       </Link>
+    </div>
+  );
+}
+
+// Second level of a group with sections: the section tiles, then "Хит продаж".
+function GroupMenu({ group }: { group: CategoryGroup }) {
+  const [hits, setHits] = useState<Product[]>([]);
+  const [hitsLoading, setHitsLoading] = useState(true);
+  const filter = groupCategoryFilter(group);
+
+  useEffect(() => {
+    fetch(`/api/products/bestsellers?category=${encodeURIComponent(filter)}`)
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setHits(data.products ?? []))
+      .catch(() => setHits([]))
+      .finally(() => setHitsLoading(false));
+  }, [filter]);
+
+  const base = `/catalog?group=${encodeURIComponent(group.name)}`;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-3">
+        <Link href={`${base}&sub=Все`} className={`${TILE_BASE} bg-accent text-white`} style={sheenDelay(0)}>
+          <span className="relative block max-w-[70%] text-[15px] font-semibold leading-tight">
+            Все продукты <span className="font-normal opacity-90">({group.name.toLowerCase()})</span>
+          </span>
+          <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
+        </Link>
+        {group.sections!.map(({ label, icon: Icon }, i) => (
+          <Link
+            key={label}
+            href={`${base}&sub=${encodeURIComponent(label)}`}
+            className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
+            style={sheenDelay(i + 1)}
+          >
+            <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{label}</span>
+            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+              <Icon className="size-8" strokeWidth={1.6} aria-hidden />
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      <section>
+        <div className="flex items-center gap-1.5 mb-3">
+          <Flame className="size-5 text-accent" strokeWidth={2} aria-hidden />
+          <h2 className="font-display text-xl">Хит продаж</h2>
+        </div>
+        {hitsLoading ? (
+          <ProductGridSkeleton count={4} />
+        ) : hits.length === 0 ? (
+          <div className="text-sm text-muted">Скоро здесь появятся самые популярные товары.</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {hits.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
