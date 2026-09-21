@@ -13,6 +13,10 @@ function toProduct(p: Record<string, unknown>) {
     description: p.description,
     characteristics: p.characteristics,
     purpose: p.purpose,
+    nameKy: p.name_ky ?? null,
+    descriptionKy: p.description_ky ?? null,
+    characteristicsKy: p.characteristics_ky ?? null,
+    purposeKy: p.purpose_ky ?? null,
     inStock: p.in_stock,
     imageUrl: p.image_url,
   };

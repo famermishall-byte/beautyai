@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { ArrowLeft, Heart, Sparkle, Minus, Plus, Check, PackageX } from "lucide-react";
 import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
@@ -22,6 +23,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const t = useTranslations("product");
   const tc = useTranslations("common");
   const price = usePrice();
+  const text = useProductText();
   const goBack = useGoBack("/catalog");
   const { addItem, items, changeQuantity } = useCart();
   const { toggle, isSaved } = useMyBag();
@@ -100,7 +102,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <div className="relative aspect-square bg-accent-soft">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+          <img src={product.imageUrl} alt={text(product).name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Sparkle className="size-16 text-accent/35" strokeWidth={1.2} aria-hidden />
@@ -137,7 +139,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
       <div className="px-4 pt-5">
         <div className="text-xs uppercase tracking-wide text-muted font-medium mb-1">{product.brand}</div>
-        <h1 className="font-display text-2xl leading-snug mb-3">{product.name}</h1>
+        <h1 className="font-display text-2xl leading-snug mb-3">{text(product).name}</h1>
 
         <div className="flex items-center justify-between mb-5">
           <span className="font-display text-3xl tabular-nums">{price(product.price)}</span>
@@ -148,21 +150,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           )}
         </div>
 
-        {(product.description || product.characteristics || product.purpose) && (
+        {(text(product).description || text(product).characteristics || text(product).purpose) && (
           <div className="flex flex-col gap-4 mb-6">
-            {product.description && (
+            {text(product).description && (
               <Section title={t("description")}>
-                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{product.description}</p>
+                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{text(product).description}</p>
               </Section>
             )}
-            {product.characteristics && (
+            {text(product).characteristics && (
               <Section title={t("characteristics")}>
-                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{product.characteristics}</p>
+                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{text(product).characteristics}</p>
               </Section>
             )}
-            {product.purpose && (
+            {text(product).purpose && (
               <Section title={t("suitableFor")}>
-                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{product.purpose}</p>
+                <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{text(product).purpose}</p>
               </Section>
             )}
           </div>

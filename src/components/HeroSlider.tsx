@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { Sparkle } from "lucide-react";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
@@ -12,6 +13,7 @@ const AUTO_MS = 4500;
 export function HeroSlider({ products }: { products: Product[] }) {
   const t = useTranslations("home");
   const price = usePrice();
+  const text = useProductText();
   const trackRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
   const [index, setIndex] = useState(0);
@@ -56,7 +58,7 @@ export function HeroSlider({ products }: { products: Product[] }) {
           >
             {p.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.imageUrl} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={p.imageUrl} alt={text(p).name} className="absolute inset-0 w-full h-full object-cover" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Sparkle className="size-14 text-accent/35" strokeWidth={1.2} aria-hidden />
@@ -65,7 +67,7 @@ export function HeroSlider({ products }: { products: Product[] }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" aria-hidden />
             <div className="absolute inset-x-0 bottom-0 p-4 pb-9 text-white">
               <div className="text-[11px] uppercase tracking-wide text-white/80 font-medium mb-0.5">{p.brand}</div>
-              <div className="font-display text-xl leading-snug line-clamp-2">{p.name}</div>
+              <div className="font-display text-xl leading-snug line-clamp-2">{text(p).name}</div>
               <div className="mt-1 text-sm font-medium tabular-nums">{price(p.price)}</div>
             </div>
           </Link>

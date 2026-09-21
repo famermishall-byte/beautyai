@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { Heart, Plus, Check, Sparkle } from "lucide-react";
 import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
@@ -13,6 +14,8 @@ import { Link } from "@/i18n/navigation";
 export function ProductCard({ product }: { product: Product | RecommendedProduct }) {
   const t = useTranslations("product");
   const price = usePrice();
+  const text = useProductText();
+  const productName = text(product).name;
   const { addItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const [justAdded, setJustAdded] = useState(false);
@@ -45,7 +48,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.imageUrl}
-            alt={product.name}
+            alt={productName}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -84,7 +87,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
 
       <div className="p-3.5 flex flex-col gap-1 flex-1">
         <div className="text-[11px] uppercase tracking-wide text-muted font-medium truncate">{product.brand}</div>
-        <h3 className="font-display text-[15px] leading-snug line-clamp-2 min-h-[2.5em]">{product.name}</h3>
+        <h3 className="font-display text-[15px] leading-snug line-clamp-2 min-h-[2.5em]">{productName}</h3>
 
         {reason && (
           <div className="text-xs bg-accent-soft text-accent-strong rounded-lg px-2.5 py-1.5 mt-0.5 w-fit">{reason}</div>
@@ -109,7 +112,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <button
             onClick={handleAdd}
             disabled={outOfStock}
-            aria-label={t("addToCartNamed", { name: product.name })}
+            aria-label={t("addToCartNamed", { name: productName })}
             className={[
               "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",

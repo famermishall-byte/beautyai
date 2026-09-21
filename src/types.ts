@@ -27,6 +27,11 @@ export type Product = {
   description: string | null;
   characteristics: string | null;
   purpose: string | null;
+  /** Kyrgyz text (products.*_ky); null/absent -> the Russian text is shown. See src/lib/product-text.ts. */
+  nameKy?: string | null;
+  descriptionKy?: string | null;
+  characteristicsKy?: string | null;
+  purposeKy?: string | null;
   inStock: boolean;
   imageUrl: string | null;
   createdAt?: string;

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
 import type { Branch } from "@/types";
 import { useRouter } from "@/i18n/navigation";
@@ -14,6 +15,7 @@ const STEP_KEYS: Step[] = ["branch", "contact", "review"];
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
   const price = usePrice();
+  const text = useProductText();
   const stepLabels = STEP_KEYS.map((key) => ({ key, label: t(`steps.${key}`) }));
   const { items, hydrated, totalPrice, clearCart } = useCart();
   const router = useRouter();
@@ -212,7 +214,7 @@ export default function CheckoutPage() {
               {items.map((item) => (
                 <div key={item.product.id} className="flex justify-between text-sm">
                   <span>
-                    {item.product.name} × {item.quantity}
+                    {text(item.product).name} × {item.quantity}
                   </span>
                   <span>{price(item.product.price * item.quantity)}</span>
                 </div>

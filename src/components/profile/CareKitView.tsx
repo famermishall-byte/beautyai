@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { Check, Lightbulb, Plus, ShoppingBag, Sparkle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +14,7 @@ import { Link } from "@/i18n/navigation";
 function KitRow({ label, product }: { label: string; product: Product | null }) {
   const t = useTranslations("kit");
   const price = usePrice();
+  const text = useProductText();
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -41,7 +43,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
         </div>
         <div className="min-w-0">
           <div className="text-[11px] uppercase tracking-wide text-accent font-medium">{label}</div>
-          <div className="text-sm font-medium leading-snug line-clamp-2">{product.name}</div>
+          <div className="text-sm font-medium leading-snug line-clamp-2">{text(product).name}</div>
           <div className="text-xs text-muted tabular-nums">
             {product.brand} · {price(product.price)}
           </div>
@@ -53,7 +55,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
           setAdded(true);
           setTimeout(() => setAdded(false), 1200);
         }}
-        aria-label={t("addToCartNamed", { name: product.name })}
+        aria-label={t("addToCartNamed", { name: text(product).name })}
         className={[
           "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90",
           added ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong",

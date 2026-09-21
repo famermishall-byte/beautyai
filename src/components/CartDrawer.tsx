@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { useProductText } from "@/lib/product-text";
 import { ShoppingBag, X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
@@ -13,6 +14,7 @@ import { useRouter, usePathname } from "@/i18n/navigation";
 export function CartDrawer() {
   const t = useTranslations("cart");
   const price = usePrice();
+  const text = useProductText();
   const { items, totalCount, totalPrice, changeQuantity, removeItem } = useCart();
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -73,13 +75,13 @@ export function CartDrawer() {
                 {items.map((item) => (
                   <div key={item.product.id} className="flex gap-3 items-start border-b border-border pb-4 last:border-0">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{item.product.name}</div>
+                      <div className="text-sm font-medium truncate">{text(item.product).name}</div>
                       <div className="text-xs text-muted mb-2">{item.product.brand}</div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 bg-accent-soft rounded-full px-1 py-1">
                           <button
                             onClick={() => changeQuantity(item.product.id, -1)}
-                            aria-label={t("decrease", { name: item.product.name })}
+                            aria-label={t("decrease", { name: text(item.product).name })}
                             className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
                           >
                             <Minus className="size-3" strokeWidth={2.5} aria-hidden />
@@ -87,7 +89,7 @@ export function CartDrawer() {
                           <span className="text-xs font-medium w-5 text-center tabular-nums">{item.quantity}</span>
                           <button
                             onClick={() => changeQuantity(item.product.id, 1)}
-                            aria-label={t("increase", { name: item.product.name })}
+                            aria-label={t("increase", { name: text(item.product).name })}
                             className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
                           >
                             <Plus className="size-3" strokeWidth={2.5} aria-hidden />
@@ -95,7 +97,7 @@ export function CartDrawer() {
                         </div>
                         <button
                           onClick={() => removeItem(item.product.id)}
-                          aria-label={t("remove", { name: item.product.name })}
+                          aria-label={t("remove", { name: text(item.product).name })}
                           className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
                         >
                           <Trash2 className="size-3.5" strokeWidth={1.85} aria-hidden />

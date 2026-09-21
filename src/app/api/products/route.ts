@@ -16,6 +16,10 @@ function toProduct(
     description: p.description,
     characteristics: p.characteristics,
     purpose: p.purpose,
+    nameKy: p.name_ky ?? null,
+    descriptionKy: p.description_ky ?? null,
+    characteristicsKy: p.characteristics_ky ?? null,
+    purposeKy: p.purpose_ky ?? null,
     inStock: p.in_stock,
     imageUrl: p.image_url,
     createdAt: p.created_at,
@@ -61,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   if (q) {
     products = products.filter((p) => {
-      const haystack = [p.name, p.brand, p.category, p.description, p.characteristics, p.purpose]
+      const haystack = [p.name, p.name_ky, p.brand, p.category, p.description, p.description_ky, p.characteristics, p.purpose, p.purpose_ky]
         .filter((field): field is string => typeof field === "string")
         .join(" ")
         .toLowerCase();

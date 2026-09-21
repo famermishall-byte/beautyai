@@ -20,6 +20,10 @@ export function mapProduct(row: Record<string, unknown>) {
     description: row.description as string | null,
     characteristics: row.characteristics as string | null,
     purpose: row.purpose as string | null,
+    nameKy: (row.name_ky as string | null) ?? null,
+    descriptionKy: (row.description_ky as string | null) ?? null,
+    characteristicsKy: (row.characteristics_ky as string | null) ?? null,
+    purposeKy: (row.purpose_ky as string | null) ?? null,
     inStock: row.in_stock as boolean,
     imageUrl: row.image_url as string | null,
   };
