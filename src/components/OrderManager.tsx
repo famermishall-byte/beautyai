@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
@@ -8,7 +10,6 @@ import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import {
   NEXT_ORDER_STEP,
   ORDER_STATUSES,
-  ORDER_STATUS_ADMIN_LABELS,
   SALE_STATUSES,
   getOrderStatusAdminLabel,
   isOrderStatus,
@@ -23,35 +24,29 @@ const PILL: Record<string, string> = {
   cancelled: "bg-error-soft text-error",
 };
 
-const PERIODS = [
-  { key: "today", label: "Сегодня" },
-  { key: "7", label: "7 дней" },
-  { key: "30", label: "30 дней" },
-  { key: "all", label: "Всё время" },
-] as const;
+const PERIODS = [{ key: "today" }, { key: "7" }, { key: "30" }, { key: "all" }] as const;
 type Period = (typeof PERIODS)[number]["key"];
 
 // The work queue first: orders that still need the seller's action.
 const GROUPS = [
-  { key: "action", label: "Требуют действия", statuses: ["sent", "confirmed"] },
-  { key: "problems", label: "Нет в наличии", statuses: ["sent", "confirmed"] },
-  { key: "paid", label: "Оплачены", statuses: ["paid", "shipped"] },
-  { key: "done", label: "Выполнены", statuses: ["completed"] },
-  { key: "cancelled", label: "Отменены", statuses: ["cancelled"] },
-  { key: "all", label: "Все", statuses: [] as string[] },
+  { key: "action", statuses: ["sent", "confirmed"] },
+  { key: "problems", statuses: ["sent", "confirmed"] },
+  { key: "paid", statuses: ["paid", "shipped"] },
+  { key: "done", statuses: ["completed"] },
+  { key: "cancelled", statuses: ["cancelled"] },
+  { key: "all", statuses: [] as string[] },
 ] as const;
 type GroupKey = (typeof GROUPS)[number]["key"];
 
-const money = (n: number) => `${n.toLocaleString("ru-RU")} сом`;
 const isOpen = (o: Order) => o.status === "sent" || o.status === "confirmed";
 
-/** How long an order has been waiting, e.g. "ждёт 3 ч" / "ждёт 2 дн." */
-function waiting(iso: string): string {
+/** How long an order has been waiting, e.g. "ждёт 3 ч" / "ждёт 2 дн." (text from messages: orderManager.waiting.*) */
+function waiting(t: (key: string, values?: Record<string, number>) => string, iso: string): string {
   const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
-  if (min < 1) return "только что";
-  if (min < 60) return `ждёт ${min} мин`;
-  if (min < 48 * 60) return `ждёт ${Math.round(min / 60)} ч`;
-  return `ждёт ${Math.round(min / 1440)} дн.`;
+  if (min < 1) return t("waiting.justNow");
+  if (min < 60) return t("waiting.minutes", { n: min });
+  if (min < 48 * 60) return t("waiting.hours", { n: Math.round(min / 60) });
+  return t("waiting.days", { n: Math.round(min / 1440) });
 }
 
 function inPeriod(iso: string, period: Period) {
@@ -117,6 +112,10 @@ function OrderRow({
   onSelect: (checked: boolean) => void;
   onUpdated: (updated: Order) => void;
 }) {
+  const t = useTranslations("orderManager");
+  const ts = useTranslations("orderStatus");
+  const locale = useLocale();
+  const money = usePrice();
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [editing, setEditing] = useState(false);
@@ -136,19 +135,19 @@ function OrderRow({
         setResult({ ok: true, text: okText });
         return true;
       }
-      setResult({ ok: false, text: data.error ?? "Не удалось выполнить действие." });
+      setResult({ ok: false, text: data.error ?? t("actionFailed") });
     } catch {
-      setResult({ ok: false, text: "Нет связи с сервером. Изменения не сохранены." });
+      setResult({ ok: false, text: t("offline") });
     } finally {
       setSaving(false);
     }
     return false;
   }
 
-  const changeStatus = (status: string) => send(`/api/admin/orders/${order.id}`, "PUT", { status }, `✓ Статус: «${getOrderStatusAdminLabel(status)}»`);
+  const changeStatus = (status: string) => send(`/api/admin/orders/${order.id}`, "PUT", { status }, t("statusChanged", { status: getOrderStatusAdminLabel(ts, status) }));
 
   async function saveEdit() {
-    if (await send(`/api/admin/orders/${order.id}`, "PATCH", { quantities: draft }, "✓ Заказ изменён, сумма обновлена")) setEditing(false);
+    if (await send(`/api/admin/orders/${order.id}`, "PATCH", { quantities: draft }, t("orderChanged"))) setEditing(false);
   }
 
   const draftTotal = orderTotal(order.items, draft);
@@ -158,7 +157,7 @@ function OrderRow({
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <label className="flex items-center gap-2 font-medium">
           {isOpen(order) && (
-            <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={`Выбрать заказ ${order.number}`} className="size-4 accent-[var(--accent)]" />
+            <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={t("selectOrder", { number: order.number })} className="size-4 accent-[var(--accent)]" />
           )}
           #{order.number}
         </label>
@@ -167,13 +166,13 @@ function OrderRow({
         </span>
       </div>
       <div className="text-sm text-muted mb-2">
-        {new Date(order.createdAt).toLocaleString("ru-RU")}
-        {isOpen(order) && <span className="ml-2 font-medium text-warning">· {waiting(order.createdAt)}</span>}
+        {new Date(order.createdAt).toLocaleString(locale)}
+        {isOpen(order) && <span className="ml-2 font-medium text-warning">· {waiting(t, order.createdAt)}</span>}
       </div>
       {order.statusChangedAt && order.status !== "sent" && (
         <div className="text-xs font-medium text-success mb-2">
-          {getOrderStatusAdminLabel(order.status)} · {order.statusSource === "whatsapp" ? "отметил продавец в WhatsApp" : "отмечено в приложении"} ·{" "}
-          {new Date(order.statusChangedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+          {getOrderStatusAdminLabel(ts, order.status)} · {order.statusSource === "whatsapp" ? t("markedWhatsApp") : t("markedInApp")} ·{" "}
+          {new Date(order.statusChangedAt).toLocaleString(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
         </div>
       )}
       <div className="text-sm mb-2">
@@ -182,7 +181,7 @@ function OrderRow({
 
       {issues.length > 0 && (
         <div className="rounded-lg bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
-          ⚠ Проверьте наличие: {issues.map(({ item, left }) => `${item.name} — нужно ${item.quantity}, ${left === 0 ? "нет в наличии" : `осталось ${left}`}`).join("; ")}
+          ⚠ {t("checkStock")}: {issues.map(({ item, left }) => t("stockIssue", { name: item.name, need: item.quantity, left: left === 0 ? t("noStock") : t("leftQty", { n: left }) })).join("; ")}
         </div>
       )}
 
@@ -200,11 +199,11 @@ function OrderRow({
                   {item.name} × {q}
                 </span>
                 {cut && !editing && (
-                  <span className="text-xs text-error ml-2">{item.quantity === 0 ? "нет в наличии" : `заказано ${max}`}</span>
+                  <span className="text-xs text-error ml-2">{item.quantity === 0 ? t("noStock") : t("ordered", { n: max })}</span>
                 )}
                 {isOpen(order) && item.stock && stockQ !== null && stockQ !== undefined && (
                   <span className={["text-xs ml-2", lineIssue ? "text-warning font-medium" : "text-muted"].join(" ")}>
-                    в филиале: {stockQ === 0 ? "нет" : stockQ}
+                    {t("inBranch", { qty: stockQ === 0 ? t("none") : stockQ })}
                   </span>
                 )}
               </div>
@@ -213,7 +212,7 @@ function OrderRow({
                   <button
                     onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.max(0, v - 1) : v)))}
                     disabled={saving || draft[i] <= 0}
-                    aria-label="Уменьшить"
+                    aria-label={t("decrease")}
                     className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
                   >
                     <Minus className="size-3.5" aria-hidden />
@@ -221,14 +220,14 @@ function OrderRow({
                   <button
                     onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.min(max, v + 1) : v)))}
                     disabled={saving || draft[i] >= max}
-                    aria-label="Увеличить"
+                    aria-label={t("increase")}
                     className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
                   >
                     <Plus className="size-3.5" aria-hidden />
                   </button>
                 </div>
               ) : (
-                <span className="shrink-0">{(item.price * item.quantity).toLocaleString("ru-RU")} сом</span>
+                <span className="shrink-0">{money(item.price * item.quantity)}</span>
               )}
             </div>
           );
@@ -236,18 +235,18 @@ function OrderRow({
       </div>
 
       <div className="flex justify-between font-display text-lg pt-2 border-t border-black/10">
-        <span>Итого</span>
+        <span>{t("total")}</span>
         <span>{money(editing ? draftTotal : order.totalPrice)}</span>
       </div>
       {(reduced || order.originalTotal !== null) && (
         <div className="text-xs text-muted text-right">
-          было {money(order.originalTotal ?? order.totalPrice)} · изменён {order.editedBy === "whatsapp" ? "продавцом в WhatsApp" : "в приложении"}
-          {order.editedAt ? ` · ${new Date(order.editedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
+          {t("was", { total: money(order.originalTotal ?? order.totalPrice) })} · {order.editedBy === "whatsapp" ? t("editedByWhatsApp") : t("editedInApp")}
+          {order.editedAt ? ` · ${new Date(order.editedAt).toLocaleString(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}
         </div>
       )}
       {order.branch && (
         <div className="text-xs text-muted mt-2">
-          Филиал: {order.branch.name} · {order.branch.address}
+          {t("branchLine", { name: order.branch.name, address: order.branch.address })}
         </div>
       )}
 
@@ -259,7 +258,7 @@ function OrderRow({
               disabled={saving || draft.every((q, i) => q === order.items[i].quantity)}
               className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
-              {saving ? "Сохраняем…" : `Сохранить · ${money(draftTotal)}`}
+              {saving ? t("saving") : t("saveTotal", { total: money(draftTotal) })}
             </button>
             <button
               onClick={() => {
@@ -268,7 +267,7 @@ function OrderRow({
               }}
               className="text-sm text-muted underline"
             >
-              Отмена
+              {t("cancel")}
             </button>
           </>
         ) : (
@@ -279,7 +278,7 @@ function OrderRow({
                 disabled={saving}
                 className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                {saving ? "Сохраняем…" : next.label}
+                {saving ? t("saving") : ts(`next.${next.labelKey}`)}
               </button>
             )}
             {canEdit && order.status !== "cancelled" && (
@@ -290,19 +289,19 @@ function OrderRow({
                 }}
                 className="rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:border-accent/40"
               >
-                Изменить состав
+                {t("editItems")}
               </button>
             )}
             <select
               value={order.status}
               disabled={saving}
               onChange={(e) => changeStatus(e.target.value)}
-              aria-label="Изменить статус заказа"
+              aria-label={t("changeStatus")}
               className="rounded-full bg-accent-soft text-accent text-xs px-3 py-2 outline-none disabled:opacity-50"
             >
               {ORDER_STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {ORDER_STATUS_ADMIN_LABELS[status]}
+                  {getOrderStatusAdminLabel(ts, status)}
                 </option>
               ))}
             </select>
@@ -332,6 +331,8 @@ function SalesSummary({
   branchId: string;
   onBranch: (id: string) => void;
 }) {
+  const t = useTranslations("orderManager");
+  const money = usePrice();
   const [period, setPeriod] = useState<Period>("30");
   const oneBranch = branchId !== "all" ? branchOptions.find((b) => b.id === branchId) : undefined;
 
@@ -341,7 +342,7 @@ function SalesSummary({
   const rows = new Map<string, { name: string; city: string; count: number; sum: number }>();
   for (const o of sales) {
     const key = o.branch?.id ?? "—";
-    const row = rows.get(key) ?? { name: o.branch?.name ?? "Без филиала", city: o.branch?.city ?? "", count: 0, sum: 0 };
+    const row = rows.get(key) ?? { name: o.branch?.name ?? t("noBranch"), city: o.branch?.city ?? "", count: 0, sum: 0 };
     row.count++;
     row.sum += o.totalPrice;
     rows.set(key, row);
@@ -352,19 +353,19 @@ function SalesSummary({
     <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
       <div className="flex items-start justify-between gap-3 mb-3">
         <h2 className="font-medium">
-          {!allBranches ? "Продажи вашего филиала" : oneBranch ? `Продажи филиала: ${oneBranch.name}` : "Продажи по всем филиалам"}
+          {!allBranches ? t("salesOwn") : oneBranch ? t("salesOne", { name: oneBranch.name }) : t("salesAll")}
         </h2>
       </div>
 
       {allBranches && (
         <label className="block mb-3">
-          <span className="block text-xs font-medium text-muted mb-1.5">Филиал</span>
+          <span className="block text-xs font-medium text-muted mb-1.5">{t("branch")}</span>
           <select
             value={branchId}
             onChange={(e) => onBranch(e.target.value)}
             className="w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
           >
-            <option value="all">Все филиалы (общая сумма)</option>
+            <option value="all">{t("allBranchesTotal")}</option>
             {branchOptions.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.city} — {b.name}
@@ -376,14 +377,14 @@ function SalesSummary({
 
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
         {PERIODS.map((p) => (
-          <Chip key={p.key} label={p.label} active={period === p.key} onClick={() => setPeriod(p.key)} />
+          <Chip key={p.key} label={t(`periods.${p.key}`)} active={period === p.key} onClick={() => setPeriod(p.key)} />
         ))}
       </div>
 
       <div className="rounded-xl bg-accent-soft px-4 py-4 mb-3">
-        <div className="text-xs text-accent-strong/80">{oneBranch ? `Продано в филиале «${oneBranch.name}»` : allBranches ? "Продано по всем филиалам" : "Итого продано"}</div>
+        <div className="text-xs text-accent-strong/80">{oneBranch ? t("soldOne", { name: oneBranch.name }) : allBranches ? t("soldAll") : t("soldTotal")}</div>
         <div className="font-display text-3xl tabular-nums">{money(total)}</div>
-        <div className="text-sm text-accent-strong/80 mt-0.5">Оплаченных заказов: {sales.length}</div>
+        <div className="text-sm text-accent-strong/80 mt-0.5">{t("paidOrders", { n: sales.length })}</div>
       </div>
 
       {allBranches && !oneBranch && byBranch.length > 0 && (
@@ -391,9 +392,9 @@ function SalesSummary({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-muted border-b border-black/10">
-                <th className="py-2 pr-3">Филиал</th>
-                <th className="py-2 pr-3 text-right">Заказов</th>
-                <th className="py-2 text-right">Сумма</th>
+                <th className="py-2 pr-3">{t("branch")}</th>
+                <th className="py-2 pr-3 text-right">{t("orders")}</th>
+                <th className="py-2 text-right">{t("sum")}</th>
               </tr>
             </thead>
             <tbody>
@@ -408,7 +409,7 @@ function SalesSummary({
                 </tr>
               ))}
               <tr className="font-semibold">
-                <td className="py-2 pr-3">Итого по всем филиалам</td>
+                <td className="py-2 pr-3">{t("totalAllBranches")}</td>
                 <td className="py-2 pr-3 text-right tabular-nums">{sales.length}</td>
                 <td className="py-2 text-right tabular-nums whitespace-nowrap">{money(total)}</td>
               </tr>
@@ -418,8 +419,7 @@ function SalesSummary({
       )}
 
       <p className="text-xs text-muted mt-3">
-        В продажи входят заказы со статусом «Оплачен», «Передан курьеру» и «Выполнен» — по их итоговой сумме (после изменений состава). Новые, неоплаченные и
-        отменённые заказы не считаются.
+        {t("salesNote")}
       </p>
     </div>
   );
@@ -428,6 +428,8 @@ function SalesSummary({
 const PAGE = 30;
 
 export function OrderManager() {
+  const t = useTranslations("orderManager");
+  const locale = useLocale();
   const { session } = useSession();
   const allBranches = session?.role === "owner" || session?.role === "admin";
 
@@ -451,7 +453,7 @@ export function OrderManager() {
   async function load() {
     const res = await fetch("/api/admin/orders");
     const data = await res.json();
-    if (!res.ok) setError(data.error ?? "Не удалось загрузить заказы.");
+    if (!res.ok) setError(data.error ?? t("loadFailed"));
     else setError("");
     const list: Order[] = data.orders ?? [];
     setOrders(list);
@@ -462,12 +464,12 @@ export function OrderManager() {
     if (knownNew.current) {
       const fresh = [...newIds].filter((id) => !knownNew.current!.has(id));
       if (fresh.length > 0) {
-        setAlert(fresh.length === 1 ? "Новый заказ!" : `Новых заказов: ${fresh.length}`);
+        setAlert(fresh.length === 1 ? t("newOrder") : t("newOrders", { n: fresh.length }));
         if (soundRef.current) beep();
       }
     }
     knownNew.current = newIds;
-    document.title = newIds.size > 0 ? `(${newIds.size}) Заказы` : "Заказы";
+    document.title = newIds.size > 0 ? `(${newIds.size}) ${t("title")}` : t("title");
   }
 
   useEffect(() => {
@@ -565,7 +567,7 @@ export function OrderManager() {
     }
     setSelected(new Set());
     setBulkBusy(false);
-    setBulkResult(done === selectedIds.length ? `✓ Отмечено оплаченными: ${done}` : `Отмечено ${done} из ${selectedIds.length} — остальные не удалось, попробуйте ещё раз.`);
+    setBulkResult(done === selectedIds.length ? t("bulkDone", { n: done }) : t("bulkPartial", { done, total: selectedIds.length }));
   }
 
   return (
@@ -585,31 +587,31 @@ export function OrderManager() {
 
       <div className="bg-card rounded-2xl border border-black/5 p-6">
         <div className="flex items-start justify-between gap-3 mb-1">
-          <h2 className="font-medium">Заказы</h2>
+          <h2 className="font-medium">{t("title")}</h2>
           <button
             onClick={toggleSound}
             className={["flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition", soundOn ? "bg-success-soft text-success" : "bg-accent-soft text-accent"].join(" ")}
           >
             {soundOn ? <Volume2 className="size-3.5" aria-hidden /> : <VolumeX className="size-3.5" aria-hidden />}
-            {soundOn ? "Звук включён" : "Включить звук"}
+            {soundOn ? t("soundOn") : t("soundOff")}
           </button>
         </div>
         <p className="text-sm text-muted mb-1">
-          Это ваша очередь: заказы, которые ждут действия (новые — сверху). Продавец отмечает заказ по ссылке из WhatsApp — здесь всё появляется само.
+          {t("queueIntro")}
         </p>
         <p className="text-xs text-muted mb-4">
-          Обновляется каждые 20 секунд{updatedAt ? ` · ${updatedAt.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
+          {t("refreshEvery")}{updatedAt ? ` · ${updatedAt.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
         </p>
 
         {alert && (
           <button onClick={() => setAlert("")} className="w-full text-left rounded-xl bg-accent text-white px-4 py-3 text-sm font-semibold mb-3">
-            🔔 {alert} <span className="font-normal opacity-80">— нажмите, чтобы скрыть</span>
+            🔔 {alert} <span className="font-normal opacity-80">— {t("tapToHide")}</span>
           </button>
         )}
 
         {error && <p className="text-sm text-error font-medium mb-3">{error}</p>}
-        {orders === null && <p className="text-muted text-sm">Загружаем…</p>}
-        {orders !== null && orders.length === 0 && !error && <p className="text-muted text-sm">Заказов пока нет.</p>}
+        {orders === null && <p className="text-muted text-sm">{t("loading")}</p>}
+        {orders !== null && orders.length === 0 && !error && <p className="text-muted text-sm">{t("empty")}</p>}
 
         {orders && orders.length > 0 && (
           <>
@@ -621,40 +623,40 @@ export function OrderManager() {
                   setQuery(e.target.value);
                   setShown(PAGE);
                 }}
-                placeholder="Номер заказа, имя, телефон или товар"
+                placeholder={t("searchPlaceholder")}
                 className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
             {q && (
               <div className="flex items-center justify-between gap-3 mb-3 text-sm">
                 <span className="font-medium">
-                  Найдено заказов: {filtered.length} <span className="font-normal text-muted">(ищем среди всех заказов)</span>
+                  {t("found", { n: filtered.length })} <span className="font-normal text-muted">({t("searchAll")})</span>
                 </span>
                 <button onClick={() => setQuery("")} className="text-accent underline shrink-0">
-                  Сбросить поиск
+                  {t("resetSearch")}
                 </button>
               </div>
             )}
 
             <label className="flex items-center justify-between gap-3 mb-3 text-sm text-muted">
-              Порядок
+              {t("sortLabel")}
               <select
                 value={newestFirst ? "new" : "old"}
                 onChange={(e) => setNewestFirst(e.target.value === "new")}
                 className="rounded-lg border border-black/10 bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
               >
-                <option value="new">Сначала новые</option>
-                <option value="old">Сначала старые (кто дольше ждёт)</option>
+                <option value="new">{t("newestFirst")}</option>
+                <option value="old">{t("oldestFirst")}</option>
               </select>
             </label>
 
             {allBranches && chosenBranch && (
               <div className="flex items-center justify-between gap-3 mb-3 text-sm">
                 <span>
-                  Заказы филиала: <span className="font-semibold">{chosenBranch.name}</span>
+                  {t.rich("branchOrders", { name: chosenBranch.name, b: (chunks) => <span className="font-semibold">{chunks}</span> })}
                 </span>
                 <button onClick={() => setBranchFilter("all")} className="text-accent underline shrink-0">
-                  Показать все филиалы
+                  {t("showAllBranches")}
                 </button>
               </div>
             )}
@@ -663,7 +665,7 @@ export function OrderManager() {
               {GROUPS.map((g) => (
                 <Chip
                   key={g.key}
-                  label={`${g.label} · ${countOf(g.key)}`}
+                  label={`${t(`groups.${g.key}`)} · ${countOf(g.key)}`}
                   active={group === g.key}
                   onClick={() => {
                     setGroup(g.key);
@@ -679,19 +681,19 @@ export function OrderManager() {
             {(group === "action" || group === "problems") && visibleOpenIds.length > 1 && (
               <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
                 <button onClick={() => setSelected(new Set(visibleOpenIds))} className="text-accent underline">
-                  Выбрать все
+                  {t("selectAll")}
                 </button>
                 {selectedIds.length > 0 && (
                   <>
                     <button onClick={() => setSelected(new Set())} className="text-muted underline">
-                      Снять выбор
+                      {t("clearSelection")}
                     </button>
                     <button
                       onClick={markSelectedPaid}
                       disabled={bulkBusy}
                       className="rounded-full bg-success text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
                     >
-                      {bulkBusy ? "Отмечаем…" : `Оплата получена (${selectedIds.length})`}
+                      {bulkBusy ? t("marking") : t("paymentReceivedCount", { n: selectedIds.length })}
                     </button>
                   </>
                 )}
@@ -699,7 +701,7 @@ export function OrderManager() {
             )}
 
             {filtered.length === 0 ? (
-              <p className="text-muted text-sm">{q ? `По запросу «${query.trim()}» ничего не найдено.` : group === "action" ? "Все заказы обработаны 🎉" : "Нет заказов в этой группе."}</p>
+              <p className="text-muted text-sm">{q ? t("nothingFor", { query: query.trim() }) : group === "action" ? t("allHandled") : t("emptyGroup")}</p>
             ) : (
               <div className="flex flex-col gap-4">
                 {filtered.slice(0, shown).map((order) => (
@@ -727,7 +729,7 @@ export function OrderManager() {
                 onClick={() => setShown((n) => n + PAGE)}
                 className="mt-4 w-full rounded-full border border-border py-2.5 text-sm font-medium transition hover:border-accent/40"
               >
-                Показать ещё {Math.min(PAGE, filtered.length - shown)}
+                {t("showMore", { n: Math.min(PAGE, filtered.length - shown) })}
               </button>
             )}
           </>

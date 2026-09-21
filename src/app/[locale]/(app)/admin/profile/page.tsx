@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 
 export default function AdminProfilePage() {
+  const t = useTranslations("adminProfile");
   const [storeName, setStoreName] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -34,17 +36,17 @@ export default function AdminProfilePage() {
         setTimeout(() => setSaved(false), 3000);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Не удалось сохранить название.");
+        setError(data.error ?? t("saveFailed"));
       }
     } catch {
-      setError("Нет связи с сервером. Название не сохранено.");
+      setError(t("offline"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <AdminPage title="Профиль магазина" subtitle="Название показывается покупателям в шапке приложения.">
+    <AdminPage title={t("title")} subtitle={t("subtitle")}>
       <div className="bg-card rounded-2xl border border-black/5 p-6">
         <form onSubmit={handleSave} className="flex flex-wrap items-center gap-2">
           <input
@@ -53,7 +55,7 @@ export default function AdminProfilePage() {
               setStoreName(e.target.value);
               setSaved(false);
             }}
-            placeholder="Название магазина"
+            placeholder={t("namePlaceholder")}
             className="flex-1 min-w-[12rem] rounded-lg border border-black/10 bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent"
           />
           <button
@@ -61,10 +63,10 @@ export default function AdminProfilePage() {
             disabled={saving || !storeName.trim()}
             className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {saving ? "Сохраняем…" : "Сохранить"}
+            {saving ? t("saving") : t("save")}
           </button>
           <span aria-live="polite" className="text-sm">
-            {saved && <span className="text-success font-medium">✓ Название сохранено</span>}
+            {saved && <span className="text-success font-medium">✓ {t("saved")}</span>}
             {error && <span className="text-error font-medium">{error}</span>}
           </span>
         </form>

@@ -5,6 +5,8 @@ import { Minus, Plus } from "lucide-react";
 import type { OrderItem } from "@/types";
 import { describeChanges, isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { getOrderStatusAdminLabel } from "@/lib/orderStatus";
 
 export type ConsoleOrder = {
@@ -19,7 +21,6 @@ export type ConsoleOrder = {
   editedAt: string | null;
 };
 
-const money = (n: number) => `${n.toLocaleString("ru-RU")} сом`;
 
 // Kyrgyz numbers are often typed as 0700123456 or 700123456 — wa.me needs the country code.
 function whatsappDigits(phone: string): string {
@@ -33,6 +34,9 @@ function whatsappDigits(phone: string): string {
 // mark the payment, or cancel — no login. Everything shows up at once in the app for the admin, the branch
 // manager and the customer.
 export function OrderConsole({ token, initial }: { token: string; initial: ConsoleOrder }) {
+  const t = useTranslations("orderConsole");
+  const ts = useTranslations("orderStatus");
+  const money = usePrice();
   const [order, setOrder] = useState<ConsoleOrder>(initial);
   const [quantities, setQuantities] = useState<number[]>(initial.items.map((i) => i.quantity));
   const [busy, setBusy] = useState(false);
@@ -56,7 +60,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
       const res = await fetch(`/api/o/${token}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMessage({ ok: false, text: data.error ?? "Не удалось выполнить действие." });
+        setMessage({ ok: false, text: data.error ?? t("actionFailed") });
         return;
       }
       const next = data.order as ConsoleOrder;
@@ -64,7 +68,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
       setQuantities(next.items.map((i) => i.quantity));
       setMessage({ ok: true, text: okText });
     } catch {
-      setMessage({ ok: false, text: "Нет связи. Изменения не сохранены." });
+      setMessage({ ok: false, text: t("offline") });
     } finally {
       setBusy(false);
     }
@@ -78,12 +82,12 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-md mx-auto w-full">
-      <h1 className="font-display text-2xl mb-1">Заказ №{order.number}</h1>
+      <h1 className="font-display text-2xl mb-1">{t("orderTitle", { number: order.number })}</h1>
       <p className="text-sm text-muted mb-1">
         {order.customerName} · {order.customerPhone}
       </p>
       <p className="text-sm mb-5">
-        Статус: <span className="font-medium">{getOrderStatusAdminLabel(order.status)}</span>
+        {t("status")}: <span className="font-medium">{getOrderStatusAdminLabel(ts, order.status)}</span>
         {order.branchName ? <span className="text-muted"> · {order.branchName}</span> : null}
       </p>
 
@@ -97,16 +101,16 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
               <div className="min-w-0 flex-1">
                 <div className={["text-sm font-medium leading-snug", gone ? "line-through text-muted" : ""].join(" ")}>{item.name}</div>
                 <div className="text-xs text-muted">
-                  {item.brand} · {money(item.price)} {max !== q ? `· заказано ${max}` : ""}
+                  {item.brand} · {money(item.price)} {max !== q ? `· ${t("ordered", { n: max })}` : ""}
                 </div>
-                {gone && <div className="text-xs font-medium text-error mt-0.5">нет в наличии</div>}
+                {gone && <div className="text-xs font-medium text-error mt-0.5">{t("noStock")}</div>}
               </div>
               {editable ? (
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setQty(i, q - 1)}
                     disabled={busy || q <= 0}
-                    aria-label="Уменьшить"
+                    aria-label={t("decrease")}
                     className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90"
                   >
                     <Minus className="size-4" aria-hidden />
@@ -115,7 +119,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
                   <button
                     onClick={() => setQty(i, q + 1)}
                     disabled={busy || q >= max}
-                    aria-label="Увеличить"
+                    aria-label={t("increase")}
                     className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90"
                   >
                     <Plus className="size-4" aria-hidden />
@@ -130,18 +134,18 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
       </ul>
 
       <div className="flex items-baseline justify-between mb-1">
-        <span className="font-display text-lg">Итого</span>
+        <span className="font-display text-lg">{t("total")}</span>
         <span className="font-display text-2xl tabular-nums">{money(changed ? newTotal : order.totalPrice)}</span>
       </div>
       {(order.originalTotal !== null || changed) && (
-        <div className="text-xs text-muted text-right mb-4">было {money(order.originalTotal ?? order.totalPrice)}</div>
+        <div className="text-xs text-muted text-right mb-4">{t("was", { total: money(order.originalTotal ?? order.totalPrice) })}</div>
       )}
 
       {!editable && (
         <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm mb-4">
           {order.status === "cancelled"
-            ? "Заказ отменён."
-            : "Заказ уже оплачен, состав менять нельзя. Если нужно изменить, обратитесь к администратору."}
+            ? t("cancelled")
+            : t("alreadyPaid")}
         </p>
       )}
 
@@ -154,23 +158,23 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
       <div className="flex flex-col gap-2">
         {editable && changed && (
           <button
-            onClick={() => call({ action: "edit", quantities }, "Заказ изменён ✓ Сумма обновлена у администратора и у покупателя.")}
+            onClick={() => call({ action: "edit", quantities }, t("editedOk"))}
             disabled={busy}
             className="rounded-full bg-accent text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-50"
           >
-            {busy ? "Сохраняем…" : `Сохранить изменения · ${money(newTotal)}`}
+            {busy ? t("saving") : t("saveChanges", { total: money(newTotal) })}
           </button>
         )}
         {editable && (
           <button
-            onClick={() => call({ action: "status", status: "paid" }, "Оплата отмечена ✓ Заказ учтён в продажах.")}
+            onClick={() => call({ action: "status", status: "paid" }, t("paidOk"))}
             disabled={busy || changed}
             className="rounded-full bg-success text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
           >
-            💰 Оплата получена
+            💰 {t("paymentReceived")}
           </button>
         )}
-        {editable && changed && <p className="text-xs text-muted text-center">Сначала сохраните изменения, потом отмечайте оплату.</p>}
+        {editable && changed && <p className="text-xs text-muted text-center">{t("saveFirst")}</p>}
         {reduced && (
           <a
             href={buildWhatsAppUrl(whatsappDigits(order.customerPhone), customerText)}
@@ -178,18 +182,18 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             rel="noreferrer"
             className="rounded-full border border-border py-3 text-center text-sm font-medium"
           >
-            Написать покупателю об изменениях
+            {t("writeToCustomer")}
           </a>
         )}
         {editable && (
           <button
             onClick={() => {
-              if (confirm("Отменить заказ?")) call({ action: "status", status: "cancelled" }, "Заказ отменён.");
+              if (confirm(t("cancelConfirm"))) call({ action: "status", status: "cancelled" }, t("cancelled"));
             }}
             disabled={busy}
             className="text-sm text-muted underline py-2 disabled:opacity-50"
           >
-            Отменить заказ
+            {t("cancelOrder")}
           </button>
         )}
       </div>

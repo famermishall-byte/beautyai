@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Building2, ClipboardList, FileSpreadsheet, LayoutList, MessageSquare, Package, Store, UserCog, Users, type LucideIcon } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { Link } from "@/i18n/navigation";
@@ -9,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 type Tile = { href: string; label: string; hint: string; icon: LucideIcon; accent?: boolean; badge?: number; roles?: string[] };
 
 export default function AdminHome() {
+  const t = useTranslations("adminHome");
   const { session } = useSession();
   const role = session?.role ?? "";
   const branchManager = role === "branch_manager";
@@ -35,27 +37,27 @@ export default function AdminHome() {
 
   const tiles: Tile[] = [
     // A branch manager works with their own branch only; the all-branches picture belongs to the owner / admin.
-    { href: "/admin/stock", label: branchManager ? "Остатки филиала" : "Остатки", hint: branchManager ? "Ваш филиал" : "Что есть и что заканчивается", icon: Package, accent: true },
+    { href: "/admin/stock", label: branchManager ? t("stockBranch") : t("stock"), hint: branchManager ? t("yourBranch") : t("stockHint"), icon: Package, accent: true },
     {
       href: "/admin/orders",
-      label: branchManager ? "Заказы филиала" : "Заказы",
-      hint: newOrders ? `Новых: ${newOrders}` : branchManager ? "Только ваш филиал" : "Все филиалы",
+      label: branchManager ? t("ordersBranch") : t("orders"),
+      hint: newOrders ? t("newCount", { n: newOrders }) : branchManager ? t("onlyYourBranch") : t("allBranches"),
       icon: ClipboardList,
       badge: newOrders ?? 0,
     },
-    { href: "/admin/staff", label: "Сотрудники", hint: "Доступ для филиалов", icon: Users, roles: ["owner"] },
-    { href: "/admin/branches", label: "Филиалы", hint: branchCount !== null ? `Всего: ${branchCount}` : "Адреса и WhatsApp", icon: Store, roles: ["owner", "admin"] },
-    { href: "/admin/products", label: "Загрузка товаров", hint: "Excel и остатки из программы", icon: FileSpreadsheet, roles: ["owner", "admin"] },
-    { href: "/admin/catalog", label: "Каталог", hint: "Список всех товаров", icon: LayoutList, roles: ["owner", "admin"] },
-    { href: "/admin/feedback", label: "Обратная связь", hint: "Сообщения покупателей", icon: MessageSquare, roles: ["owner", "admin"] },
-    { href: "/admin/profile", label: "Магазин", hint: "Название магазина", icon: Building2, roles: ["owner", "admin"] },
-    { href: "/admin/settings", label: "Аккаунт", hint: "Почта, пароль, доступ", icon: UserCog },
+    { href: "/admin/staff", label: t("staff"), hint: t("staffHint"), icon: Users, roles: ["owner"] },
+    { href: "/admin/branches", label: t("branches"), hint: branchCount !== null ? t("totalCount", { n: branchCount }) : t("branchesHint"), icon: Store, roles: ["owner", "admin"] },
+    { href: "/admin/products", label: t("upload"), hint: t("uploadHint"), icon: FileSpreadsheet, roles: ["owner", "admin"] },
+    { href: "/admin/catalog", label: t("catalog"), hint: t("catalogHint"), icon: LayoutList, roles: ["owner", "admin"] },
+    { href: "/admin/feedback", label: t("feedback"), hint: t("feedbackHint"), icon: MessageSquare, roles: ["owner", "admin"] },
+    { href: "/admin/profile", label: t("store"), hint: t("storeHint"), icon: Building2, roles: ["owner", "admin"] },
+    { href: "/admin/settings", label: t("account"), hint: t("accountHint"), icon: UserCog },
   ];
 
   return (
     <main className="flex-1 px-4 pt-6 pb-24 max-w-3xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">Панель магазина</h1>
-      <p className="text-sm text-muted mb-6">Выберите раздел.</p>
+      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
+      <p className="text-sm text-muted mb-6">{t("chooseSection")}</p>
 
       <div className="grid grid-cols-2 gap-3">
         {tiles.filter((t) => !t.roles || t.roles.includes(role)).map(({ href, label, hint, icon: Icon, accent, badge }, i) => (

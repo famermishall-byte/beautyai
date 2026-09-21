@@ -46,8 +46,9 @@ function pickShowcase(all: Product[]): Product[] {
 
 export default function Home() {
   const t = useTranslations("home");
+  const tSkin = useTranslations("skin");
   const { session } = useSession();
-  const skinLabel = skinTypeLabel(session?.skinType ?? null);
+  const skinLabel = skinTypeLabel(tSkin, session?.skinType ?? null);
   const skinType = session?.skinType as SkinType | null | undefined;
 
   const [showcase, setShowcase] = useState<Product[]>([]);

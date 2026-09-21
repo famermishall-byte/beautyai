@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import type { Feedback } from "@/types";
 
 export function FeedbackManager() {
+  const t = useTranslations("feedbackAdmin");
+  const locale = useLocale();
   const [feedback, setFeedback] = useState<Feedback[] | null>(null);
 
   useEffect(() => {
@@ -15,13 +18,13 @@ export function FeedbackManager() {
 
   return (
     <div className="bg-card rounded-2xl border border-black/5 p-6">
-      <h2 className="font-medium mb-1">Обратная связь</h2>
-      <p className="text-sm text-muted mb-4">Сообщения от покупателей (также приходят в WhatsApp).</p>
+      <h2 className="font-medium mb-1">{t("title")}</h2>
+      <p className="text-sm text-muted mb-4">{t("subtitle")}</p>
 
-      {feedback === null && <p className="text-muted text-sm">Загружаем…</p>}
+      {feedback === null && <p className="text-muted text-sm">{t("loading")}</p>}
 
       {feedback !== null && feedback.length === 0 && (
-        <p className="text-muted text-sm">Сообщений пока нет.</p>
+        <p className="text-muted text-sm">{t("empty")}</p>
       )}
 
       {feedback && feedback.length > 0 && (
@@ -29,8 +32,8 @@ export function FeedbackManager() {
           {feedback.map((item) => (
             <div key={item.id} className="border border-black/5 rounded-xl p-4">
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="font-medium text-sm">{item.authorName ?? "Без имени"}</span>
-                <span className="text-xs text-muted">{new Date(item.createdAt).toLocaleString("ru-RU")}</span>
+                <span className="font-medium text-sm">{item.authorName ?? t("noName")}</span>
+                <span className="text-xs text-muted">{new Date(item.createdAt).toLocaleString(locale)}</span>
               </div>
               <p className="text-sm whitespace-pre-wrap">{item.message}</p>
             </div>
