@@ -57,6 +57,7 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
     totalPrice: row.total_price as number,
     status: row.status as string,
     createdAt: row.created_at as string,
+    paidAt: (row.paid_at as string | null | undefined) ?? null,
     branch: row.branches ? mapBranch(row.branches) : null,
     items: row.items_json as { name: string; brand: string; price: number; quantity: number }[],
   };

@@ -53,6 +53,8 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     "",
     "Когда обработаете заказ, нажмите нужную ссылку — статус обновится сам, без входа в приложение:",
     `✅ Подтвердить заказ: ${order.origin}/o/${order.statusToken}/confirmed`,
+    `💰 Заказ оплачен: ${order.origin}/o/${order.statusToken}/paid`,
+    `🚚 Передан курьеру: ${order.origin}/o/${order.statusToken}/shipped`,
     `📦 Заказ выполнен: ${order.origin}/o/${order.statusToken}/completed`,
     `❌ Отменить заказ: ${order.origin}/o/${order.statusToken}/cancelled`,
   ].join("\n");

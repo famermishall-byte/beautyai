@@ -20,9 +20,11 @@ export function CartDrawer() {
     router.push("/checkout");
   }
 
-  // Already on checkout — the floating trigger would be redundant there.
-  // A product page has its own sticky add-to-cart bar at the same corner.
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/product/")) return null;
+  // The floating cart is on EVERY storefront page, so an order can be placed from wherever the customer is.
+  // Only checkout itself hides it — the cart is already open there.
+  if (pathname.startsWith("/checkout")) return null;
+  // A product page has its own sticky "add to cart" bar above the bottom nav — float the cart above that bar.
+  const onProduct = pathname.startsWith("/product/");
   // Admins/owners don't shop through their own account — see proxy.ts.
   if (isAdmin) return null;
 
@@ -31,7 +33,8 @@ export function CartDrawer() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Открыть корзину"
-        className="fixed bottom-24 right-4 z-40 rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        style={onProduct ? { bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 5.5rem)" } : undefined}
+        className={["fixed right-4 z-40", onProduct ? "" : "bottom-24"].join(" ") + " rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
       >
         <ShoppingBag className="size-4.5" strokeWidth={2} aria-hidden />
         <span className="text-sm font-medium">Корзина</span>

@@ -3,7 +3,8 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getOrderStatusLabel } from "@/lib/orderStatus";
 
-const LINK_STATUSES = new Set(["confirmed", "completed", "cancelled"]);
+const LINK_STATUSES = new Set(["confirmed", "paid", "shipped", "completed", "cancelled"]);
+const LEGACY_STATUSES = new Set(["confirmed", "completed", "cancelled"]);
 
 function Result({ title, text }: { title: string; text: string }) {
   return (
@@ -32,12 +33,21 @@ export default async function OrderStatusLinkPage({
     return <Result title="Некорректная ссылка" text="Такой статус нельзя установить по ссылке." />;
   }
 
-  const { data, error } = await supabase.rpc("update_order_status_by_token", {
-    p_token: token,
-    p_status: status,
-  });
-
-  const order = data?.[0];
+  // set_order_status_by_token (supabase/order_payments.sql) knows every status; until it is installed the
+  // older function still handles the three original ones.
+  let order: { number: string; status: string } | undefined;
+  let error: unknown = null;
+  const next = await supabase.rpc("set_order_status_by_token", { p_token: token, p_status: status });
+  if (!next.error) {
+    const row = next.data?.[0];
+    order = row ? { number: row.order_number, status: row.order_status } : undefined;
+  } else if (LEGACY_STATUSES.has(status)) {
+    const legacy = await supabase.rpc("update_order_status_by_token", { p_token: token, p_status: status });
+    error = legacy.error;
+    order = legacy.data?.[0];
+  } else {
+    error = next.error;
+  }
 
   if (error || !order) {
     return (

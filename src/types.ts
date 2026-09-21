@@ -70,6 +70,8 @@ export type Order = {
   totalPrice: number;
   status: string;
   createdAt: string;
+  /** When the order was marked paid (null for orders that are not paid yet). */
+  paidAt: string | null;
   branch: Branch;
   items: { name: string; brand: string; price: number; quantity: number }[];
 };
