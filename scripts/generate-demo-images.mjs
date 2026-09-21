@@ -62,9 +62,18 @@ const SHAPES = {
   card: (m, a) => `<rect x="70" y="170" width="260" height="170" rx="20" fill="${m}" transform="rotate(-6 200 255)"/><circle cx="270" cy="220" r="26" fill="${a}" opacity=".9" transform="rotate(-6 200 255)"/><rect x="100" y="280" width="140" height="10" rx="5" fill="${a}" opacity=".8" transform="rotate(-6 200 255)"/>`,
 };
 
+function mix(hex, to, t) {
+  const c = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [a, b] = [c(hex), c(to)];
+  return "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+
 for (const [sku, [shape, p]] of Object.entries(ITEMS)) {
   const [bg1, bg2, main, accent] = PALETTES[p];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg1}"/><stop offset="1" stop-color="${bg2}"/></linearGradient></defs><rect width="400" height="500" fill="url(#g)"/><ellipse cx="200" cy="432" rx="120" ry="16" fill="#000" opacity=".12"/><g>${SHAPES[shape](main, accent)}</g></svg>`;
+  // Cylindrical shading: dark edges, bright band left of centre, soft rim light on the right.
+  const body = `<linearGradient id="m" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${mix(main, "#000000", 0.32)}"/><stop offset=".22" stop-color="${main}"/><stop offset=".38" stop-color="${mix(main, "#ffffff", 0.45)}"/><stop offset=".55" stop-color="${main}"/><stop offset=".85" stop-color="${mix(main, "#000000", 0.2)}"/><stop offset="1" stop-color="${mix(main, "#000000", 0.38)}"/></linearGradient>`;
+  const label = `<linearGradient id="l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${mix(accent, "#000000", 0.14)}"/><stop offset=".4" stop-color="${accent}"/><stop offset="1" stop-color="${mix(accent, "#000000", 0.1)}"/></linearGradient>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="g" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="${bg1}"/><stop offset="1" stop-color="${bg2}"/></radialGradient>${body}${label}<filter id="b" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="9"/></filter></defs><rect width="400" height="500" fill="url(#g)"/><ellipse cx="205" cy="432" rx="120" ry="15" fill="#3a1428" opacity=".28" filter="url(#b)"/><g>${SHAPES[shape]("url(#m)", "url(#l)")}</g></svg>`;
   writeFileSync(`${OUT}/demo-${sku.toLowerCase()}.svg`, svg);
 }
 console.log(`wrote ${Object.keys(ITEMS).length} images to ${OUT}`);
