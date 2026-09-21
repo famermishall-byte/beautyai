@@ -93,3 +93,29 @@ from s, (values
   ('DEMO-GF-02','Набор «Спа-вечер»','Gift Box','Подарки',1990,'Соль для ванны, свеча, скраб.','3 продукта','Подарок'),
   ('DEMO-GF-03','Сертификат подарочный 2000','Gift Box','Подарки',2000,'Электронный подарочный сертификат.','2000 сом','Подарок')
 ) as v(sku, name, brand, category, price, description, characteristics, purpose);
+
+-- Фото (Unsplash) — у товаров ниже настоящие фото, у остальных нарисованные картинки
+update products set image_url = '/demo/photos/20h-C0vaNBA.jpg' where sku in ('DEMO-BD-01');
+update products set image_url = '/demo/photos/9PnU-U7V6YE.jpg' where sku in ('DEMO-BD-03', 'DEMO-FS-02');
+update products set image_url = '/demo/photos/UYJTgxZtUmk.jpg' where sku in ('DEMO-SP-01', 'DEMO-SP-02', 'DEMO-AP-02', 'DEMO-FC-03');
+update products set image_url = '/demo/photos/NnsqpLjiA94.jpg' where sku in ('DEMO-MK-01');
+update products set image_url = '/demo/photos/mSHRwz_FlLY.jpg' where sku in ('DEMO-MK-02');
+update products set image_url = '/demo/photos/5Us84s7blq8.jpg' where sku in ('DEMO-MK-03');
+update products set image_url = '/demo/photos/YwgaLtnYX4k.jpg' where sku in ('DEMO-HS-01');
+update products set image_url = '/demo/photos/Ui7QkgvUBZ0.jpg' where sku in ('DEMO-HS-02', 'DEMO-HC-01');
+update products set image_url = '/demo/photos/m3rBOi881fo.jpg' where sku in ('DEMO-HS-03', 'DEMO-HC-02');
+update products set image_url = '/demo/photos/omY18KP7_Cw.jpg' where sku in ('DEMO-HR-02', 'DEMO-HK-02');
+update products set image_url = '/demo/photos/pd4rqJMd51Q.jpg' where sku in ('DEMO-HR-03', 'DEMO-FS-01');
+update products set image_url = '/demo/photos/LeWrouH2qto.jpg' where sku in ('DEMO-HR-04', 'DEMO-FS-03');
+update products set image_url = '/demo/photos/W_mMinc50k8.jpg' where sku in ('DEMO-PF-01');
+update products set image_url = '/demo/photos/49c-5-bNCRk.jpg' where sku in ('DEMO-PF-02');
+update products set image_url = '/demo/photos/f94JPVrDbnY.jpg' where sku in ('DEMO-PF-03', 'DEMO-GF-02');
+update products set image_url = '/demo/photos/Z00Dhp_tk38.jpg' where sku in ('DEMO-UW-01');
+update products set image_url = '/demo/photos/cxAZxTuL7Sk.jpg' where sku in ('DEMO-SO-03');
+update products set image_url = '/demo/photos/2QSsfflO51I.jpg' where sku in ('DEMO-HM-01');
+update products set image_url = '/demo/photos/n8BjsYWTH8w.jpg' where sku in ('DEMO-HM-02');
+update products set image_url = '/demo/photos/b_wK7JiEny8.jpg' where sku in ('DEMO-AC-01');
+update products set image_url = '/demo/photos/TeD4qZjGIMw.jpg' where sku in ('DEMO-MR-01');
+update products set image_url = '/demo/photos/AJsdrXaRhHk.jpg' where sku in ('DEMO-MR-03');
+update products set image_url = '/demo/photos/ZLTlHeKbh04.jpg' where sku in ('DEMO-GF-01');
+update products set image_url = '/demo/photos/DNohKoNoKEk.jpg' where sku in ('DEMO-FM-01');
