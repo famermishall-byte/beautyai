@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CATEGORIES, CATEGORY_GROUPS, groupCategoryFilter, type CategoryGroup } from "@/lib/categories";
+import { HAIR_TYPE_LABELS, SKIN_TYPE_LABELS, hairTypesOf, skinTypesOf } from "@/lib/attributes";
 import type { Branch, Product } from "@/types";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
@@ -47,6 +48,10 @@ function CatalogContent() {
   const [budget, setBudget] = useState<number | null | undefined>(undefined);
   const [brand, setBrand] = useState<string | null>(null);
   const [onlyInStock, setOnlyInStock] = useState(false);
+  const [productType, setProductType] = useState<string | null>(null);
+  const [hairType, setHairType] = useState<string | null>(null);
+  const [skinType, setSkinType] = useState<string | null>(null);
+  const [volume, setVolume] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>("name");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -73,6 +78,11 @@ function CatalogContent() {
   if (groupKey !== prevGroupKey) {
     setPrevGroupKey(groupKey);
     setCategory(groupFilter);
+    setBrand(null);
+    setProductType(null);
+    setHairType(null);
+    setSkinType(null);
+    setVolume(null);
   }
 
   useEffect(() => {
@@ -132,18 +142,26 @@ function CatalogContent() {
   // Brand/in-stock/sort apply client-side over the fetched page — the
   // catalog is small (tens of items per store), so a second network
   // round-trip for these buys nothing.
-  const brands = useMemo(() => [...new Set(products.map((p) => p.brand).filter(Boolean))].sort(), [products]);
+  // Products of the open collection: an attribute section (e.g. "Сухие волосы") narrows the
+  // fetched category set by product attributes, without any duplicated rows in the database.
+  const scoped = useMemo(() => {
+    const want = activeSection?.attr?.hairType;
+    return want ? products.filter((p) => hairTypesOf(p).includes(want)) : products;
+  }, [products, activeSection]);
+
+  const brands = useMemo(() => [...new Set(scoped.map((p) => p.brand).filter(Boolean))].sort(), [scoped]);
+  const productTypes = useMemo(() => [...new Set(scoped.map((p) => p.attributes?.productType).filter(Boolean) as string[])].sort(), [scoped]);
+  const volumes = useMemo(() => [...new Set(scoped.map((p) => p.attributes?.volume).filter(Boolean) as string[])].sort(), [scoped]);
+  const hairTypes = useMemo(() => Object.keys(HAIR_TYPE_LABELS).filter((k) => scoped.some((p) => hairTypesOf(p).includes(k))), [scoped]);
+  const skinTypes = useMemo(() => Object.keys(SKIN_TYPE_LABELS).filter((k) => scoped.some((p) => skinTypesOf(p).includes(k))), [scoped]);
 
   const visible = useMemo(() => {
-    let list = products;
-    const keywords = activeSection?.keywords;
-    if (keywords) {
-      list = list.filter((p) => {
-        const text = [p.purpose, p.characteristics, p.name].filter(Boolean).join(" ").toLowerCase();
-        return keywords.some((k) => text.includes(k));
-      });
-    }
+    let list = scoped;
     if (brand) list = list.filter((p) => p.brand === brand);
+    if (productType) list = list.filter((p) => p.attributes?.productType === productType);
+    if (volume) list = list.filter((p) => p.attributes?.volume === volume);
+    if (hairType) list = list.filter((p) => hairTypesOf(p).includes(hairType));
+    if (skinType) list = list.filter((p) => skinTypesOf(p).includes(skinType));
     if (onlyInStock) list = list.filter((p) => p.branchQuantity === undefined || (p.branchQuantity ?? 0) > 0);
     list = [...list].sort((a, b) => {
       if (sort === "price-asc") return a.price - b.price;
@@ -151,7 +169,7 @@ function CatalogContent() {
       return a.name.localeCompare(b.name, "ru");
     });
     return list;
-  }, [products, brand, onlyInStock, sort, activeSection]);
+  }, [scoped, brand, productType, volume, hairType, skinType, onlyInStock, sort]);
 
   // The search screen opens as a grid of category tiles; anything that narrows
   // the catalog (a query, a tile, "Все продукты", the budget shortcut) swaps
@@ -161,12 +179,16 @@ function CatalogContent() {
   // + "Хит продаж" before the product list.
   const groupMenu = !!activeGroup?.sections && !subParam && !showAll && !query.trim();
 
-  const activeFilterCount = [brand, onlyInStock || null, typeof budget === "number" ? budget : null, sort !== "name" ? sort : null].filter(
+  const activeFilterCount = [brand, productType, volume, hairType, skinType, onlyInStock || null, typeof budget === "number" ? budget : null, sort !== "name" ? sort : null].filter(
     Boolean
   ).length;
 
   function resetFilters() {
     setBrand(null);
+    setProductType(null);
+    setVolume(null);
+    setHairType(null);
+    setSkinType(null);
     setOnlyInStock(false);
     setBudget(undefined);
     setSort("name");
@@ -327,6 +349,50 @@ function CatalogContent() {
               <CategoryChip label="Все бренды" active={brand === null} onClick={() => setBrand(null)} />
               {brands.map((b) => (
                 <CategoryChip key={b} label={b} active={brand === b} onClick={() => setBrand(brand === b ? null : b)} />
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        {productTypes.length > 1 && (
+          <FilterSection title="Тип продукта">
+            <div className="flex flex-wrap gap-2">
+              <CategoryChip label="Все" active={productType === null} onClick={() => setProductType(null)} />
+              {productTypes.map((t) => (
+                <CategoryChip key={t} label={t} active={productType === t} onClick={() => setProductType(productType === t ? null : t)} />
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        {hairTypes.length > 1 && !activeSection?.attr?.hairType && (
+          <FilterSection title="Тип волос">
+            <div className="flex flex-wrap gap-2">
+              <CategoryChip label="Любой" active={hairType === null} onClick={() => setHairType(null)} />
+              {hairTypes.map((k) => (
+                <CategoryChip key={k} label={HAIR_TYPE_LABELS[k]} active={hairType === k} onClick={() => setHairType(hairType === k ? null : k)} />
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        {skinTypes.length > 1 && (
+          <FilterSection title="Тип кожи">
+            <div className="flex flex-wrap gap-2">
+              <CategoryChip label="Любой" active={skinType === null} onClick={() => setSkinType(null)} />
+              {skinTypes.map((k) => (
+                <CategoryChip key={k} label={SKIN_TYPE_LABELS[k]} active={skinType === k} onClick={() => setSkinType(skinType === k ? null : k)} />
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        {volumes.length > 1 && (
+          <FilterSection title="Объём">
+            <div className="flex flex-wrap gap-2">
+              <CategoryChip label="Любой" active={volume === null} onClick={() => setVolume(null)} />
+              {volumes.map((v) => (
+                <CategoryChip key={v} label={v} active={volume === v} onClick={() => setVolume(volume === v ? null : v)} />
               ))}
             </div>
           </FilterSection>

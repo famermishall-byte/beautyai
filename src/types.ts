@@ -4,6 +4,14 @@ export type SkinProfile = {
   skinConcerns: string[];
 };
 
+/** Filterable characteristics (products.attributes jsonb) — see src/lib/attributes.ts. */
+export type ProductAttributes = {
+  productType?: string;
+  volume?: string;
+  hairType?: string[];
+  skinType?: string[];
+};
+
 export type Product = {
   id: string;
   sku: string;
@@ -17,6 +25,7 @@ export type Product = {
   inStock: boolean;
   imageUrl: string | null;
   createdAt?: string;
+  attributes?: ProductAttributes;
   /** Only present when /api/products was called with a branchId (see catalog/page.tsx). */
   branchQuantity?: number | null;
   availableAtOtherBranch?: boolean;

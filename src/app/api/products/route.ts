@@ -19,6 +19,7 @@ function toProduct(
     inStock: p.in_stock,
     imageUrl: p.image_url,
     createdAt: p.created_at,
+    attributes: p.attributes ?? undefined,
     ...(branchInfo ? { branchQuantity: branchInfo.quantity, availableAtOtherBranch: branchInfo.availableAtOtherBranch } : {}),
   };
 }

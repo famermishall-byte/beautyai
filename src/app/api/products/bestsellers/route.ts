@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       inStock: p.in_stock,
       imageUrl: p.image_url,
       createdAt: p.created_at,
+      attributes: p.attributes ?? undefined,
     })),
   });
 }

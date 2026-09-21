@@ -7,6 +7,7 @@ import {
   Gem,
   Gift,
   Hand,
+  Palette,
   Heart,
   House,
   PersonStanding,
@@ -46,8 +47,8 @@ export type CategorySection = {
   icon: LucideIcon;
   /** products.category values this section covers. */
   categories: string[];
-  /** Optional attribute filter: a product must mention one of these (in purpose / characteristics / name), e.g. "тип волос: сухие". */
-  keywords?: string[];
+  /** Optional attribute filter (products.attributes): a product must have this hair type — one product can sit in several such collections. */
+  attr?: { hairType?: string };
 };
 
 export type CategoryGroup = {
@@ -65,6 +66,8 @@ export type CategoryGroup = {
 // A navigation layer on top of the flat category list above — grouping is
 // purely presentational (search-screen tiles → catalog chips), so it doesn't
 // touch products.category or the import pipeline.
+const HAIR_CATEGORIES = ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"];
+
 export const CATEGORY_GROUPS: CategoryGroup[] = [
   {
     name: "Уход за кожей",
@@ -105,19 +108,11 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
     sections: [
       { label: "Шампуни", icon: Droplets, categories: ["Шампуни"] },
       { label: "Кондиционеры", icon: Wind, categories: ["Кондиционеры"] },
-      { label: "Маски для волос", icon: Sparkles, categories: ["Маски для волос"] },
-      {
-        label: "Для сухих волос",
-        icon: Sun,
-        categories: ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"],
-        keywords: ["тип волос: сухие"],
-      },
-      {
-        label: "Для жирных волос",
-        icon: Droplet,
-        categories: ["Уход за волосами", "Шампуни", "Кондиционеры", "Маски для волос"],
-        keywords: ["тип волос: жирные"],
-      },
+      { label: "Маски", icon: Sparkles, categories: ["Маски для волос"] },
+      { label: "Сухие волосы", icon: Sun, categories: HAIR_CATEGORIES, attr: { hairType: "dry" } },
+      { label: "Жирные волосы", icon: Droplet, categories: HAIR_CATEGORIES, attr: { hairType: "oily" } },
+      { label: "Повреждённые волосы", icon: Scissors, categories: HAIR_CATEGORIES, attr: { hairType: "damaged" } },
+      { label: "Окрашенные волосы", icon: Palette, categories: HAIR_CATEGORIES, attr: { hairType: "colored" } },
     ],
   },
   { name: "Аптечная косметика", icon: FlaskConical, children: [] },
