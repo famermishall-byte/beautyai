@@ -45,6 +45,15 @@ type GroupKey = (typeof GROUPS)[number]["key"];
 const money = (n: number) => `${n.toLocaleString("ru-RU")} сом`;
 const isOpen = (o: Order) => o.status === "sent" || o.status === "confirmed";
 
+/** How long an order has been waiting, e.g. "ждёт 3 ч" / "ждёт 2 дн." */
+function waiting(iso: string): string {
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (min < 1) return "только что";
+  if (min < 60) return `ждёт ${min} мин`;
+  if (min < 48 * 60) return `ждёт ${Math.round(min / 60)} ч`;
+  return `ждёт ${Math.round(min / 1440)} дн.`;
+}
+
 function inPeriod(iso: string, period: Period) {
   if (period === "all") return true;
   const d = new Date(iso);
@@ -157,7 +166,10 @@ function OrderRow({
           {getOrderStatusAdminLabel(order.status)}
         </span>
       </div>
-      <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString("ru-RU")}</div>
+      <div className="text-sm text-muted mb-2">
+        {new Date(order.createdAt).toLocaleString("ru-RU")}
+        {isOpen(order) && <span className="ml-2 font-medium text-warning">· {waiting(order.createdAt)}</span>}
+      </div>
       {order.statusChangedAt && order.status !== "sent" && (
         <div className="text-xs font-medium text-success mb-2">
           {getOrderStatusAdminLabel(order.status)} · {order.statusSource === "whatsapp" ? "отметил продавец в WhatsApp" : "отмечено в приложении"} ·{" "}
@@ -391,6 +403,7 @@ export function OrderManager() {
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(PAGE);
+  const [newestFirst, setNewestFirst] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -471,8 +484,8 @@ export function OrderManager() {
   const countOf = (key: GroupKey) => searched.filter((o) => inGroup(o, key)).length;
   const filtered = searched
     .filter((o) => inGroup(o, group))
-    // the queue works oldest-first (whoever waits longest goes first); archives newest-first
-    .sort((a, b) => (group === "action" || group === "problems" ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt)));
+    // Newest first by default (a fresh order is at the top); "сначала старые" puts whoever has waited longest first.
+    .sort((a, b) => (newestFirst ? b.createdAt.localeCompare(a.createdAt) : a.createdAt.localeCompare(b.createdAt)));
 
   const visibleOpenIds = filtered.slice(0, shown).filter(isOpen).map((o) => o.id);
   const selectedIds = [...selected].filter((id) => filtered.some((o) => o.id === id));
@@ -514,7 +527,7 @@ export function OrderManager() {
           </button>
         </div>
         <p className="text-sm text-muted mb-1">
-          Это ваша очередь: сверху заказы, которые ждут действия. Продавец отмечает заказ по ссылке из WhatsApp — здесь всё появляется само.
+          Это ваша очередь: заказы, которые ждут действия (новые — сверху). Продавец отмечает заказ по ссылке из WhatsApp — здесь всё появляется само.
         </p>
         <p className="text-xs text-muted mb-4">
           Обновляется каждые 20 секунд{updatedAt ? ` · ${updatedAt.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
@@ -544,6 +557,18 @@ export function OrderManager() {
                 className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
+
+            <label className="flex items-center justify-between gap-3 mb-3 text-sm text-muted">
+              Порядок
+              <select
+                value={newestFirst ? "new" : "old"}
+                onChange={(e) => setNewestFirst(e.target.value === "new")}
+                className="rounded-lg border border-black/10 bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="new">Сначала новые</option>
+                <option value="old">Сначала старые (кто дольше ждёт)</option>
+              </select>
+            </label>
 
             {allBranches && branches.length > 1 && (
               <select
