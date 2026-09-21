@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, LogOut, Search, ArrowLeft } from "lucide-react";
+import { MapPin, LogOut, Search, ArrowLeft, ShoppingBag, LayoutDashboard } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { useGoBack } from "@/lib/use-go-back";
 import { getStoredCity } from "@/lib/city";
+import { switchViewMode } from "@/lib/view-mode";
 
 export function NavHeader() {
   const pathname = usePathname();
-  const { session, isAdmin, signOut } = useSession();
+  const { session, isAdmin, isManager, signOut } = useSession();
   const [city, setCity] = useState<string | null>(null);
   const goBack = useGoBack(isAdmin ? "/admin" : "/");
 
@@ -55,6 +56,16 @@ export function NavHeader() {
           )}
         </div>
 
+        {!isAdmin && isManager && (
+          <button
+            onClick={() => switchViewMode("admin")}
+            className="shrink-0 flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <LayoutDashboard className="size-4" strokeWidth={2} aria-hidden />
+            Админка
+          </button>
+        )}
+
         {!isAdmin && (
           <Link
             href="/catalog?tab=search"
@@ -80,6 +91,13 @@ export function NavHeader() {
             >
               Админ
             </Link>
+            <button
+              onClick={() => switchViewMode("shop")}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <ShoppingBag className="size-4" strokeWidth={1.85} aria-hidden />
+              В магазин
+            </button>
             <button
               onClick={() => signOut()}
               aria-label="Выйти"

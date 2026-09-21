@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, Sparkle } from "lucide-react";
 import { STOCK_STATUS_LABELS, type StockStatus } from "@/lib/stock";
+import { useSession } from "@/lib/session-context";
 import type { Branch } from "@/types";
 
 const BRANCH_KEY = "beautyai-admin-branch";
@@ -43,8 +44,12 @@ function formatWhen(iso: string | null) {
 }
 
 export default function AdminStockPage() {
+  const { session } = useSession();
+  const isBranchManager = session?.role === "branch_manager";
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [branchId, setBranchId] = useState<string | null>(null);
+  const [pickedBranch, setBranchId] = useState<string | null>(null);
+  // A branch manager works only with their own branch; everyone else picks one.
+  const branchId = isBranchManager ? (session?.branchId ?? null) : pickedBranch;
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StockStatus | "all">("all");
@@ -144,6 +149,12 @@ export default function AdminStockPage() {
         загружайте из вашей программы — они нужны только вам.
       </p>
 
+      {isBranchManager ? (
+        <div className="mb-4 rounded-[var(--radius-control)] bg-accent-soft px-4 py-3 text-sm">
+          Ваш филиал: <span className="font-semibold">{branches.find((b) => b.id === branchId)?.name ?? "…"}</span>
+        </div>
+      ) : (
+        <>
       <label className="block text-xs font-medium text-muted mb-1.5">Филиал</label>
       <select
         value={branchId ?? ""}
@@ -157,6 +168,8 @@ export default function AdminStockPage() {
           </option>
         ))}
       </select>
+        </>
+      )}
 
       <div className="relative mb-3">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />

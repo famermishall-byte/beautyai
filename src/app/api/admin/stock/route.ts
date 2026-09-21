@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSessionProfile, isStoreManager } from "@/lib/auth";
+import { getSessionProfile, isStaff, type SessionProfile } from "@/lib/auth";
 import { stockStatus, type StockStatus } from "@/lib/stock";
 
 const PAGE_SIZE = 50;
@@ -25,14 +25,21 @@ async function recalcInStock(supabase: Client, storeId: string, productId: strin
   await supabase.from("products").update({ in_stock: any }).eq("id", productId).eq("store_id", storeId);
 }
 
+// A branch manager works only with their own branch, whatever the request says.
+function resolveBranchId(profile: SessionProfile, requested: string): string | null {
+  if (profile.role !== "branch_manager") return requested;
+  return profile.branchId;
+}
+
 // Stock of every product in ONE branch: GET lists (search / status filter / pages), PUT sets one quantity.
 export async function GET(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
-  if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
+  if (!isStaff(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
 
   const sp = request.nextUrl.searchParams;
-  const branchId = sp.get("branchId") ?? "";
+  const branchId = resolveBranchId(profile, sp.get("branchId") ?? "");
+  if (!branchId) return NextResponse.json({ error: "Вам пока не назначен филиал — обратитесь к владельцу." }, { status: 403 });
   const q = (sp.get("q") ?? "").replace(/[,()%*\\]/g, " ").trim();
   const statusFilter = sp.get("status") ?? "all";
   const page = Math.max(1, Number(sp.get("page")) || 1);
@@ -89,10 +96,10 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
-  if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
+  if (!isStaff(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
-  const branchId = String(body.branchId ?? "");
+  const branchId = resolveBranchId(profile, String(body.branchId ?? "")) ?? "";
   const productId = String(body.productId ?? "");
   const quantity = Number(body.quantity);
   if (!branchId || !productId || !Number.isInteger(quantity) || quantity < 0 || quantity > 1_000_000) {

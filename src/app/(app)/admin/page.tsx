@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Building2, ClipboardList, FileSpreadsheet, LayoutList, MessageSquare, Package, Store, UserCog, type LucideIcon } from "lucide-react";
+import { Building2, ClipboardList, FileSpreadsheet, LayoutList, MessageSquare, Package, Store, UserCog, Users, type LucideIcon } from "lucide-react";
+import { useSession } from "@/lib/session-context";
 
 // The admin home is a menu of icon tiles; each section opens on its own page (with the back arrow in the header).
-type Tile = { href: string; label: string; hint: string; icon: LucideIcon; accent?: boolean; badge?: number };
+type Tile = { href: string; label: string; hint: string; icon: LucideIcon; accent?: boolean; badge?: number; roles?: string[] };
 
 export default function AdminHome() {
+  const { session } = useSession();
+  const role = session?.role ?? "";
   const [newOrders, setNewOrders] = useState<number | null>(null);
   const [branchCount, setBranchCount] = useState<number | null>(null);
 
@@ -18,19 +21,20 @@ export default function AdminHome() {
       .then((data: { orders?: { status: string }[] }) => setNewOrders((data.orders ?? []).filter((o) => o.status === "sent").length))
       .catch(() => setNewOrders(null));
     fetch("/api/admin/branches")
-      .then((res) => res.json())
-      .then((data: { branches?: unknown[] }) => setBranchCount((data.branches ?? []).length))
+      .then((res) => (res.ok ? res.json() : { branches: undefined }))
+      .then((data: { branches?: unknown[] }) => setBranchCount(data.branches ? data.branches.length : null))
       .catch(() => setBranchCount(null));
   }, []);
 
   const tiles: Tile[] = [
     { href: "/admin/stock", label: "Остатки", hint: "Что есть и что заканчивается", icon: Package, accent: true },
     { href: "/admin/orders", label: "Заказы", hint: newOrders ? `Новых: ${newOrders}` : "Заказы покупателей", icon: ClipboardList, badge: newOrders ?? 0 },
-    { href: "/admin/branches", label: "Филиалы", hint: branchCount !== null ? `Всего: ${branchCount}` : "Адреса и WhatsApp", icon: Store },
-    { href: "/admin/products", label: "Загрузка товаров", hint: "Excel и остатки из программы", icon: FileSpreadsheet },
-    { href: "/admin/catalog", label: "Каталог", hint: "Список всех товаров", icon: LayoutList },
-    { href: "/admin/feedback", label: "Обратная связь", hint: "Сообщения покупателей", icon: MessageSquare },
-    { href: "/admin/profile", label: "Магазин", hint: "Название магазина", icon: Building2 },
+    { href: "/admin/staff", label: "Сотрудники", hint: "Доступ для филиалов", icon: Users, roles: ["owner"] },
+    { href: "/admin/branches", label: "Филиалы", hint: branchCount !== null ? `Всего: ${branchCount}` : "Адреса и WhatsApp", icon: Store, roles: ["owner", "admin"] },
+    { href: "/admin/products", label: "Загрузка товаров", hint: "Excel и остатки из программы", icon: FileSpreadsheet, roles: ["owner", "admin"] },
+    { href: "/admin/catalog", label: "Каталог", hint: "Список всех товаров", icon: LayoutList, roles: ["owner", "admin"] },
+    { href: "/admin/feedback", label: "Обратная связь", hint: "Сообщения покупателей", icon: MessageSquare, roles: ["owner", "admin"] },
+    { href: "/admin/profile", label: "Магазин", hint: "Название магазина", icon: Building2, roles: ["owner", "admin"] },
     { href: "/admin/settings", label: "Аккаунт", hint: "Почта, пароль, доступ", icon: UserCog },
   ];
 
@@ -40,7 +44,7 @@ export default function AdminHome() {
       <p className="text-sm text-muted mb-6">Выберите раздел.</p>
 
       <div className="grid grid-cols-2 gap-3">
-        {tiles.map(({ href, label, hint, icon: Icon, accent, badge }, i) => (
+        {tiles.filter((t) => !t.roles || t.roles.includes(role)).map(({ href, label, hint, icon: Icon, accent, badge }, i) => (
           <Link
             key={href}
             href={href}

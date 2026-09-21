@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 export type Session = {
   email: string | null;
   role: string;
   storeId: string;
+  branchId?: string | null;
   storeName: string;
   storeSlug: string;
   displayName: string | null;
@@ -23,8 +24,10 @@ export type Session = {
 type SessionContextValue = {
   session: Session | null;
   loading: boolean;
-  /** True for both "admin" and "owner" — owners have all admin capabilities plus ownership transfer. */
+  /** Working in the admin area right now (a staff member on /admin/*). In the storefront the same person is a customer. */
   isAdmin: boolean;
+  /** Has an owner / admin / branch-manager role — may switch between the admin area and the storefront. */
+  isManager: boolean;
   isOwner: boolean;
   signOut: () => Promise<void>;
   /** Re-fetch the session after something like the skin profile changes server-side. */
@@ -37,6 +40,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+  const isManager = session?.role === "admin" || session?.role === "owner" || session?.role === "branch_manager";
 
   async function loadSession() {
     try {
@@ -80,7 +85,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       value={{
         session,
         loading,
-        isAdmin: session?.role === "admin" || session?.role === "owner",
+        isAdmin: isManager && pathname.startsWith("/admin"),
+        isManager,
         isOwner: session?.role === "owner",
         signOut,
         refresh,

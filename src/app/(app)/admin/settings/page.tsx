@@ -129,7 +129,7 @@ export default function AdminSettingsPage() {
       <h1 className="font-display text-3xl mb-2">Настройки аккаунта</h1>
       <p className="text-muted mb-8">
         Вы вошли как <span className="font-medium text-foreground">{session?.email}</span> (
-        {isOwner ? "владелец" : "администратор"} магазина «{session?.storeName}»)
+        {isOwner ? "владелец" : session?.role === "branch_manager" ? "управляющий филиала" : "администратор"} магазина «{session?.storeName}»)
       </p>
 
       <button

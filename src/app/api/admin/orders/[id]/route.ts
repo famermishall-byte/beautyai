@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapOrder } from "@/lib/supabase";
-import { getSessionProfile, isStoreManager } from "@/lib/auth";
+import { getSessionProfile, isStaff } from "@/lib/auth";
 import { isOrderStatus } from "@/lib/orderStatus";
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -9,7 +9,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!profile) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
-  if (!isStoreManager(profile.role)) {
+  if (!isStaff(profile.role)) {
     return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
   }
 
@@ -23,13 +23,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: order, error } = await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id)
-      .eq("store_id", profile.storeId)
-      .select("*, branches(*)")
-      .single();
+    let update = supabase.from("orders").update({ status }).eq("id", id).eq("store_id", profile.storeId);
+    if (profile.role === "branch_manager") {
+      if (!profile.branchId) return NextResponse.json({ error: "Вам пока не назначен филиал." }, { status: 403 });
+      update = update.eq("branch_id", profile.branchId);
+    }
+    const { data: order, error } = await update.select("*, branches(*)").single();
 
     if (error) throw error;
 

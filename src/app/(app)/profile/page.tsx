@@ -33,7 +33,7 @@ import { CareKitView } from "@/components/profile/CareKitView";
 import type { Product } from "@/types";
 
 export default function ProfilePage() {
-  const { session, loading, isAdmin, signOut, refresh } = useSession();
+  const { session, loading, isManager, signOut, refresh } = useSession();
 
   const [city, setCity] = useState<string | null>(null);
   const [editing, setEditing] = useState<boolean | null>(null);
@@ -249,8 +249,8 @@ export default function ProfilePage() {
         <MenuRow href="/branches" icon={Store} label="Магазины" hint="Карта филиалов" />
         <MenuRow href="/mybag" icon={Heart} label="Моя косметичка" hint="Избранные товары" />
         <MenuRow href="/orders" icon={ShoppingBag} label="Мои покупки" hint="Все заказы" />
-        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isAdmin} />
-        {isAdmin && (
+        <MenuRow href="/feedback" icon={MessageCircle} label="Обратная связь" last={!isManager} />
+        {isManager && (
           <>
             <MenuRow href="/admin" icon={LayoutDashboard} label="Админ-панель магазина" />
             <MenuRow href="/admin/settings" icon={Settings} label="Настройки магазина" last />

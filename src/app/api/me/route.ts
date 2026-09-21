@@ -12,6 +12,7 @@ export async function GET() {
     email: profile.email,
     role: profile.role,
     storeId: profile.storeId,
+    branchId: profile.branchId,
     storeName: profile.storeName,
     storeSlug: profile.storeSlug,
     displayName: profile.displayName,

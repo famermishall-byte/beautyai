@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSessionProfile, isStoreManager } from "@/lib/auth";
+import { getSessionProfile, isStaff } from "@/lib/auth";
 
 // Server-side gate: this runs on every request for /admin/* before any
 // admin UI or data ever renders. A USER hitting /admin directly (typed URL,
@@ -8,7 +8,7 @@ import { getSessionProfile, isStoreManager } from "@/lib/auth";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await getSessionProfile();
 
-  if (!profile || !isStoreManager(profile.role)) {
+  if (!profile || !isStaff(profile.role)) {
     redirect("/?denied=admin");
   }
 
