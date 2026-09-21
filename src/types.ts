@@ -72,6 +72,9 @@ export type Order = {
   createdAt: string;
   /** When the order was marked paid (null for orders that are not paid yet). */
   paidAt: string | null;
+  /** How the status was last changed: "whatsapp" (link tapped in the chat) or "admin" (in the app). */
+  statusSource: string | null;
+  statusChangedAt: string | null;
   branch: Branch;
   items: { name: string; brand: string; price: number; quantity: number }[];
 };

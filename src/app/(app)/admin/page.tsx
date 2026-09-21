@@ -16,14 +16,20 @@ export default function AdminHome() {
 
   useEffect(() => {
     // Fetching data on mount — same pattern/rationale as BranchManager.tsx.
-    fetch("/api/admin/orders")
-      .then((res) => res.json())
-      .then((data: { orders?: { status: string }[] }) => setNewOrders((data.orders ?? []).filter((o) => o.status === "sent").length))
-      .catch(() => setNewOrders(null));
+    const loadOrders = () =>
+      fetch("/api/admin/orders")
+        .then((res) => res.json())
+        .then((data: { orders?: { status: string }[] }) => setNewOrders((data.orders ?? []).filter((o) => o.status === "sent").length))
+        .catch(() => setNewOrders(null));
+    loadOrders();
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") loadOrders();
+    }, 30_000);
     fetch("/api/admin/branches")
       .then((res) => (res.ok ? res.json() : { branches: undefined }))
       .then((data: { branches?: unknown[] }) => setBranchCount(data.branches ? data.branches.length : null))
       .catch(() => setBranchCount(null));
+    return () => clearInterval(timer);
   }, []);
 
   const tiles: Tile[] = [

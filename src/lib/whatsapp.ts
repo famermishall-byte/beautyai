@@ -51,11 +51,9 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     "",
     "Пожалуйста, свяжитесь с клиентом для подтверждения заказа и оформления доставки.",
     "",
-    "Когда обработаете заказ, нажмите нужную ссылку — статус обновится сам, без входа в приложение:",
+    "Отметьте заказ одним нажатием — он сразу отобразится в приложении у администратора (входить не нужно):",
     `✅ Подтвердить заказ: ${order.origin}/o/${order.statusToken}/confirmed`,
-    `💰 Заказ оплачен: ${order.origin}/o/${order.statusToken}/paid`,
-    `🚚 Передан курьеру: ${order.origin}/o/${order.statusToken}/shipped`,
-    `📦 Заказ выполнен: ${order.origin}/o/${order.statusToken}/completed`,
+    `💰 Оплата получена: ${order.origin}/o/${order.statusToken}/paid`,
     `❌ Отменить заказ: ${order.origin}/o/${order.statusToken}/cancelled`,
   ].join("\n");
 }

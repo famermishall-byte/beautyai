@@ -24,10 +24,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const supabase = await createServerSupabaseClient();
     // Remember WHEN the order became a sale (paid) and when it went to the courier, for the sales totals.
-    const { data: before } = await supabase.from("orders").select("paid_at, shipped_at").eq("id", id).eq("store_id", profile.storeId).maybeSingle();
+    const { data: before } = await supabase.from("orders").select("paid_at, shipped_at, status_source").eq("id", id).eq("store_id", profile.storeId).maybeSingle();
     const now = new Date().toISOString();
     const stamps: Record<string, string> = {};
     if (before) {
+      stamps.status_source = "admin";
+      stamps.status_changed_at = now;
       if (SALE_STATUSES.includes(status) && !before.paid_at) stamps.paid_at = now;
       if (status === "shipped" && !before.shipped_at) stamps.shipped_at = now;
     }

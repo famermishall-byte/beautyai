@@ -5,6 +5,9 @@
 
 alter table public.orders add column if not exists paid_at timestamptz;
 alter table public.orders add column if not exists shipped_at timestamptz;
+-- Как и когда последний раз менялся статус: "whatsapp" (продавец нажал ссылку в чате) или "admin" (в приложении).
+alter table public.orders add column if not exists status_source text;
+alter table public.orders add column if not exists status_changed_at timestamptz;
 
 -- Уже выполненные заказы считаем проданными.
 update public.orders set paid_at = created_at where status = 'completed' and paid_at is null;
@@ -39,7 +42,9 @@ begin
     update public.orders o
     set status = p_status,
         paid_at = case when p_status in ('paid', 'shipped', 'completed') then coalesce(o.paid_at, now()) else o.paid_at end,
-        shipped_at = case when p_status = 'shipped' then coalesce(o.shipped_at, now()) else o.shipped_at end
+        shipped_at = case when p_status = 'shipped' then coalesce(o.shipped_at, now()) else o.shipped_at end,
+        status_source = 'whatsapp',
+        status_changed_at = now()
     where o.status_token::text = p_token
     returning o.number::text, o.status::text;
 end $$;

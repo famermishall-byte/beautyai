@@ -90,6 +90,12 @@ function OrderRow({ order, onUpdated }: { order: Order; onUpdated: (updated: Ord
         </span>
       </div>
       <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString("ru-RU")}</div>
+      {order.statusChangedAt && order.status !== "sent" && (
+        <div className="text-xs font-medium text-success mb-2">
+          {getOrderStatusAdminLabel(order.status)} · {order.statusSource === "whatsapp" ? "отметил продавец в WhatsApp" : "отмечено в приложении"} ·{" "}
+          {new Date(order.statusChangedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+        </div>
+      )}
       <div className="text-sm mb-2">
         {order.customerName} · {order.customerPhone}
       </div>
@@ -226,11 +232,15 @@ export function OrderManager() {
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [shown, setShown] = useState(PAGE);
 
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
   async function load() {
     const res = await fetch("/api/admin/orders");
     const data = await res.json();
     if (!res.ok) setError(data.error ?? "Не удалось загрузить заказы.");
+    else setError("");
     setOrders(data.orders ?? []);
+    setUpdatedAt(new Date());
   }
 
   useEffect(() => {
@@ -239,6 +249,17 @@ export function OrderManager() {
     // — not a derived-state case, so there's no render-time equivalent here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    // A seller taps a link in WhatsApp → the status changes in the database. Re-read every 20 s (and when the tab
+    // comes back into focus) so the admin sees it without reloading.
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 20_000);
+    const onVisible = () => document.visibilityState === "visible" && load();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   function handleUpdated(updated: Order) {
@@ -259,8 +280,11 @@ export function OrderManager() {
 
       <div className="bg-card rounded-2xl border border-black/5 p-6">
         <h2 className="font-medium mb-1">Заказы</h2>
-        <p className="text-sm text-muted mb-4">
-          Двигайте заказ по шагам кнопкой ниже (или ссылкой из WhatsApp): подтверждён → оплачен → передан курьеру → выполнен.
+        <p className="text-sm text-muted mb-1">
+          Продавец отмечает заказ ссылкой в WhatsApp («Подтвердить», «Оплата получена») — статус появляется здесь сам. Можно также менять кнопкой ниже.
+        </p>
+        <p className="text-xs text-muted mb-4">
+          Список обновляется сам каждые 20 секунд{updatedAt ? ` · обновлено ${updatedAt.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
         </p>
 
         {error && <p className="text-sm text-error font-medium mb-3">{error}</p>}

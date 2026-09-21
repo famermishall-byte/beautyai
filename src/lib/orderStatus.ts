@@ -1,4 +1,5 @@
-// Order life-cycle: Новый → Подтверждён → Оплачен → Передан курьеру → Выполнен (or Отменён at any point).
+// Order life-cycle: Новый → Подтверждён → Оплачен (this is the sale) → Выполнен (or Отменён at any point).
+// Delivery is the seller's job in WhatsApp, so "Передан курьеру" stays as an optional status but is not in the main flow.
 // Payment and delivery happen outside the app (cash / bank / courier), so the branch marks each step —
 // one tap on the "next step" button in the admin, or one tap on a link in the WhatsApp message.
 export const ORDER_STATUSES = ["sent", "confirmed", "paid", "shipped", "completed", "cancelled"] as const;
@@ -25,8 +26,8 @@ export const SALE_STATUSES: readonly string[] = ["paid", "shipped", "completed"]
 export const NEXT_ORDER_STEP: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
   sent: { status: "confirmed", label: "Подтвердить заказ" },
   confirmed: { status: "paid", label: "Отметить оплаченным" },
-  paid: { status: "shipped", label: "Передан курьеру" },
-  shipped: { status: "completed", label: "Заказ доставлен" },
+  paid: { status: "completed", label: "Заказ выдан / доставлен" },
+  shipped: { status: "completed", label: "Заказ выдан / доставлен" },
 };
 
 export function isOrderStatus(value: string): value is OrderStatus {
