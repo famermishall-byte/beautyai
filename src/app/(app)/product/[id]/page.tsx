@@ -6,6 +6,7 @@ import { ArrowLeft, Heart, Sparkle, Minus, Plus, Check, PackageX } from "lucide-
 import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
+import { useGoBack } from "@/lib/use-go-back";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -15,6 +16,7 @@ const BRANCH_STORAGE_KEY = "beautyai-branch";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const goBack = useGoBack("/catalog");
   const { addItem, items, changeQuantity } = useCart();
   const { toggle, isSaved } = useMyBag();
 
@@ -99,13 +101,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
-        <Link
-          href="/catalog"
-          aria-label="Назад в каталог"
+        <button
+          onClick={goBack}
+          aria-label="Назад"
           className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
         >
           <ArrowLeft className="size-4.5" strokeWidth={2} aria-hidden />
-        </Link>
+        </button>
         <button
           onClick={() => toggle(product)}
           aria-label={saved ? "Убрать из косметички" : "Сохранить в косметичку"}
