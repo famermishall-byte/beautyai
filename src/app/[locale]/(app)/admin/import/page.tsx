@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
 import {
   IMPORT_FIELDS,
@@ -29,6 +31,10 @@ type Template = {
 type Step = "file" | "mapping" | "preview" | "done";
 
 export default function ImportPage() {
+  // (`t` is used as a loop variable for templates below, so the translator is named ti / tf)
+  const ti = useTranslations("adminImport");
+  const tf = useTranslations("importFields");
+  const price = usePrice();
   const [step, setStep] = useState<Step>("file");
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +91,7 @@ export default function ImportPage() {
 
     const detected = detectFormat(file.name);
     if (!detected) {
-      setError(`Неизвестный формат файла. Поддерживаются: ${SUPPORTED_EXTENSIONS.join(", ")}.`);
+      setError(ti("unknownFormat", { formats: SUPPORTED_EXTENSIONS.join(", ") }));
       return;
     }
 
@@ -94,7 +100,7 @@ export default function ImportPage() {
       const parsed = parseFile(detected, buffer);
 
       if (parsed.headers.length === 0 || parsed.rows.length === 0) {
-        setError("Файл пустой или не содержит строк с товарами.");
+        setError(ti("emptyFile"));
         return;
       }
 
@@ -103,7 +109,7 @@ export default function ImportPage() {
       setMapping(suggestMapping(parsed.headers));
       setStep("mapping");
     } catch {
-      setError("Не удалось прочитать файл — проверьте, что это корректный Excel-файл.");
+      setError(ti("readFailed"));
     }
   }
 
@@ -128,7 +134,7 @@ export default function ImportPage() {
     if (!table) return;
     const missing = missingRequiredColumns(mapping);
     if (missing.length > 0) {
-      setError(`Сопоставьте обязательные поля: ${missing.join(", ")}.`);
+      setError(ti("mapRequired", { fields: missing.join(", ") }));
       return;
     }
     setError(null);
@@ -180,7 +186,7 @@ export default function ImportPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Не удалось импортировать товары.");
+        setError(data.error ?? ti("importFailed"));
         return;
       }
       setImportResult({ imported: data.imported, skippedDuplicates: data.skippedDuplicates ?? [] });
@@ -199,10 +205,10 @@ export default function ImportPage() {
   return (
     <main className="flex-1 px-4 py-10 max-w-3xl mx-auto w-full">
       <Link href="/admin" className="text-sm text-accent underline mb-4 inline-block">
-        ← Назад в панель магазина
+        ← {ti("backToPanel")}
       </Link>
-      <h1 className="font-display text-3xl mb-2">Загрузить товары</h1>
-      <p className="text-muted mb-6">Excel-файл с вашим ассортиментом — колонки могут называться как угодно.</p>
+      <h1 className="font-display text-3xl mb-2">{ti("title")}</h1>
+      <p className="text-muted mb-6">{ti("subtitle")}</p>
 
       {error && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-6">{error}</p>}
 
@@ -210,7 +216,7 @@ export default function ImportPage() {
         <>
           {templates.length > 0 && (
             <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
-              <h2 className="font-medium mb-3">Мои шаблоны импорта</h2>
+              <h2 className="font-medium mb-3">{ti("myTemplates")}</h2>
               <ul className="flex flex-col gap-2">
                 {templates.map((t) => (
                   <li key={t.id} className="flex items-center justify-between text-sm">
@@ -219,7 +225,7 @@ export default function ImportPage() {
                       onClick={() => handleDeleteTemplate(t.id)}
                       className="text-xs text-muted underline hover:text-accent"
                     >
-                      Удалить
+                      {ti("delete")}
                     </button>
                   </li>
                 ))}
@@ -228,7 +234,7 @@ export default function ImportPage() {
           )}
 
           <div className="bg-card rounded-2xl border border-black/5 p-6">
-            <h2 className="font-medium mb-3">1. Выберите файл</h2>
+            <h2 className="font-medium mb-3">{ti("step1")}</h2>
             <input
               ref={fileInputRef}
               type="file"
@@ -242,20 +248,20 @@ export default function ImportPage() {
 
       {step === "mapping" && table && (
         <div className="bg-card rounded-2xl border border-black/5 p-6">
-          <h2 className="font-medium mb-1">2. Сопоставьте колонки</h2>
+          <h2 className="font-medium mb-1">{ti("step2")}</h2>
           <p className="text-sm text-muted mb-4">
-            Beauty попыталась определить колонки сама — проверьте и поправьте при необходимости.
+            {ti("step2Hint")}
           </p>
 
           {templates.filter((t) => t.sourceType === format).length > 0 && (
             <div className="mb-5">
-              <label className="text-sm text-muted block mb-1.5">Применить сохранённый шаблон</label>
+              <label className="text-sm text-muted block mb-1.5">{ti("applyTemplate")}</label>
               <select
                 value={selectedTemplateId}
                 onChange={(e) => handleApplyTemplate(e.target.value)}
                 className={selectClass}
               >
-                <option value="">— не выбрано —</option>
+                <option value="">{ti("notChosen")}</option>
                 {templates
                   .filter((t) => t.sourceType === format)
                   .map((t) => (
@@ -271,7 +277,7 @@ export default function ImportPage() {
             {IMPORT_FIELDS.map((field) => (
               <div key={field.key} className="flex items-center gap-3">
                 <label className="w-40 shrink-0 text-sm">
-                  {field.label}
+                  {tf(field.key)}
                   {field.required && <span className="text-accent"> *</span>}
                 </label>
                 <select
@@ -279,10 +285,10 @@ export default function ImportPage() {
                   onChange={(e) => handleMappingChange(field.key, e.target.value)}
                   className={selectClass}
                 >
-                  <option value="">— не выбрано —</option>
+                  <option value="">{ti("notChosen")}</option>
                   {table.headers.map((h, i) => (
                     <option key={i} value={i}>
-                      {h || `(колонка ${i + 1})`}
+                      {h || ti("columnN", { n: i + 1 })}
                     </option>
                   ))}
                 </select>
@@ -295,14 +301,14 @@ export default function ImportPage() {
               onClick={() => setShowSaveTemplate(true)}
               className="text-sm text-accent underline mb-5"
             >
-              💾 Сохранить это сопоставление как шаблон
+              💾 {ti("saveAsTemplate")}
             </button>
           ) : (
             <div className="flex gap-2 mb-5">
               <input
                 value={templateNameDraft}
                 onChange={(e) => setTemplateNameDraft(e.target.value)}
-                placeholder="Название шаблона"
+                placeholder={ti("templateName")}
                 className={selectClass}
               />
               <button
@@ -310,7 +316,7 @@ export default function ImportPage() {
                 disabled={savingTemplate || !templateNameDraft.trim()}
                 className="shrink-0 rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:bg-black/5 disabled:opacity-50"
               >
-                {savingTemplate ? "Сохраняем…" : "Сохранить"}
+                {savingTemplate ? ti("saving") : ti("save")}
               </button>
             </div>
           )}
@@ -320,13 +326,13 @@ export default function ImportPage() {
               onClick={resetWizard}
               className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
             >
-              Отмена
+              {ti("cancel")}
             </button>
             <button
               onClick={goToPreview}
               className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
-              Далее: предпросмотр
+              {ti("nextPreview")}
             </button>
           </div>
         </div>
@@ -335,13 +341,13 @@ export default function ImportPage() {
       {step === "preview" && (
         <div className="flex flex-col gap-6">
           <div className="bg-card rounded-2xl border border-black/5 p-6">
-            <h2 className="font-medium mb-1">3. Предпросмотр</h2>
+            <h2 className="font-medium mb-1">{ti("step3")}</h2>
             <p className="text-sm text-muted mb-4">
-              Готово к импорту: <span className="text-foreground font-medium">{okRows.length}</span>
+              {ti("readyToImport")}: <span className="text-foreground font-medium">{okRows.length}</span>
               {errorRows.length > 0 && (
                 <>
                   {" "}
-                  · Ошибки: <span className="text-red-600 font-medium">{errorRows.length}</span>
+                  · {ti("errors")}: <span className="text-red-600 font-medium">{errorRows.length}</span>
                 </>
               )}
             </p>
@@ -351,11 +357,11 @@ export default function ImportPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-muted border-b border-black/10">
-                      <th className="py-2 pr-4">Название</th>
-                      <th className="py-2 pr-4">Цена</th>
-                      <th className="py-2 pr-4">Артикул</th>
-                      <th className="py-2 pr-4">Остаток</th>
-                      <th className="py-2 pr-4">Бренд</th>
+                      <th className="py-2 pr-4">{tf("name")}</th>
+                      <th className="py-2 pr-4">{tf("price")}</th>
+                      <th className="py-2 pr-4">{tf("sku")}</th>
+                      <th className="py-2 pr-4">{tf("inStock")}</th>
+                      <th className="py-2 pr-4">{tf("brand")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -363,7 +369,7 @@ export default function ImportPage() {
                       r.status === "ok" ? (
                         <tr key={r.rowNumber} className="border-b border-black/5">
                           <td className="py-2 pr-4">{r.product.name}</td>
-                          <td className="py-2 pr-4">{r.product.price.toLocaleString("ru-RU")} сом</td>
+                          <td className="py-2 pr-4">{price(r.product.price)}</td>
                           <td className="py-2 pr-4">{r.product.sku}</td>
                           <td className="py-2 pr-4">{r.product.inStock ? "✅" : "—"}</td>
                           <td className="py-2 pr-4">{r.product.brand}</td>
@@ -373,7 +379,7 @@ export default function ImportPage() {
                   </tbody>
                 </table>
                 {okRows.length > 10 && (
-                  <p className="text-xs text-muted mt-2">…и ещё {okRows.length - 10} товаров.</p>
+                  <p className="text-xs text-muted mt-2">{ti("andMore", { n: okRows.length - 10 })}</p>
                 )}
               </div>
             )}
@@ -381,12 +387,12 @@ export default function ImportPage() {
 
           {errorRows.length > 0 && (
             <div className="bg-red-50 rounded-2xl p-6">
-              <h2 className="font-medium text-red-700 mb-3">Строки с ошибками (не будут импортированы)</h2>
+              <h2 className="font-medium text-red-700 mb-3">{ti("errorRowsTitle")}</h2>
               <ul className="flex flex-col gap-2 text-sm text-red-700">
                 {errorRows.map((r) =>
                   r.status === "error" ? (
                     <li key={r.rowNumber}>
-                      <span className="font-medium">Строка {r.rowNumber}</span> ({r.preview.Название || "без названия"}):{" "}
+                      <span className="font-medium">{ti("row", { n: r.rowNumber })}</span> ({r.preview.Название || ti("noName")}):{" "}
                       {r.errors.join(" ")}
                     </li>
                   ) : null
@@ -400,14 +406,14 @@ export default function ImportPage() {
               onClick={resetWizard}
               className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
             >
-              Отмена
+              {ti("cancel")}
             </button>
             <button
               onClick={handleImport}
               disabled={importing || okRows.length === 0}
               className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
-              {importing ? "Импортируем…" : `Импортировать товары (${okRows.length})`}
+              {importing ? ti("importing") : ti("importN", { n: okRows.length })}
             </button>
           </div>
         </div>
@@ -416,11 +422,11 @@ export default function ImportPage() {
       {step === "done" && importResult && (
         <div className="bg-card rounded-2xl border border-black/5 p-6 text-center">
           <div className="text-4xl mb-3">💚</div>
-          <h2 className="font-display text-2xl mb-2">Готово!</h2>
-          <p className="text-muted mb-1">Добавлено товаров: {importResult.imported}</p>
+          <h2 className="font-display text-2xl mb-2">{ti("done")}</h2>
+          <p className="text-muted mb-1">{ti("added", { n: importResult.imported })}</p>
           {importResult.skippedDuplicates.length > 0 && (
             <p className="text-muted mb-4 text-sm">
-              Пропущено как дубликаты (уже есть в каталоге): {importResult.skippedDuplicates.join(", ")}
+              {ti("skippedDuplicates", { list: importResult.skippedDuplicates.join(", ") })}
             </p>
           )}
           <div className="flex gap-2 justify-center mt-4">
@@ -428,13 +434,13 @@ export default function ImportPage() {
               onClick={resetWizard}
               className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
             >
-              Загрузить ещё файл
+              {ti("uploadAnother")}
             </button>
             <Link
               href="/admin"
               className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
-              В панель магазина
+              {ti("toPanel")}
             </Link>
           </div>
         </div>

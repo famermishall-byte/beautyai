@@ -914,3 +914,13 @@ Supabase Admin API, чтобы создавать аккаунты за друг
 Supabase+Vercel в менеджере паролей; значения `SUPABASE_SERVICE_ROLE_KEY`/`CRON_SECRET` и Android keystore (когда
 появятся) хранить вне ноутбука. Не проверено: Vercel Env Vars (MCP Vercel не авторизован) и то, что 00_base_schema.sql
 + остальные файлы воспроизводят схему 1-в-1 (нужен пробный пустой проект Supabase).
+
+## Два языка (RU/KY) — ветка feature/i18n, 21.09
+next-intl: адреса /ru и /ky (RU по умолчанию), `messages/ru.json` + `messages/ky.json` (KY пока копия RU — владелец переводит сама),
+переключатель RU/KY в шапке и на экране входа, выбор в cookie NEXT_LOCALE. Все страницы переехали в `src/app/[locale]/`;
+маршрутизация языка встроена в `src/proxy.ts` (Next 16: proxy вместо middleware) вместе с проверкой входа/ролей.
+Ссылки/переходы — только через `@/i18n/navigation`. Инструкция по переводу: `docs/TRANSLATION.md`.
+Проверено: tsc, eslint (0 ошибок), `npm run build`, localhost:3000 (редиректы, cookie, переключатель в браузере).
+НЕ ВЛИТО в main: пуш main сразу выкладывает на Vercel и меняет все адреса → сначала проверить на preview-деплое ветки.
+Перед слиянием: в Supabase Auth → Redirect URLs разрешить `https://<сайт>/**`; проверить вход, заказ и админку под ролями.
+Осознанно на русском: тексты WhatsApp-сообщений, ответы /api/*, диагностика импорта, данные товаров.

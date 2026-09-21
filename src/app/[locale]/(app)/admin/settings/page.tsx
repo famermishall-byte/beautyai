@@ -1,19 +1,16 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
 
-const TRANSFER_ERRORS: Record<string, string> = {
-  not_owner: "Только владелец магазина может передать права.",
-  target_not_registered:
-    "Этот email ещё не зарегистрирован. Новый владелец должен сначала создать аккаунт на странице входа (вкладка «Регистрация»), а затем сообщить вам свой email.",
-  cannot_transfer_to_self: "Нельзя передать права самому себе.",
-  not_authenticated: "Сессия истекла — войдите заново.",
-};
+// Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
+const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
 
 export default function AdminSettingsPage() {
+  const t = useTranslations("adminSettings");
   const { session, isOwner, signOut } = useSession();
   const router = useRouter();
 
@@ -43,11 +40,11 @@ export default function AdminSettingsPage() {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
       if (error) {
-        setEmailError(`Не удалось изменить email: ${error.message}`);
+        setEmailError(t("emailFailed", { message: error.message }));
         return;
       }
       setEmailNotice(
-        `Мы отправили письмо для подтверждения на ${newEmail.trim()}. Email изменится после перехода по ссылке из письма.`
+        t("emailSent", { email: newEmail.trim() })
       );
       setNewEmail("");
     } finally {
@@ -61,11 +58,11 @@ export default function AdminSettingsPage() {
     setPasswordError(null);
 
     if (newPassword.length < 6) {
-      setPasswordError("Пароль должен быть не короче 6 символов.");
+      setPasswordError(t("passwordShort"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("Пароли не совпадают.");
+      setPasswordError(t("passwordMismatch"));
       return;
     }
 
@@ -74,10 +71,10 @@ export default function AdminSettingsPage() {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) {
-        setPasswordError(`Не удалось изменить пароль: ${error.message}`);
+        setPasswordError(t("passwordFailed", { message: error.message }));
         return;
       }
-      setPasswordNotice("Пароль обновлён.");
+      setPasswordNotice(t("passwordUpdated"));
       setNewPassword("");
       setConfirmPassword("");
     } finally {
@@ -92,7 +89,7 @@ export default function AdminSettingsPage() {
 
     if (
       !confirm(
-        `Передать права владельца магазина «${session?.storeName}» пользователю ${transferEmail.trim()}? Вы потеряете доступ к этому магазину.`
+        t("transferConfirm", { store: session?.storeName ?? "", email: transferEmail.trim() })
       )
     ) {
       return;
@@ -105,7 +102,7 @@ export default function AdminSettingsPage() {
         new_owner_email: transferEmail.trim(),
       });
       if (error) {
-        setTransferError(TRANSFER_ERRORS[error.message] ?? `Не удалось передать права: ${error.message}`);
+        setTransferError(TRANSFER_ERROR_CODES.includes(error.message) ? t(`transferErrors.${error.message}`) : t("transferFailed", { message: error.message }));
         return;
       }
 
@@ -123,19 +120,23 @@ export default function AdminSettingsPage() {
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
       <Link href="/admin" className="text-sm text-accent underline mb-4 inline-block">
-        ← Назад в панель магазина
+        ← {t("backToPanel")}
       </Link>
-      <h1 className="font-display text-3xl mb-2">Настройки аккаунта</h1>
+      <h1 className="font-display text-3xl mb-2">{t("title")}</h1>
       <p className="text-muted mb-8">
-        Вы вошли как <span className="font-medium text-foreground">{session?.email}</span> (
-        {isOwner ? "владелец" : session?.role === "branch_manager" ? "управляющий филиала" : "администратор"} магазина «{session?.storeName}»)
+        {t.rich("signedInAs", {
+          email: session?.email ?? "",
+          role: isOwner ? t("roleOwner") : session?.role === "branch_manager" ? t("roleBranchManager") : t("roleAdmin"),
+          store: session?.storeName ?? "",
+          b: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+        })}
       </p>
 
       <button
         onClick={() => signOut()}
         className="mb-6 rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        Выйти
+        {t("signOut")}
       </button>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
@@ -149,7 +150,7 @@ export default function AdminSettingsPage() {
         <form onSubmit={handleChangeEmail} className="flex gap-2">
           <input
             type="email"
-            placeholder="Новый email"
+            placeholder={t("newEmail")}
             className={inputClass}
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
@@ -159,13 +160,13 @@ export default function AdminSettingsPage() {
             disabled={emailSubmitting || !newEmail.trim()}
             className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
-            {emailSubmitting ? "Отправляем…" : "Изменить email"}
+            {emailSubmitting ? t("sending") : t("changeEmail")}
           </button>
         </form>
       </div>
 
       <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
-        <h2 className="font-medium mb-3">Пароль</h2>
+        <h2 className="font-medium mb-3">{t("password")}</h2>
         {passwordNotice && (
           <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-3">{passwordNotice}</p>
         )}
@@ -175,14 +176,14 @@ export default function AdminSettingsPage() {
         <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
           <input
             type="password"
-            placeholder="Новый пароль (минимум 6 символов)"
+            placeholder={t("newPassword")}
             className={inputClass}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
           <input
             type="password"
-            placeholder="Повторите пароль"
+            placeholder={t("repeatPassword")}
             className={inputClass}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -192,19 +193,16 @@ export default function AdminSettingsPage() {
             disabled={passwordSubmitting || !newPassword}
             className="self-start rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
-            {passwordSubmitting ? "Сохраняем…" : "Изменить пароль"}
+            {passwordSubmitting ? t("saving") : t("changePassword")}
           </button>
         </form>
       </div>
 
       {isOwner && (
         <div className="bg-card rounded-2xl border border-black/5 p-6">
-          <h2 className="font-medium mb-1">Передать права владельца</h2>
+          <h2 className="font-medium mb-1">{t("transferTitle")}</h2>
           <p className="text-sm text-muted mb-4">
-            Например, при продаже магазина новому хозяину. Новый владелец должен сначала
-            зарегистрироваться на странице входа (это не обязательно должен быть тот же email) —
-            после этого укажите здесь его email. Вы потеряете доступ к этому магазину сразу после
-            передачи.
+            {t("transferHint")}
           </p>
           {transferError && (
             <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{transferError}</p>
@@ -212,7 +210,7 @@ export default function AdminSettingsPage() {
           <form onSubmit={handleTransferOwnership} className="flex gap-2">
             <input
               type="email"
-              placeholder="Email нового владельца"
+              placeholder={t("newOwnerEmail")}
               className={inputClass}
               value={transferEmail}
               onChange={(e) => setTransferEmail(e.target.value)}
@@ -222,7 +220,7 @@ export default function AdminSettingsPage() {
               disabled={transferSubmitting || !transferEmail.trim()}
               className="shrink-0 rounded-full bg-red-600 text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
             >
-              {transferSubmitting ? "Передаём…" : "Передать права"}
+              {transferSubmitting ? t("transferring") : t("transfer")}
             </button>
           </form>
         </div>

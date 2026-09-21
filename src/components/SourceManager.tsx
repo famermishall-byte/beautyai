@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   SYNC_IMPORT_FIELDS,
   detectFormat,
@@ -43,11 +44,12 @@ const inputClass =
   "rounded-lg border border-black/10 bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 function SummaryLine({ summary }: { summary: SyncSummary }) {
+  const t = useTranslations("sources");
   return (
     <p className="text-xs text-muted">
-      Обработано: {summary.processed} · Новых: {summary.created} · Обновлено: {summary.updated}
-      {summary.needsReview > 0 && <> · Требуют проверки: {summary.needsReview}</>}
-      {summary.errors > 0 && <> · Ошибок: {summary.errors}</>}
+      {t("processed")}: {summary.processed} · {t("created")}: {summary.created} · {t("updated")}: {summary.updated}
+      {summary.needsReview > 0 && <> · {t("needReview")}: {summary.needsReview}</>}
+      {summary.errors > 0 && <> · {t("errorsCount")}: {summary.errors}</>}
     </p>
   );
 }
@@ -61,19 +63,21 @@ function MappingEditor({
   mapping: ColumnMapping;
   onChange: (field: string, value: string) => void;
 }) {
+  const t = useTranslations("sources");
+  const tf = useTranslations("importFields");
   return (
     <div className="flex flex-col gap-2 mb-4">
       {SYNC_IMPORT_FIELDS.map((field) => (
         <div key={field.key} className="flex items-center gap-3">
           <label className="w-48 shrink-0 text-sm">
-            {field.label}
+            {tf(field.key)}
             {field.required && <span className="text-accent"> *</span>}
           </label>
           <select value={mapping[field.key] ?? ""} onChange={(e) => onChange(field.key, e.target.value)} className={`${inputClass} flex-1`}>
-            <option value="">— не выбрано —</option>
+            <option value="">{t("notChosen")}</option>
             {headers.map((h, i) => (
               <option key={i} value={i}>
-                {h || `(колонка ${i + 1})`}
+                {h || t("columnN", { n: i + 1 })}
               </option>
             ))}
           </select>
@@ -84,6 +88,8 @@ function MappingEditor({
 }
 
 export function SourceManager() {
+  const t = useTranslations("sources");
+  const locale = useLocale();
   const [sources, setSources] = useState<Source[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
@@ -159,14 +165,14 @@ export function SourceManager() {
     setCreateError(null);
     const detected = detectFormat(file.name);
     if (!detected) {
-      setCreateError(`Неизвестный формат файла. Поддерживаются: ${SUPPORTED_EXTENSIONS.join(", ")}.`);
+      setCreateError(t("unknownFormat", { formats: SUPPORTED_EXTENSIONS.join(", ") }));
       return;
     }
     try {
       const buffer = await file.arrayBuffer();
       const parsed = parseFile(detected, buffer);
       if (parsed.headers.length === 0 || parsed.rows.length === 0) {
-        setCreateError("Файл пустой или не содержит строк с товарами.");
+        setCreateError(t("emptyFile"));
         return;
       }
       setFileFormat(detected);
@@ -175,7 +181,7 @@ export function SourceManager() {
       setSourceName(file.name.replace(/\.[^.]+$/, ""));
       setCreateStep("file");
     } catch {
-      setCreateError("Не удалось прочитать файл.");
+      setCreateError(t("readFailed"));
     }
   }
 
@@ -189,7 +195,7 @@ export function SourceManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: sourceName.trim() || "Источник из файла",
+          name: sourceName.trim() || t("defaultFileSource"),
           sourceType: fileFormat,
           columnMapping,
           connectionType: "file",
@@ -198,7 +204,7 @@ export function SourceManager() {
       });
       const createData = await createRes.json();
       if (!createRes.ok) {
-        setCreateError(createData.error ?? "Не удалось создать источник.");
+        setCreateError(createData.error ?? t("createFailed"));
         return;
       }
 
@@ -209,7 +215,7 @@ export function SourceManager() {
       });
       const syncData = await syncRes.json();
       if (!syncRes.ok) {
-        setCreateError(syncData.error ?? "Источник создан, но синхронизация не удалась.");
+        setCreateError(syncData.error ?? t("createdSyncFailed"));
       }
       setResultBySource((prev) => ({ ...prev, [createData.id]: syncRes.ok ? { summary: syncData.summary } : { error: syncData.error } }));
       resetCreateFlow();
@@ -221,7 +227,7 @@ export function SourceManager() {
 
   async function handleCreateApiSource() {
     if (!apiUrl.trim()) {
-      setCreateError("Укажите адрес (URL) источника.");
+      setCreateError(t("enterUrl"));
       return;
     }
     setSaving(true);
@@ -231,7 +237,7 @@ export function SourceManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: sourceName.trim() || "API-источник",
+          name: sourceName.trim() || t("defaultApiSource"),
           sourceType: apiFormat || "json",
           columnMapping: {},
           connectionType: "api",
@@ -246,7 +252,7 @@ export function SourceManager() {
       });
       const createData = await createRes.json();
       if (!createRes.ok) {
-        setCreateError(createData.error ?? "Не удалось создать источник.");
+        setCreateError(createData.error ?? t("createFailed"));
         return;
       }
       setPendingApiSourceId(createData.id);
@@ -258,7 +264,7 @@ export function SourceManager() {
       });
       const previewData = await previewRes.json();
       if (!previewRes.ok) {
-        setCreateError(`Источник сохранён, но не удалось получить данные: ${previewData.error ?? "неизвестная ошибка"}`);
+        setCreateError(t("savedNoData", { error: previewData.error ?? t("unknownError") }));
         await loadAll();
         return;
       }
@@ -284,7 +290,7 @@ export function SourceManager() {
       const data = await res.json();
       setResultBySource((prev) => ({ ...prev, [pendingApiSourceId]: res.ok ? { summary: data.summary } : { error: data.error } }));
       if (!res.ok) {
-        setCreateError(data.error ?? "Не удалось синхронизировать.");
+        setCreateError(data.error ?? t("syncFailed"));
         return;
       }
       resetCreateFlow();
@@ -343,7 +349,7 @@ export function SourceManager() {
   }
 
   async function handleDeleteSource(id: string) {
-    if (!confirm("Удалить этот источник? Уже загруженные товары останутся в каталоге.")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     await fetch(`/api/admin/import-templates/${id}`, { method: "DELETE" });
     await loadAll();
   }
@@ -378,11 +384,10 @@ export function SourceManager() {
   return (
     <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
       <div className="flex items-center justify-between mb-1">
-        <h2 className="font-medium">Источник товаров и остатков</h2>
+        <h2 className="font-medium">{t("title")}</h2>
       </div>
       <p className="text-sm text-muted mb-4">
-        Подключите файл или API той программы, где вы ведёте учёт — Beauty сама распознает товары и остатки по
-        филиалам и будет обновлять их при каждой синхронизации.
+        {t("intro")}
       </p>
 
       <input ref={fileInputRef} type="file" accept={SUPPORTED_EXTENSIONS.join(",")} onChange={handleFileSelected} className="hidden" />
@@ -398,15 +403,15 @@ export function SourceManager() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{source.name}</span>
                     <span className="text-xs bg-accent-soft text-accent rounded-full px-2 py-0.5">
-                      {source.connectionType === "api" ? "API" : `Файл (${source.sourceType.toUpperCase()})`}
+                      {source.connectionType === "api" ? "API" : t("fileType", { type: source.sourceType.toUpperCase() })}
                     </span>
                   </div>
                   <button onClick={() => handleDeleteSource(source.id)} className="text-xs text-muted underline hover:text-accent">
-                    Удалить
+                    {t("delete")}
                   </button>
                 </div>
                 <p className="text-xs text-muted mb-2">
-                  {source.lastSyncedAt ? `Последняя синхронизация: ${new Date(source.lastSyncedAt).toLocaleString("ru-RU")}` : "Ещё не синхронизировался."}
+                  {source.lastSyncedAt ? t("lastSync", { when: new Date(source.lastSyncedAt).toLocaleString(locale) }) : t("neverSynced")}
                 </p>
                 {source.lastSyncSummary && <SummaryLine summary={source.lastSyncSummary} />}
                 {result?.summary && <SummaryLine summary={result.summary} />}
@@ -418,7 +423,7 @@ export function SourceManager() {
                       disabled={syncingId === source.id}
                       className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
                     >
-                      {syncingId === source.id ? "Синхронизируем…" : "Синхронизировать сейчас"}
+                      {syncingId === source.id ? t("syncing") : t("syncNow")}
                     </button>
                   ) : (
                     <button
@@ -426,7 +431,7 @@ export function SourceManager() {
                       disabled={syncingId === source.id}
                       className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
                     >
-                      {syncingId === source.id ? "Синхронизируем…" : "Загрузить новый файл"}
+                      {syncingId === source.id ? t("syncing") : t("uploadNewFile")}
                     </button>
                   )}
                 </div>
@@ -438,7 +443,7 @@ export function SourceManager() {
 
       {reviewItems.length > 0 && (
         <div className="bg-red-50 rounded-xl p-4 mb-5">
-          <h3 className="font-medium text-red-700 mb-2">Требуют проверки ({reviewItems.length})</h3>
+          <h3 className="font-medium text-red-700 mb-2">{t("needReview")} ({reviewItems.length})</h3>
           <div className="flex flex-col gap-3">
             {reviewItems.map((item) => (
               <div key={item.id} className="text-sm text-red-700 border-b border-red-100 pb-2">
@@ -451,10 +456,10 @@ export function SourceManager() {
                 </p>
                 <div className="flex gap-3">
                   <button onClick={() => handleReviewAction(item.id, "resolved")} className="underline hover:opacity-80">
-                    Отметить решённым
+                    {t("markResolved")}
                   </button>
                   <button onClick={() => handleReviewAction(item.id, "ignored")} className="underline hover:opacity-80">
-                    Игнорировать
+                    {t("ignore")}
                   </button>
                 </div>
               </div>
@@ -470,26 +475,26 @@ export function SourceManager() {
           onClick={() => setCreateStep("choose-type")}
           className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95"
         >
-          + Подключить источник
+          + {t("connect")}
         </button>
       )}
 
       {createStep === "choose-type" && (
         <div className="border-t border-black/10 pt-4">
-          <h3 className="text-sm font-medium mb-3">Как магазин ведёт учёт товаров?</h3>
+          <h3 className="text-sm font-medium mb-3">{t("howTracked")}</h3>
           <div className="flex flex-wrap gap-2 mb-3">
             <button onClick={() => fileInputRef.current?.click()} className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium hover:opacity-90">
-              Импорт файла
+              {t("importFile")}
             </button>
             <button onClick={() => setCreateStep("api-form")} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
-              Подключить через API
+              {t("connectApi")}
             </button>
             <button onClick={() => setCreateStep("other")} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
-              Другой источник
+              {t("otherSource")}
             </button>
           </div>
           <button onClick={resetCreateFlow} className="text-sm text-muted underline">
-            Отмена
+            {t("cancel")}
           </button>
         </div>
       )}
@@ -497,29 +502,26 @@ export function SourceManager() {
       {createStep === "other" && (
         <div className="border-t border-black/10 pt-4">
           <p className="text-sm text-muted mb-3">
-            Сейчас готовы два универсальных способа: загрузка файла (Excel/CSV/JSON — в любом формате, с любыми
-            названиями колонок) и подключение по ссылке (API), если ваша программа умеет отдавать данные по URL.
-            Если у вас другая программа без файла и без API — напишите нам, что это за программа, и мы посмотрим,
-            можно ли подключить её отдельно.
+            {t("otherText")}
           </p>
           <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
-            Понятно
+            {t("gotIt")}
           </button>
         </div>
       )}
 
       {createStep === "file" && fileTable && (
         <div className="border-t border-black/10 pt-4">
-          <h3 className="text-sm font-medium mb-3">Сопоставьте колонки</h3>
+          <h3 className="text-sm font-medium mb-3">{t("mapColumns")}</h3>
           <div className="flex items-center gap-3 mb-4">
-            <label className="w-48 shrink-0 text-sm">Название источника</label>
+            <label className="w-48 shrink-0 text-sm">{t("sourceName")}</label>
             <input value={sourceName} onChange={(e) => setSourceName(e.target.value)} className={`${inputClass} flex-1`} />
           </div>
           <MappingEditor headers={fileTable.headers} mapping={fileMapping} onChange={handleFileMappingChange} />
           <div className="flex items-center gap-3 mb-4">
-            <label className="w-48 shrink-0 text-sm">Филиал по умолчанию</label>
+            <label className="w-48 shrink-0 text-sm">{t("defaultBranch")}</label>
             <select value={defaultBranchId} onChange={(e) => setDefaultBranchId(e.target.value)} className={`${inputClass} flex-1`}>
-              <option value="">— уточнять по колонке «Филиал» в файле —</option>
+              <option value="">{t("branchFromColumn")}</option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -529,14 +531,14 @@ export function SourceManager() {
           </div>
           <div className="flex gap-2">
             <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
-              Отмена
+              {t("cancel")}
             </button>
             <button
               onClick={handleCreateFileSource}
               disabled={saving}
               className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {saving ? "Сохраняем…" : "Сохранить и синхронизировать"}
+              {saving ? t("saving") : t("saveAndSync")}
             </button>
           </div>
         </div>
@@ -544,35 +546,34 @@ export function SourceManager() {
 
       {createStep === "api-form" && (
         <div className="border-t border-black/10 pt-4">
-          <h3 className="text-sm font-medium mb-3">Подключение по API</h3>
+          <h3 className="text-sm font-medium mb-3">{t("apiTitle")}</h3>
           <p className="text-xs text-muted mb-3">
-            Подходит для любой программы, которая может отдать список товаров по ссылке в формате CSV или JSON —
-            например, отчёт МойСклад, опубликованная Google-таблица или собственный отчёт вашей программы.
+            {t("apiHint")}
           </p>
           <div className="flex flex-col gap-3 mb-4">
-            <input value={sourceName} onChange={(e) => setSourceName(e.target.value)} placeholder="Название источника" className={inputClass} />
+            <input value={sourceName} onChange={(e) => setSourceName(e.target.value)} placeholder={t("sourceName")} className={inputClass} />
             <input value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} placeholder="https://…" className={inputClass} />
             <div className="flex gap-2">
               <input
                 value={apiHeaderName}
                 onChange={(e) => setApiHeaderName(e.target.value)}
-                placeholder="Заголовок авторизации (необязательно), напр. Authorization"
+                placeholder={t("authHeader")}
                 className={`${inputClass} flex-1`}
               />
               <input
                 value={apiHeaderValue}
                 onChange={(e) => setApiHeaderValue(e.target.value)}
-                placeholder="Значение, напр. Bearer ..."
+                placeholder={t("authValue")}
                 className={`${inputClass} flex-1`}
               />
             </div>
             <select value={apiFormat} onChange={(e) => setApiFormat(e.target.value as "" | "csv" | "json")} className={inputClass}>
-              <option value="">Формат ответа — определить автоматически</option>
+              <option value="">{t("formatAuto")}</option>
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
             </select>
             <select value={defaultBranchId} onChange={(e) => setDefaultBranchId(e.target.value)} className={inputClass}>
-              <option value="">Филиал по умолчанию — уточнять позже</option>
+              <option value="">{t("branchLater")}</option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -582,14 +583,14 @@ export function SourceManager() {
           </div>
           <div className="flex gap-2">
             <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
-              Отмена
+              {t("cancel")}
             </button>
             <button
               onClick={handleCreateApiSource}
               disabled={saving}
               className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {saving ? "Подключаем…" : "Подключить и получить данные"}
+              {saving ? t("connecting") : t("connectAndFetch")}
             </button>
           </div>
         </div>
@@ -597,18 +598,18 @@ export function SourceManager() {
 
       {createStep === "api-mapping" && (
         <div className="border-t border-black/10 pt-4">
-          <h3 className="text-sm font-medium mb-3">Сопоставьте поля ответа</h3>
+          <h3 className="text-sm font-medium mb-3">{t("mapResponse")}</h3>
           <MappingEditor headers={apiPreviewHeaders} mapping={apiMapping} onChange={handleApiMappingChange} />
           <div className="flex gap-2">
             <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
-              Отмена
+              {t("cancel")}
             </button>
             <button
               onClick={handleConfirmApiMapping}
               disabled={saving}
               className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
-              {saving ? "Синхронизируем…" : "Сохранить сопоставление и синхронизировать"}
+              {saving ? t("syncing") : t("saveMappingAndSync")}
             </button>
           </div>
         </div>

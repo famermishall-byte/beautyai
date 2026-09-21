@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { MapPin, Phone, Clock, MessageCircle, Navigation, Store } from "lucide-react";
 import type { Branch } from "@/types";
 import { getStoredCity } from "@/lib/city";

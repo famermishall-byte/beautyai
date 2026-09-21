@@ -114,7 +114,7 @@ export default function AdminStockPage() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [branchId, search, status, page, sort]);
+  }, [branchId, search, status, page, sort, t]);
 
   function selectBranch(id: string) {
     setBranchId(id);

@@ -9,5 +9,6 @@ export function switchViewMode(mode: "shop" | "admin") {
   document.cookie = mode === "shop" ? `${COOKIE}=shop; path=/; max-age=604800; samesite=lax` : `${COOKIE}=; path=/; max-age=0; samesite=lax`;
   // Full reload (fresh session/role state) — keep the language the page is currently shown in.
   const locale = document.documentElement.lang || "ru";
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   window.location.assign(`/${locale}${mode === "shop" ? "" : "/admin"}`);
 }

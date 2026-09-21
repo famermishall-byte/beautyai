@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { rememberLocale } from "@/lib/locale-cookie";
 
 const LABELS: Record<Locale, string> = { ru: "RU", ky: "KY" };
 
@@ -18,11 +19,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
 
   function choose(next: Locale) {
     if (next === locale) return;
-    try {
-      document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; samesite=lax`;
-    } catch {
-      // cookies blocked — the URL prefix alone still selects the language
-    }
+    rememberLocale(next);
     router.replace(`${pathname}${window.location.search}`, { locale: next });
   }
 

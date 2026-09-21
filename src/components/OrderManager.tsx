@@ -162,7 +162,7 @@ function OrderRow({
           #{order.number}
         </label>
         <span className={["text-xs font-medium rounded-full px-2.5 py-1", PILL[order.status] ?? "bg-border text-muted"].join(" ")}>
-          {getOrderStatusAdminLabel(order.status)}
+          {getOrderStatusAdminLabel(ts, order.status)}
         </span>
       </div>
       <div className="text-sm text-muted mb-2">
