@@ -1,25 +1,35 @@
--- ДЕМО-остатки: раскидывает случайные остатки демо-товарам (DEMO-*) по ВСЕМ филиалам магазина,
--- чтобы на показе были видны разные статусы: «В наличии», «Мало осталось», «Нет в наличии».
--- ТОЛЬКО ДОБАВЛЯЕТ: уже заданные остатки не перезаписываются (on conflict do nothing), реальные товары
--- не затрагиваются. Запустить в Supabase → SQL Editor (можно повторно — новые строки не появятся).
---
+-- ДЕМО-остатки: расставляет остатки демо-товарам (DEMO-*) по ВСЕМ филиалам магазина, чтобы на показе
+-- были видны разные статусы: «В наличии», «Мало осталось», «Нет в наличии».
+-- Затрагивает ТОЛЬКО демо-товары; реальные товары не трогает. Значения «псевдослучайные», но стабильные
+-- (считаются из id товара и филиала), поэтому файл можно запускать повторно — результат одинаковый.
 -- Распределение: ~10% — нет в наличии, ~15% — мало (1–3 шт.), остальное — в наличии (4–40 шт.);
--- у ~5% пар товар–филиал остаток не задан (виден как «Не заполнено» в админке).
+-- у ~5% пар товар–филиал остаток не задан (в админке «Не заполнено»).
+-- Запустить в Supabase → SQL Editor.
 
+with calc as (
+  select p.store_id, p.id as product_id, b.id as branch_id,
+         abs(hashtext('a' || p.id::text || b.id::text)::bigint) as n1,
+         abs(hashtext('b' || p.id::text || b.id::text)::bigint) as n2,
+         abs(hashtext('c' || p.id::text || b.id::text)::bigint) as n3
+  from products p
+  join branches b on b.store_id = p.store_id
+  where p.sku like 'DEMO-%'
+), vals as (
+  select store_id, product_id, branch_id, n3,
+         case
+           when (n1 % 100) < 10 then 0
+           when (n1 % 100) < 25 then 1 + (n2 % 3)
+           else 4 + (n2 % 37)
+         end as quantity,
+         now() - (n2 % 360) * interval '1 minute' as updated_at
+  from calc
+)
 insert into product_branch_stock (store_id, product_id, branch_id, quantity, updated_at)
-select p.store_id, p.id, b.id,
-       case
-         when x.r < 0.10 then 0
-         when x.r < 0.25 then 1 + floor(random() * 3)::int
-         else 4 + floor(random() * 37)::int
-       end,
-       now() - random() * interval '6 hours'
-from products p
-join branches b on b.store_id = p.store_id
-cross join lateral (select random() as r) x
-where p.sku like 'DEMO-%'
-  and random() > 0.05
-on conflict (product_id, branch_id) do nothing;
+select store_id, product_id, branch_id, quantity, updated_at
+from vals
+where (n3 % 100) >= 5
+on conflict (product_id, branch_id) do update
+  set quantity = excluded.quantity, updated_at = excluded.updated_at;
 
 -- Чтобы демо-товар не пропал из каталога целиком, у каждого товара должен быть хотя бы один филиал с остатком.
 update product_branch_stock s

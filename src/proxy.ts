@@ -71,6 +71,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon|brand).*)",
+    // "demo" — demo product photos (public/demo). Without this exclusion an admin session is
+    // redirected from /demo/... to /admin (managers stay out of the storefront), so photos break in the admin.
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|icon|apple-icon|brand|demo).*)",
   ],
 };
