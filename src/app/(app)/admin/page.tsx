@@ -11,6 +11,7 @@ type Tile = { href: string; label: string; hint: string; icon: LucideIcon; accen
 export default function AdminHome() {
   const { session } = useSession();
   const role = session?.role ?? "";
+  const branchManager = role === "branch_manager";
   const [newOrders, setNewOrders] = useState<number | null>(null);
   const [branchCount, setBranchCount] = useState<number | null>(null);
 
@@ -33,8 +34,15 @@ export default function AdminHome() {
   }, []);
 
   const tiles: Tile[] = [
-    { href: "/admin/stock", label: "Остатки", hint: "Что есть и что заканчивается", icon: Package, accent: true },
-    { href: "/admin/orders", label: "Заказы", hint: newOrders ? `Новых: ${newOrders}` : "Заказы покупателей", icon: ClipboardList, badge: newOrders ?? 0 },
+    // A branch manager works with their own branch only; the all-branches picture belongs to the owner / admin.
+    { href: "/admin/stock", label: branchManager ? "Остатки филиала" : "Остатки", hint: branchManager ? "Ваш филиал" : "Что есть и что заканчивается", icon: Package, accent: true },
+    {
+      href: "/admin/orders",
+      label: branchManager ? "Заказы филиала" : "Заказы",
+      hint: newOrders ? `Новых: ${newOrders}` : branchManager ? "Только ваш филиал" : "Все филиалы",
+      icon: ClipboardList,
+      badge: newOrders ?? 0,
+    },
     { href: "/admin/staff", label: "Сотрудники", hint: "Доступ для филиалов", icon: Users, roles: ["owner"] },
     { href: "/admin/branches", label: "Филиалы", hint: branchCount !== null ? `Всего: ${branchCount}` : "Адреса и WhatsApp", icon: Store, roles: ["owner", "admin"] },
     { href: "/admin/products", label: "Загрузка товаров", hint: "Excel и остатки из программы", icon: FileSpreadsheet, roles: ["owner", "admin"] },
