@@ -60,7 +60,7 @@ export function NavHeader() {
           )}
         </div>
 
-        <LanguageSwitcher />
+        <LanguageSwitcher compact />
 
         {!isAdmin && isManager && (
           <button
