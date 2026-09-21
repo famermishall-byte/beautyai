@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import type { Branch } from "@/types";
@@ -9,13 +10,14 @@ type Notice = { kind: "ok" | "error"; text: string };
 
 const EMPTY_FORM: Form = { name: "", city: "", address: "", phone: "", whatsapp: "", hours: "", latitude: "", longitude: "" };
 
-const REQUIRED: { key: keyof Form; label: string }[] = [
-  { key: "name", label: "Название" },
-  { key: "city", label: "Город" },
-  { key: "address", label: "Адрес" },
-  { key: "phone", label: "Телефон" },
-  { key: "whatsapp", label: "WhatsApp номер" },
-  { key: "hours", label: "Часы работы" },
+// (field names are shown from messages: branchManager.fields.<key>)
+const REQUIRED: { key: keyof Form }[] = [
+  { key: "name" },
+  { key: "city" },
+  { key: "address" },
+  { key: "phone" },
+  { key: "whatsapp" },
+  { key: "hours" },
 ];
 
 function toForm(b: Branch): Form {
@@ -37,8 +39,8 @@ function missingFields(form: Form) {
 
 const inputClass = "rounded-lg border border-black/10 bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
-function nowLabel() {
-  return new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+function nowLabel(locale: string) {
+  return new Date().toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 function BranchCard({
@@ -56,6 +58,8 @@ function BranchCard({
   onDeleted: (id: string) => void;
   notify: (n: Notice) => void;
 }) {
+  const t = useTranslations("branchManager");
+  const locale = useLocale();
   const [form, setForm] = useState<Form>(toForm(branch));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -72,7 +76,7 @@ function BranchCard({
   async function handleSave() {
     if (missing.length > 0) {
       setState("error");
-      setMessage(`Не заполнено: ${missing.map((m) => m.label).join(", ")}`);
+      setMessage(t("missing", { fields: missing.map((m) => t(`fields.${m.key}`)).join(", ") }));
       return;
     }
     setState("saving");
@@ -86,28 +90,28 @@ function BranchCard({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setState("error");
-        setMessage(data.error ?? "Не удалось сохранить. Попробуйте ещё раз.");
+        setMessage(data.error ?? t("saveFailed"));
         return;
       }
       setState("saved");
-      setMessage(`Сохранено в ${nowLabel()}`);
+      setMessage(t("savedAt", { time: nowLabel(locale) }));
       setForm(toForm(data.branch as Branch)); // normalised by the server (e.g. "42,87" → "42.87")
       onSaved(data.branch as Branch);
-      notify({ kind: "ok", text: `Филиал «${form.name}» сохранён ✓` });
+      notify({ kind: "ok", text: t("savedNotice", { name: form.name }) });
     } catch {
       setState("error");
-      setMessage("Нет связи с сервером. Изменения не сохранены.");
+      setMessage(t("offline"));
     }
   }
 
   async function handleDelete() {
-    if (!confirm(`Удалить филиал «${branch.name}»? Это нельзя отменить.`)) return;
+    if (!confirm(t("deleteConfirm", { name: branch.name }))) return;
     const res = await fetch(`/api/admin/branches/${branch.id}`, { method: "DELETE" });
     if (res.ok) {
       onDeleted(branch.id);
-      notify({ kind: "ok", text: `Филиал «${branch.name}» удалён.` });
+      notify({ kind: "ok", text: t("deletedNotice", { name: branch.name }) });
     } else {
-      notify({ kind: "error", text: "Не удалось удалить филиал." });
+      notify({ kind: "error", text: t("deleteFailed") });
     }
   }
 
@@ -121,7 +125,7 @@ function BranchCard({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {open && dirty && <span className="text-[11px] font-medium text-warning bg-warning-soft rounded-full px-2 py-0.5">не сохранено</span>}
+          {open && dirty && <span className="text-[11px] font-medium text-warning bg-warning-soft rounded-full px-2 py-0.5">{t("unsaved")}</span>}
           <ChevronDown className={["size-4 text-muted transition-transform", open ? "rotate-180" : ""].join(" ")} aria-hidden />
         </div>
       </button>
@@ -129,35 +133,35 @@ function BranchCard({
       {open && (
         <div className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-black/5">
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Название
+            {t("fields.name")}
             <input className={inputClass} value={form.name} onChange={(e) => edit({ name: e.target.value })} />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Город
+            {t("fields.city")}
             <input className={inputClass} value={form.city} onChange={(e) => edit({ city: e.target.value })} />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Адрес
+            {t("fields.address")}
             <input className={inputClass} value={form.address} onChange={(e) => edit({ address: e.target.value })} />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Телефон
+            {t("fields.phone")}
             <input className={inputClass} value={form.phone} onChange={(e) => edit({ phone: e.target.value })} />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            WhatsApp номер
+            {t("fields.whatsapp")}
             <input className={inputClass} value={form.whatsapp} onChange={(e) => edit({ whatsapp: e.target.value })} placeholder="+996700000000" />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Часы работы
+            {t("fields.hours")}
             <input className={inputClass} value={form.hours} onChange={(e) => edit({ hours: e.target.value })} placeholder="10:00–20:00" />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Широта (для карты)
+            {t("fields.latitude")}
             <input className={inputClass} value={form.latitude} onChange={(e) => edit({ latitude: e.target.value })} placeholder="42.8746" inputMode="decimal" />
           </label>
           <label className="flex flex-col gap-1 text-xs text-muted">
-            Долгота (для карты)
+            {t("fields.longitude")}
             <input className={inputClass} value={form.longitude} onChange={(e) => edit({ longitude: e.target.value })} placeholder="74.5698" inputMode="decimal" />
           </label>
 
@@ -167,15 +171,15 @@ function BranchCard({
               disabled={state === "saving" || !dirty}
               className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              {state === "saving" ? "Сохраняю…" : "Сохранить"}
+              {state === "saving" ? t("saving") : t("save")}
             </button>
             <button onClick={handleDelete} className="text-sm text-muted underline hover:text-accent transition">
-              Удалить филиал
+              {t("deleteBranch")}
             </button>
             <span aria-live="polite" className="text-sm">
               {state === "saved" && !dirty && <span className="text-success font-medium">✓ {message}</span>}
               {state === "error" && <span className="text-error font-medium">{message}</span>}
-              {state === "idle" && !dirty && <span className="text-muted">Без изменений</span>}
+              {state === "idle" && !dirty && <span className="text-muted">{t("noChanges")}</span>}
             </span>
           </div>
         </div>
@@ -185,6 +189,7 @@ function BranchCard({
 }
 
 export function BranchManager() {
+  const t = useTranslations("branchManager");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -217,7 +222,7 @@ export function BranchManager() {
     setAddError(null);
     const missing = missingFields(form);
     if (missing.length > 0) {
-      setAddError(`Не заполнено: ${missing.map((m) => m.label).join(", ")}`);
+      setAddError(t("missing", { fields: missing.map((m) => t(`fields.${m.key}`)).join(", ") }));
       return;
     }
     setAdding(true);
@@ -229,7 +234,7 @@ export function BranchManager() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setAddError(data.error ?? "Не удалось добавить филиал.");
+        setAddError(data.error ?? t("addFailed"));
         return;
       }
       const created = data.branch as Branch;
@@ -237,10 +242,10 @@ export function BranchManager() {
       setForm(EMPTY_FORM);
       setShowAdd(false);
       setOpenId(created.id);
-      notify({ kind: "ok", text: `Филиал «${created.name}» добавлен ✓` });
+      notify({ kind: "ok", text: t("addedNotice", { name: created.name }) });
       setTimeout(() => document.getElementById(`branch-${created.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
     } catch {
-      setAddError("Нет связи с сервером. Филиал не добавлен.");
+      setAddError(t("addOffline"));
     } finally {
       setAdding(false);
     }
@@ -255,17 +260,17 @@ export function BranchManager() {
   return (
     <div className="bg-card rounded-2xl border border-black/5 p-6">
       <div className="flex items-start justify-between gap-3 mb-1">
-        <h2 className="font-medium">Филиалы · {branches.length}</h2>
+        <h2 className="font-medium">{t("title")} · {branches.length}</h2>
         <button
           onClick={() => setShowAdd((v) => !v)}
           className="flex items-center gap-1 rounded-full bg-accent-soft text-accent px-3.5 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-white"
         >
           <Plus className="size-4" aria-hidden />
-          Добавить
+          {t("add")}
         </button>
       </div>
       <p className="text-sm text-muted mb-4">
-        Покупатель выбирает один из этих филиалов при оформлении заказа — заказ уходит на его WhatsApp-номер. Нажмите на филиал, чтобы изменить.
+        {t("intro")}
       </p>
 
       {notice && (
@@ -279,16 +284,16 @@ export function BranchManager() {
 
       {showAdd && (
         <form onSubmit={handleAdd} className="border border-accent/30 bg-accent-soft/40 rounded-xl p-4 mb-5">
-          <h3 className="text-sm font-medium mb-3">Новый филиал</h3>
+          <h3 className="text-sm font-medium mb-3">{t("newBranch")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input className={inputClass} placeholder="Название" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <input className={inputClass} placeholder="Город" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-            <input className={inputClass} placeholder="Адрес" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            <input className={inputClass} placeholder="Телефон" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <input className={inputClass} placeholder="WhatsApp номер, напр. +996700000000" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
-            <input className={inputClass} placeholder="Часы работы" value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
-            <input className={inputClass} placeholder="Широта (для карты), необязательно" value={form.latitude} inputMode="decimal" onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-            <input className={inputClass} placeholder="Долгота (для карты), необязательно" value={form.longitude} inputMode="decimal" onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+            <input className={inputClass} placeholder={t("fields.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <input className={inputClass} placeholder={t("fields.city")} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            <input className={inputClass} placeholder={t("fields.address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <input className={inputClass} placeholder={t("fields.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <input className={inputClass} placeholder={t("placeholders.whatsapp")} value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+            <input className={inputClass} placeholder={t("fields.hours")} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
+            <input className={inputClass} placeholder={t("placeholders.latitude")} value={form.latitude} inputMode="decimal" onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+            <input className={inputClass} placeholder={t("placeholders.longitude")} value={form.longitude} inputMode="decimal" onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
           </div>
           {addError && <p className="text-sm text-error font-medium mt-3">{addError}</p>}
           <div className="flex items-center gap-3 mt-3">
@@ -297,17 +302,17 @@ export function BranchManager() {
               disabled={adding}
               className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
-              {adding ? "Добавляю…" : "Добавить филиал"}
+              {adding ? t("adding") : t("addBranch")}
             </button>
             <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-muted underline">
-              Отмена
+              {t("cancel")}
             </button>
           </div>
         </form>
       )}
 
       {branches.length === 0 ? (
-        <p className="text-muted text-sm">Филиалов пока нет — добавьте хотя бы один.</p>
+        <p className="text-muted text-sm">{t("none")}</p>
       ) : (
         <div className="flex flex-col gap-5">
           {[...byCity.entries()].map(([city, list]) => (

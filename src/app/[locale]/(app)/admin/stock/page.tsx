@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Search, Sparkle } from "lucide-react";
-import { STOCK_STATUS_LABELS, type StockStatus } from "@/lib/stock";
+import type { StockStatus } from "@/lib/stock";
 import { useSession } from "@/lib/session-context";
 import type { Branch } from "@/types";
 
@@ -22,12 +23,12 @@ type Item = {
 };
 type Counts = Record<StockStatus | "all", number>;
 
-const FILTERS: { key: StockStatus | "all"; label: string }[] = [
-  { key: "all", label: "Все" },
-  { key: "out", label: "Нет в наличии" },
-  { key: "low", label: "Мало" },
-  { key: "ok", label: "В наличии" },
-  { key: "unknown", label: "Не заполнено" },
+const FILTERS: { key: StockStatus | "all" }[] = [
+  { key: "all" },
+  { key: "out" },
+  { key: "low" },
+  { key: "ok" },
+  { key: "unknown" },
 ];
 
 const PILL: Record<StockStatus, string> = {
@@ -37,13 +38,18 @@ const PILL: Record<StockStatus, string> = {
   unknown: "bg-border text-muted",
 };
 
-function formatWhen(iso: string | null) {
-  if (!iso) return "ещё не задавался";
+function formatWhen(t: (key: string, values?: Record<string, string>) => string, locale: string, iso: string | null) {
+  if (!iso) return t("neverSet");
   const d = new Date(iso);
-  return `обновлено ${d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} ${d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`;
+  return t("updated", {
+    date: d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" }),
+    time: d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }),
+  });
 }
 
 export default function AdminStockPage() {
+  const t = useTranslations("adminStock");
+  const ts = useTranslations("stock");
   const { session } = useSession();
   const isBranchManager = session?.role === "branch_manager";
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -100,7 +106,7 @@ export default function AdminStockPage() {
     fetch(`/api/admin/stock?${params.toString()}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Ошибка загрузки");
+        if (!res.ok) throw new Error(data.error ?? t("loadError"));
         setItems(data.items);
         setTotal(data.total);
         setCounts(data.counts);
@@ -127,7 +133,7 @@ export default function AdminStockPage() {
       body: JSON.stringify({ branchId, productId: item.id, quantity }),
     });
     const data = await res.json();
-    if (!res.ok) return data.error ?? "Не удалось сохранить";
+    if (!res.ok) return data.error ?? t("saveFailed");
     setJustSaved((f) => ({ ...f, [item.id]: true }));
     setTimeout(() => setJustSaved((f) => Object.fromEntries(Object.entries(f).filter(([k]) => k !== item.id))), 2500);
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: data.quantity, updatedAt: data.updatedAt, status: data.status } : i)));
@@ -143,25 +149,24 @@ export default function AdminStockPage() {
 
   return (
     <main className="flex-1 px-4 pt-6 pb-24 max-w-3xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">Остатки по филиалам</h1>
+      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
       <p className="text-sm text-muted mb-5">
-        Покупатели видят только статус: «В наличии», «Мало» (до 3 шт.) или «Нет в наличии». Точные числа вводите здесь или
-        загружайте из вашей программы — они нужны только вам.
+        {t("intro")}
       </p>
 
       {isBranchManager ? (
         <div className="mb-4 rounded-[var(--radius-control)] bg-accent-soft px-4 py-3 text-sm">
-          Ваш филиал: <span className="font-semibold">{branches.find((b) => b.id === branchId)?.name ?? "…"}</span>
+          {t.rich("yourBranch", { name: branches.find((b) => b.id === branchId)?.name ?? "…", b: (chunks) => <span className="font-semibold">{chunks}</span> })}
         </div>
       ) : (
         <>
-      <label className="block text-xs font-medium text-muted mb-1.5">Филиал</label>
+      <label className="block text-xs font-medium text-muted mb-1.5">{t("branch")}</label>
       <select
         value={branchId ?? ""}
         onChange={(e) => selectBranch(e.target.value)}
         className="w-full rounded-[var(--radius-control)] border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-4"
       >
-        {branches.length === 0 && <option value="">Нет филиалов</option>}
+        {branches.length === 0 && <option value="">{t("noBranches")}</option>}
         {branches.map((b) => (
           <option key={b.id} value={b.id}>
             {b.city} — {b.name}
@@ -176,7 +181,7 @@ export default function AdminStockPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Название, бренд или артикул"
+          placeholder={t("searchPlaceholder")}
           className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
@@ -194,16 +199,16 @@ export default function AdminStockPage() {
               status === f.key ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
             ].join(" ")}
           >
-            {f.label}
+            {ts(`status.${f.key}`)}
             {counts ? ` · ${counts[f.key]}` : ""}
           </button>
         ))}
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-3 text-sm">
-        <span className="text-muted">Показано {items.length} из {total}</span>
+        <span className="text-muted">{t("shown", { shown: items.length, total })}</span>
         <label className="flex items-center gap-2 text-muted">
-          Порядок
+          {t("sortLabel")}
           <select
             value={sort}
             onChange={(e) => {
@@ -212,8 +217,8 @@ export default function AdminStockPage() {
             }}
             className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
           >
-            <option value="problems">Сначала проблемные</option>
-            <option value="name">По названию</option>
+            <option value="problems">{t("problemsFirst")}</option>
+            <option value="name">{t("byName")}</option>
           </select>
         </label>
       </div>
@@ -221,9 +226,9 @@ export default function AdminStockPage() {
       {error && <div className="rounded-xl bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
 
       {loading && items.length === 0 ? (
-        <div className="text-sm text-muted py-8 text-center">Загружаем…</div>
+        <div className="text-sm text-muted py-8 text-center">{t("loading")}</div>
       ) : items.length === 0 ? (
-        <div className="text-sm text-muted py-8 text-center">Ничего не найдено.</div>
+        <div className="text-sm text-muted py-8 text-center">{t("nothingFound")}</div>
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
@@ -238,7 +243,7 @@ export default function AdminStockPage() {
           disabled={loading}
           className="mt-4 w-full rounded-full border border-border bg-card py-3 text-sm font-medium transition hover:border-accent/40 disabled:opacity-50"
         >
-          Показать ещё ({Math.min(PAGE_SIZE, total - items.length)})
+          {t("showMore", { n: Math.min(PAGE_SIZE, total - items.length) })}
         </button>
       )}
     </main>
@@ -246,6 +251,9 @@ export default function AdminStockPage() {
 }
 
 function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Item, quantity: number) => Promise<string | null>; savedFlash: boolean }) {
+  const t = useTranslations("adminStock");
+  const ts = useTranslations("stock");
+  const locale = useLocale();
   const [draft, setDraft] = useState(item.quantity === null ? "" : String(item.quantity));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -254,7 +262,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
     if (value === "" || value === String(item.quantity)) return;
     const n = Number(value);
     if (!Number.isInteger(n) || n < 0) {
-      setError("Целое число от 0");
+      setError(t("wholeNumber"));
       return;
     }
     setSaving(true);
@@ -281,13 +289,13 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
         </div>
         <div className="text-sm font-medium leading-snug line-clamp-2">{item.name}</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className={["text-[11px] font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{STOCK_STATUS_LABELS[item.status]}</span>
+          <span className={["text-[11px] font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{ts(`status.${item.status}`)}</span>
           {savedFlash ? (
-            <span className="text-[11px] font-semibold text-success">✓ Сохранено</span>
+            <span className="text-[11px] font-semibold text-success">✓ {t("saved")}</span>
           ) : saving ? (
-            <span className="text-[11px] text-muted">Сохраняем…</span>
+            <span className="text-[11px] text-muted">{t("saving")}</span>
           ) : (
-            <span className="text-[11px] text-muted truncate">{formatWhen(item.updatedAt)}</span>
+            <span className="text-[11px] text-muted truncate">{formatWhen(t, locale, item.updatedAt)}</span>
           )}
         </div>
         {error && <div className="text-[11px] text-error mt-1">{error}</div>}
@@ -306,7 +314,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
           onKeyDown={(e) => {
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
-          aria-label={`Остаток: ${item.name}`}
+          aria-label={t("quantityOf", { name: item.name })}
           className="w-20 rounded-lg border border-border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
         />
         <button
@@ -317,7 +325,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
           disabled={saving || item.quantity === 0}
           className="text-[11px] font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
         >
-          Нет в наличии
+          {ts("status.out")}
         </button>
       </div>
     </li>
