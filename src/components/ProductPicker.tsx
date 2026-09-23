@@ -23,6 +23,8 @@ export function ProductPicker({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (query.trim().length < 2) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -32,11 +34,16 @@ export function ProductPicker({
     debounceRef.current = setTimeout(() => {
       fetch(`/api/products?q=${encodeURIComponent(query.trim())}`)
         .then((res) => (res.ok ? res.json() : { products: [] }))
-        .then((data: { products: Product[] }) => setResults((data.products ?? []).slice(0, 8)))
-        .catch(() => setResults([]));
+        .then((data: { products: Product[] }) => {
+          if (!cancelled) setResults((data.products ?? []).slice(0, 8));
+        })
+        .catch(() => {
+          if (!cancelled) setResults([]);
+        });
     }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      cancelled = true;
     };
   }, [query]);
 
