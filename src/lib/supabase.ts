@@ -13,6 +13,7 @@ export function mapProduct(row: Record<string, unknown>) {
   return {
     id: row.id as string,
     sku: row.sku as string,
+    barcode: (row.barcode as string | null) ?? null,
     name: row.name as string,
     brand: row.brand as string,
     category: row.category as string,
@@ -74,5 +75,64 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
     editedAt: (row.edited_at as string | null | undefined) ?? null,
     editedBy: (row.edited_by as string | null | undefined) ?? null,
     items: row.items_json as OrderItem[],
+  };
+}
+
+export function mapBanner(
+  row: Record<string, unknown> & { products?: Record<string, unknown> | null }
+) {
+  const product = row.products as Record<string, unknown> | null | undefined;
+  return {
+    id: row.id as string,
+    productId: (row.product_id as string | null) ?? null,
+    title: row.title as string,
+    subtitle: (row.subtitle as string | null) ?? null,
+    imageUrl: (row.image_url as string | null) ?? null,
+    buttonText: (row.button_text as string | null) ?? null,
+    startAt: row.start_at as string,
+    endAt: row.end_at as string,
+    status: row.status as "draft" | "active" | "disabled",
+    priority: row.priority as number,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+    product: product
+      ? {
+          id: product.id as string,
+          name: product.name as string,
+          brand: product.brand as string,
+          imageUrl: (product.image_url as string | null) ?? null,
+          price: product.price as number,
+        }
+      : null,
+  };
+}
+
+export function mapPromotion(
+  row: Record<string, unknown> & { products?: Record<string, unknown> | null }
+) {
+  const product = row.products as Record<string, unknown> | null | undefined;
+  return {
+    id: row.id as string,
+    productId: (row.product_id as string | null) ?? null,
+    title: row.title as string,
+    discountType: row.discount_type as "percent" | "fixed" | "special_price",
+    discountValue: (row.discount_value as number | null) ?? null,
+    oldPrice: row.old_price as number,
+    newPrice: row.new_price as number,
+    showOldPrice: row.show_old_price as boolean,
+    startAt: row.start_at as string,
+    endAt: row.end_at as string,
+    status: row.status as "draft" | "active" | "disabled",
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+    product: product
+      ? {
+          id: product.id as string,
+          name: product.name as string,
+          brand: product.brand as string,
+          imageUrl: (product.image_url as string | null) ?? null,
+          price: product.price as number,
+        }
+      : null,
   };
 }
