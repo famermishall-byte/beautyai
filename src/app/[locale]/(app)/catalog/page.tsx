@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CATEGORIES, CATEGORY_GROUPS, CATEGORY_KEYS, groupCategoryFilter, subKey, type CategoryGroup, type CatalogSub } from "@/lib/categories";
 import { HAIR_TYPE_KEYS, SKIN_TYPE_KEYS, hairTypesOf, skinTypesOf } from "@/lib/attributes";
-import type { Branch, Product } from "@/types";
+import type { Banner, Branch, Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
@@ -74,6 +74,7 @@ function CatalogContent() {
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchId, setBranchId] = useState<string | null>(null);
+  const [banners, setBanners] = useState<Banner[]>([]);
 
   // Preselect "любой бюджет" when arriving via the "По бюджету" home-screen
   // shortcut. Adjusting state during render (guarded by a "did the source
@@ -123,6 +124,15 @@ function CatalogContent() {
       .catch(() => setBranches([]));
   }, []);
 
+  useEffect(() => {
+    // Баннеры админа нужны только на странице «Акции» — на остальных не запрашиваем.
+    if (!promo) return;
+    fetch("/api/banners")
+      .then((res) => (res.ok ? res.json() : { banners: [] }))
+      .then((data: { banners: Banner[] }) => setBanners(data.banners ?? []))
+      .catch(() => setBanners([]));
+  }, [promo]);
+
   function handleSelectBranch(id: string) {
     setBranchId(id);
     try {
@@ -163,7 +173,8 @@ function CatalogContent() {
   let scoped = products;
   if (itemHair) scoped = scoped.filter((p) => hairTypesOf(p).includes(itemHair));
   if (itemTag) scoped = scoped.filter((p) => p.attributes?.tags?.includes(itemTag));
-  if (promo) scoped = scoped.filter((p) => (p.attributes?.oldPrice ?? 0) > p.price);
+  // «Акции»: товары со скидкой (акция) и товары с меткой «Хит» — одним списком, баннеры сверху отдельно.
+  if (promo) scoped = scoped.filter((p) => (p.attributes?.oldPrice ?? 0) > p.price || Boolean(p.attributes?.hit));
 
   const distinct = (values: (string | undefined)[]) => [...new Set(values.filter(Boolean) as string[])].sort();
   const brands = distinct(scoped.map((p) => p.brand));
@@ -278,6 +289,29 @@ function CatalogContent() {
         <GroupMenu group={activeGroup!} />
       ) : (
         <>
+      {promo && banners.length > 0 && (
+        <div className="mb-4 flex flex-col gap-3">
+          {banners.map((banner) => (
+            <Link
+              key={banner.id}
+              href={`/product/${banner.productId}`}
+              className="tile-sheen relative overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] flex items-center gap-4 p-3 transition active:scale-[0.99]"
+            >
+              {banner.imageUrl && (
+                <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-accent-soft">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="font-display text-base leading-snug truncate">{banner.title}</div>
+                {banner.subtitle && <div className="text-xs text-muted truncate mt-0.5">{banner.subtitle}</div>}
+              </div>
+              <ChevronRight className="size-4.5 text-muted shrink-0" strokeWidth={2} aria-hidden />
+            </Link>
+          ))}
+        </div>
+      )}
       <div className="mb-2 -mx-4 px-4 overflow-x-auto">
         <div className="text-xs font-medium text-muted mb-2">{activeGroup ? labels.groupTitle(activeGroup) : t("category")}</div>
         <div className="flex gap-2 w-max">
