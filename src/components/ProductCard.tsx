@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
@@ -9,7 +8,6 @@ import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
-import { isMarkedAdded, markAdded, unmarkAdded } from "@/lib/session-flags";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { Link } from "@/i18n/navigation";
 
@@ -18,16 +16,15 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const price = usePrice();
   const text = useProductText();
   const productName = text(product).name;
-  const { addItem, removeItem } = useCart();
+  const { items, addItem, removeItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const { countOf } = usePurchaseHistory();
-  // Держится, пока товар не убран из корзины (не 1-2 секунды) — см. session-flags.ts.
-  // localStorage недоступен при рендере/SSR, поэтому читаем после монтирования
-  // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
-  const [added, setAdded] = useState(false);
-  useEffect(() => {
-    Promise.resolve().then(() => setAdded(isMarkedAdded(product.id)));
-  }, [product.id]);
+  // Прямо из корзины (общий CartProvider на весь app), а не из отдельной пометки —
+  // тот же товар может рендериться в нескольких карточках одновременно (например,
+  // в «Специально для тебя» и в «Популярные товары» на одной странице); отдельная
+  // пометка на каждую карточку своя и рассинхронизировалась с реальной корзиной, из-за
+  // чего повторный клик по «уже добавленной» карточке снова добавлял товар, а не убирал.
+  const added = items.some((item) => item.product.id === product.id);
   const reason = "reason" in product ? product.reason : null;
   const saved = isSaved(product.id);
   const purchasedBefore = countOf(product.id) > 0;
@@ -40,13 +37,9 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
     e.preventDefault();
     if (added) {
       removeItem(product.id);
-      unmarkAdded(product.id);
-      setAdded(false);
       return;
     }
     addItem(product);
-    markAdded(product.id);
-    setAdded(true);
   }
 
   function handleToggleSaved(e: React.MouseEvent) {
