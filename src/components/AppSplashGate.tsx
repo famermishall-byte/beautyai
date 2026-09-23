@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
 import { BrandMark } from "@/components/BrandMark";
+import { wasSplashShown, markSplashShown } from "@/lib/session-flags";
 
 const MIN_SPLASH_MS = 900;
 
@@ -12,13 +13,27 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
   const tMeta = useTranslations("meta");
   const { session, loading } = useSession();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  // Раньше это была ЕДИНСТВЕННАЯ причина, по которой заставка держалась минимум 900 мс всегда,
+  // даже когда сессия уже загрузилась мгновенно — на каждом обновлении любой страницы.
+  // sessionStorage недоступен при рендере/SSR — читаем только в эффекте (тот же приём, что и
+  // везде в session-flags.ts), поэтому alreadyShown стартует false и корректируется сразу после
+  // монтирования, до того как истечёт MIN_SPLASH_MS.
+  const [alreadyShown, setAlreadyShown] = useState(false);
 
   useEffect(() => {
+    if (wasSplashShown()) {
+      Promise.resolve().then(() => setAlreadyShown(true));
+      return;
+    }
     const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timer);
   }, []);
 
-  const showSplash = loading || !minTimeElapsed;
+  useEffect(() => {
+    if (!loading && minTimeElapsed) markSplashShown();
+  }, [loading, minTimeElapsed]);
+
+  const showSplash = !alreadyShown && (loading || !minTimeElapsed);
 
   return (
     <>

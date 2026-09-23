@@ -106,6 +106,13 @@ export type AdPage = keyof typeof AD_KEYS;
 export const wasAdShown = (page: AdPage) => readFlag(AD_KEYS[page]);
 export const markAdShown = (page: AdPage) => writeFlag(AD_KEYS[page]);
 
+// Фирменная заставка (лого + «Добро пожаловать!») — раньше показывалась заново при каждом
+// обновлении КАЖДОЙ страницы (минимум 900 мс держалась искусственно + ещё ждала /api/me),
+// поэтому мигала на глазах у владельца при любом рефреше. Теперь — один раз за вкладку/заход.
+const SPLASH_KEY = "beautyai-splash-shown";
+export const wasSplashShown = () => readFlag(SPLASH_KEY);
+export const markSplashShown = () => writeFlag(SPLASH_KEY);
+
 // Отдельное всплывающее окно про активную акцию (скидка на товар) — своё, не баннерное; тоже
 // не чаще раза за посещение, на главной и в каталоге (по просьбе владельца, 24.09).
 const PROMO_AD_KEYS = {
