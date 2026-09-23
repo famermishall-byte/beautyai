@@ -614,6 +614,8 @@
     "aboutYou": "Сиз жөнүндө",
     "namePlaceholder": "Атыңыз ким?",
     "birthDate": "Туулган күнү",
+    "birthDatePlaceholder": "10.04.1989",
+    "birthDateInvalid": "Туулган күндү текшериңиз — формат КК.АА.ЖЖЖЖ.",
     "genderLabel": "Жынысы",
     "gender": {
       "female": "Аял",

@@ -614,6 +614,8 @@
     "aboutYou": "О вас",
     "namePlaceholder": "Как вас зовут?",
     "birthDate": "Дата рождения",
+    "birthDatePlaceholder": "10.04.1989",
+    "birthDateInvalid": "Проверьте дату рождения — формат ДД.ММ.ГГГГ.",
     "genderLabel": "Пол",
     "gender": {
       "female": "Женский",

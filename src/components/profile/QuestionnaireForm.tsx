@@ -6,12 +6,35 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { HAIR_TYPES, HAIR_CONCERNS, type HairType, type HairConcern } from "@/lib/haircare";
+import { formatBirthDate } from "@/lib/birthdate";
 import type { Session } from "@/lib/session-context";
 
 const GENDERS = ["female", "male"] as const;
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+// Клиент печатает подряд цифры («10041989») — сами расставляем точки по ходу ввода (ДД.ММ.ГГГГ),
+// вместо родного <input type="date">, чей календарь/колёсики на телефоне неудобны для быстрого ввода.
+function formatBirthDateInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 8);
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join(".");
+}
+
+// Возвращает "YYYY-MM-DD" (формат хранения — см. birthdate.ts) только когда дата полная и
+// календарно существует (напр. 30.02 — нет); иначе null, чтобы не отправить мусор на сервер.
+function parseBirthDateInput(text: string): string | null {
+  const digits = text.replace(/\D/g, "");
+  if (digits.length !== 8) return null;
+  const day = Number(digits.slice(0, 2));
+  const month = Number(digits.slice(2, 4));
+  const year = Number(digits.slice(4, 8));
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > new Date(year, month, 0).getDate()) return null;
+  const iso = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  if (year < 1900 || iso > new Date().toISOString().slice(0, 10)) return null;
+  return iso;
 }
 
 export function QuestionnaireForm({
@@ -27,7 +50,7 @@ export function QuestionnaireForm({
   const tSkin = useTranslations("skin");
   const tHair = useTranslations("hair");
   const [name, setName] = useState(session.displayName ?? "");
-  const [birthDate, setBirthDate] = useState(session.birthDate ?? "");
+  const [birthDateText, setBirthDateText] = useState(session.birthDate ? formatBirthDate(session.birthDate) : "");
   const [gender, setGender] = useState<string | null>(session.gender);
   const [skinType, setSkinType] = useState<SkinType | null>((session.skinType as SkinType) ?? null);
   const [skinConcerns, setSkinConcerns] = useState<SkinConcern[]>((session.skinConcerns as SkinConcern[]) ?? []);
@@ -40,6 +63,12 @@ export function QuestionnaireForm({
     e.preventDefault();
     setError(null);
 
+    const birthDate = birthDateText ? parseBirthDateInput(birthDateText) : null;
+    if (birthDateText && !birthDate) {
+      setError(t("birthDateInvalid"));
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await fetch("/api/profile", {
@@ -47,7 +76,7 @@ export function QuestionnaireForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: name,
-          birthDate: birthDate || null,
+          birthDate,
           gender,
           skinType,
           skinConcerns,
@@ -78,11 +107,13 @@ export function QuestionnaireForm({
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-muted">{t("birthDate")}</span>
             <input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              min="1900-01-01"
-              max={new Date().toISOString().slice(0, 10)}
+              type="text"
+              inputMode="numeric"
+              autoComplete="bday"
+              placeholder={t("birthDatePlaceholder")}
+              value={birthDateText}
+              onChange={(e) => setBirthDateText(formatBirthDateInput(e.target.value))}
+              maxLength={10}
               className={inputClass}
             />
           </label>
