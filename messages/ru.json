@@ -585,6 +585,16 @@
       "adminPanel": "Админ-панель магазина",
       "storeSettings": "Настройки магазина"
     },
+    "permissions": {
+      "title": "Уведомления и геолокация",
+      "notifLabel": "Уведомления",
+      "notifOnHint": "Включены",
+      "notifOffHint": "Выключены",
+      "notifBlockedHint": "Заблокированы в настройках браузера — включите их там",
+      "geoLabel": "Геолокация",
+      "geoOnHint": "Включена",
+      "geoOffHint": "Выключена"
+    },
     "emailAndPassword": "Email и пароль",
     "newEmail": "Новый email",
     "sending": "Отправляем…",

@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type FormEvent } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { markJustRegistered } from "@/lib/session-flags";
 import { PasswordInput } from "@/components/PasswordInput";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
@@ -139,6 +140,7 @@ export default function LoginPage() {
 
       if (data.session) {
         clearStaleCart();
+        markJustRegistered();
         router.push("/");
         router.refresh();
         return;

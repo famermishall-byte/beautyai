@@ -113,6 +113,25 @@ const SPLASH_KEY = "beautyai-splash-shown";
 export const wasSplashShown = () => readFlag(SPLASH_KEY);
 export const markSplashShown = () => writeFlag(SPLASH_KEY);
 
+// Сигнал «только что зарегистрировался» — ставит login/page.tsx в момент успешной регистрации,
+// FirstRunFlow.tsx читает и сразу стирает (consume): анкета «Включить уведомления?/геолокацию?»
+// должна всплывать РОВНО один раз, сразу после регистрации — не при обычном входе в уже
+// существующий аккаунт и не когда владелец/менеджер заходит в витрину из админки (по жалобе
+// владельца, 24.09: раньше всплывало на каждом таком входе).
+const JUST_REGISTERED_KEY = "beautyai-just-registered";
+export const markJustRegistered = () => writeFlag(JUST_REGISTERED_KEY);
+export function consumeJustRegistered(): boolean {
+  const was = readFlag(JUST_REGISTERED_KEY);
+  if (was) {
+    try {
+      sessionStorage.removeItem(JUST_REGISTERED_KEY);
+    } catch {
+      // недоступно — не критично, ниже по коду этот путь всё равно больше не пройдёт
+    }
+  }
+  return was;
+}
+
 // Отдельное всплывающее окно про активную акцию (скидка на товар) — своё, не баннерное; тоже
 // не чаще раза за посещение, на главной и в каталоге (по просьбе владельца, 24.09).
 const PROMO_AD_KEYS = {

@@ -585,6 +585,16 @@
       "adminPanel": "Дүкөндүн админ-панели",
       "storeSettings": "Дүкөн жөндөөлөрү"
     },
+    "permissions": {
+      "title": "Билдирүүлөр жана геолокация",
+      "notifLabel": "Билдирүүлөр",
+      "notifOnHint": "Күйгүзүлгөн",
+      "notifOffHint": "Өчүрүлгөн",
+      "notifBlockedHint": "Браузердин жөндөөлөрүндө бөгөттөлгөн — аны ошол жерден күйгүзүңүз",
+      "geoLabel": "Геолокация",
+      "geoOnHint": "Күйгүзүлгөн",
+      "geoOffHint": "Өчүрүлгөн"
+    },
     "emailAndPassword": "Email жана сырсөз",
     "newEmail": "Жаңы email",
     "sending": "Жөнөтүлүүдө…",

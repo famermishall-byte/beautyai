@@ -30,6 +30,7 @@ import { AvatarUploader } from "@/components/profile/AvatarUploader";
 import { QuestionnaireSummary } from "@/components/profile/QuestionnaireSummary";
 import { QuestionnaireForm } from "@/components/profile/QuestionnaireForm";
 import { CareKitView } from "@/components/profile/CareKitView";
+import { NotificationGeoSettings } from "@/components/profile/NotificationGeoSettings";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
@@ -262,6 +263,8 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      <NotificationGeoSettings />
 
       <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] mb-6 overflow-hidden">
         <button
