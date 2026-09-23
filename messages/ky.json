@@ -643,6 +643,7 @@
     },
     "noProduct": "Ылайыктуу товар каталогдо азырынча жок",
     "addToCartNamed": "«{name}» себетке кошуу",
+    "removeFromCartNamed": "«{name}» себеттен алып салуу",
     "forFace": "Бет териси үчүн",
     "forHair": "Чач үчүн",
     "hairCare": "Чач күтүү",

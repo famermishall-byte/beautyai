@@ -15,8 +15,11 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
   const t = useTranslations("kit");
   const price = usePrice();
   const text = useProductText();
-  const { addItem } = useCart();
-  const [added, setAdded] = useState(false);
+  const { items, addItem, removeItem } = useCart();
+  // Из корзины напрямую (как в ProductCard.tsx) — раньше кнопка всегда только добавляла
+  // (галочка была косметической, гасла через 1.2 с сама), поэтому повторное нажатие
+  // добавляло товар ещё раз вместо того, чтобы убрать его.
+  const added = product ? items.some((item) => item.product.id === product.id) : false;
 
   if (!product) {
     return (
@@ -50,12 +53,8 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
         </div>
       </Link>
       <button
-        onClick={() => {
-          addItem(product);
-          setAdded(true);
-          setTimeout(() => setAdded(false), 1200);
-        }}
-        aria-label={t("addToCartNamed", { name: text(product).name })}
+        onClick={() => (added ? removeItem(product.id) : addItem(product))}
+        aria-label={t(added ? "removeFromCartNamed" : "addToCartNamed", { name: text(product).name })}
         className={[
           "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90",
           added ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong",

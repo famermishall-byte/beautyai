@@ -643,6 +643,7 @@
     },
     "noProduct": "Подходящего товара пока нет в каталоге",
     "addToCartNamed": "Добавить «{name}» в корзину",
+    "removeFromCartNamed": "Убрать «{name}» из корзины",
     "forFace": "Для кожи лица",
     "forHair": "Для волос",
     "hairCare": "Уход за волосами",
