@@ -9,6 +9,7 @@ import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
+import { MarketingGate } from "@/components/MarketingGate";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
@@ -98,6 +99,7 @@ export default function Home() {
 
   return (
     <main className="flex-1 pb-6">
+      <MarketingGate page="home" />
       <BuyAgainPrompt />
       <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
         {loading ? (

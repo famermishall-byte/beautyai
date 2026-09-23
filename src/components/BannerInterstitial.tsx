@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
-import { wasCatalogAdShown, markCatalogAdShown, wasCheckoutAdShown, markCheckoutAdShown } from "@/lib/session-flags";
+import { wasAdShown, markAdShown, type AdPage } from "@/lib/session-flags";
 import type { Banner } from "@/types";
 
 /**
@@ -78,13 +78,12 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   );
 }
 
-/** Монтируется на /catalog и /checkout — сам решает, показывать ли баннер (раз за посещение). */
-export function BannerGate({ page }: { page: "catalog" | "checkout" }) {
+/** Монтируется на /, /catalog и /checkout — сам решает, показывать ли баннер (раз за посещение). */
+export function BannerGate({ page }: { page: AdPage }) {
   const [banner, setBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
-    const wasShown = page === "catalog" ? wasCatalogAdShown() : wasCheckoutAdShown();
-    if (wasShown) return;
+    if (wasAdShown(page)) return;
     let cancelled = false;
     fetch("/api/banners")
       .then((res) => (res.ok ? res.json() : { banners: [] }))
@@ -93,8 +92,7 @@ export function BannerGate({ page }: { page: "catalog" | "checkout" }) {
         const top = (data.banners ?? [])[0];
         if (!top) return;
         Promise.resolve().then(() => {
-          if (page === "catalog") markCatalogAdShown();
-          else markCheckoutAdShown();
+          markAdShown(page);
           setBanner(top);
         });
       })

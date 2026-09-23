@@ -822,6 +822,11 @@
     "close": "Жабуу",
     "defaultCta": "Товарды көрүү"
   },
+  "promotionInterstitial": {
+    "close": "Жабуу",
+    "title": "Акция",
+    "defaultCta": "Товарды көрүү"
+  },
   "promotionManager": {
     "create": "Акция түзүү",
     "loading": "Жүктөлүүдө…",

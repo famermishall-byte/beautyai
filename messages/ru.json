@@ -822,6 +822,11 @@
     "close": "Закрыть",
     "defaultCta": "Смотреть товар"
   },
+  "promotionInterstitial": {
+    "close": "Закрыть",
+    "title": "Акция",
+    "defaultCta": "Смотреть товар"
+  },
   "promotionManager": {
     "create": "Создать акцию",
     "loading": "Загружаем…",

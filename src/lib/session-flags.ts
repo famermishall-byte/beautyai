@@ -95,12 +95,23 @@ export function markProductPromptShown(productId: string) {
   writeSet(PRODUCT_PROMPT_KEY, ids);
 }
 
-// Всплывающий рекламный баннер — не чаще одного раза за посещение на каждый из двух входов:
-// в каталог и в оформление заказа.
-const CATALOG_AD_KEY = "beautyai-ad-catalog-shown";
-const CHECKOUT_AD_KEY = "beautyai-ad-checkout-shown";
+// Всплывающий рекламный баннер — не чаще одного раза за посещение на каждый из входов:
+// главная, каталог, оформление заказа.
+const AD_KEYS = {
+  home: "beautyai-ad-home-shown",
+  catalog: "beautyai-ad-catalog-shown",
+  checkout: "beautyai-ad-checkout-shown",
+} as const;
+export type AdPage = keyof typeof AD_KEYS;
+export const wasAdShown = (page: AdPage) => readFlag(AD_KEYS[page]);
+export const markAdShown = (page: AdPage) => writeFlag(AD_KEYS[page]);
 
-export const wasCatalogAdShown = () => readFlag(CATALOG_AD_KEY);
-export const markCatalogAdShown = () => writeFlag(CATALOG_AD_KEY);
-export const wasCheckoutAdShown = () => readFlag(CHECKOUT_AD_KEY);
-export const markCheckoutAdShown = () => writeFlag(CHECKOUT_AD_KEY);
+// Отдельное всплывающее окно про активную акцию (скидка на товар) — своё, не баннерное; тоже
+// не чаще раза за посещение, на главной и в каталоге (по просьбе владельца, 24.09).
+const PROMO_AD_KEYS = {
+  home: "beautyai-promo-ad-home-shown",
+  catalog: "beautyai-promo-ad-catalog-shown",
+} as const;
+export type PromoAdPage = keyof typeof PROMO_AD_KEYS;
+export const wasPromoAdShown = (page: PromoAdPage) => readFlag(PROMO_AD_KEYS[page]);
+export const markPromoAdShown = (page: PromoAdPage) => writeFlag(PROMO_AD_KEYS[page]);
