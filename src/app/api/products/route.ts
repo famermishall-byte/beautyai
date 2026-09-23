@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
+import { mapPromotion } from "@/lib/supabase";
+import { applyActivePromotion, indexPromotionsByProduct } from "@/lib/apply-promotion";
+import type { Product } from "@/types";
 
 function toProduct(
   p: Record<string, unknown>,
@@ -9,6 +12,7 @@ function toProduct(
   return {
     id: p.id,
     sku: p.sku,
+    barcode: p.barcode ?? null,
     name: p.name,
     brand: p.brand,
     category: p.category,
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
 
   if (q) {
     products = products.filter((p) => {
-      const haystack = [p.name, p.name_ky, p.brand, p.category, p.description, p.description_ky, p.characteristics, p.purpose, p.purpose_ky]
+      const haystack = [p.name, p.name_ky, p.brand, p.sku, p.category, p.description, p.description_ky, p.characteristics, p.purpose, p.purpose_ky]
         .filter((field): field is string => typeof field === "string")
         .join(" ")
         .toLowerCase();
@@ -83,8 +87,17 @@ export async function GET(request: NextRequest) {
     products = products.filter((p) => typeof p.price === "number" && p.price <= maxPrice);
   }
 
+  const { data: promoRows } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("store_id", profile.storeId)
+    .eq("status", "active")
+    .not("product_id", "is", null);
+  const promotionsByProduct = indexPromotionsByProduct((promoRows ?? []).map(mapPromotion));
+  const withPromo = (list: Product[]) => list.map((p) => applyActivePromotion(p, promotionsByProduct));
+
   if (!branchId) {
-    return NextResponse.json({ products: products.map((p) => toProduct(p, null)) });
+    return NextResponse.json({ products: withPromo(products.map((p) => toProduct(p, null)) as Product[]) });
   }
 
   const productIds = products.map((p) => p.id as string);
@@ -104,11 +117,13 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    products: products.map((p) => {
-      const id = p.id as string;
-      const quantity = quantityAtBranch.has(id) ? quantityAtBranch.get(id)! : hasBranchData.has(id) ? 0 : null;
-      const isOutHere = quantity === 0 || (quantity === null && !p.in_stock);
-      return toProduct(p, { quantity, availableAtOtherBranch: isOutHere && availableElsewhere.has(id) });
-    }),
+    products: withPromo(
+      products.map((p) => {
+        const id = p.id as string;
+        const quantity = quantityAtBranch.has(id) ? quantityAtBranch.get(id)! : hasBranchData.has(id) ? 0 : null;
+        const isOutHere = quantity === 0 || (quantity === null && !p.in_stock);
+        return toProduct(p, { quantity, availableAtOtherBranch: isOutHere && availableElsewhere.has(id) });
+      }) as Product[]
+    ),
   });
 }

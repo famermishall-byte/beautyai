@@ -71,3 +71,13 @@ export function markProductPromptShown(productId: string) {
   ids.add(productId);
   writeSet(PRODUCT_PROMPT_KEY, ids);
 }
+
+// Всплывающий рекламный баннер — не чаще одного раза за посещение на каждый из двух входов:
+// в каталог и в оформление заказа.
+const CATALOG_AD_KEY = "beautyai-ad-catalog-shown";
+const CHECKOUT_AD_KEY = "beautyai-ad-checkout-shown";
+
+export const wasCatalogAdShown = () => readFlag(CATALOG_AD_KEY);
+export const markCatalogAdShown = () => writeFlag(CATALOG_AD_KEY);
+export const wasCheckoutAdShown = () => readFlag(CHECKOUT_AD_KEY);
+export const markCheckoutAdShown = () => writeFlag(CHECKOUT_AD_KEY);

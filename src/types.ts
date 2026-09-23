@@ -20,6 +20,7 @@ export type ProductAttributes = {
 export type Product = {
   id: string;
   sku: string;
+  barcode: string | null;
   name: string;
   brand: string;
   category: string;
@@ -100,5 +101,38 @@ export type Order = {
   editedAt: string | null;
   editedBy: string | null;
   items: OrderItem[];
+};
+
+export type Banner = {
+  id: string;
+  productId: string | null;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string | null;
+  buttonText: string | null;
+  startAt: string;
+  endAt: string;
+  status: "draft" | "active" | "disabled";
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  product: Pick<Product, "id" | "name" | "brand" | "imageUrl" | "price"> | null;
+};
+
+export type Promotion = {
+  id: string;
+  productId: string | null;
+  title: string;
+  discountType: "percent" | "fixed" | "special_price";
+  discountValue: number | null;
+  oldPrice: number;
+  newPrice: number;
+  showOldPrice: boolean;
+  startAt: string;
+  endAt: string;
+  status: "draft" | "active" | "disabled";
+  createdAt: string;
+  updatedAt: string;
+  product: Pick<Product, "id" | "name" | "brand" | "imageUrl" | "price"> | null;
 };
 

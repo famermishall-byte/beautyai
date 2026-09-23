@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Building2, ClipboardList, FileSpreadsheet, LayoutList, MessageSquare, Package, Store, UserCog, Users, type LucideIcon } from "lucide-react";
+import { Building2, ClipboardList, FileSpreadsheet, LayoutList, Megaphone, MessageSquare, Package, Store, UserCog, Users, type LucideIcon } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { Link } from "@/i18n/navigation";
 
@@ -49,6 +49,7 @@ export default function AdminHome() {
     { href: "/admin/branches", label: t("branches"), hint: branchCount !== null ? t("totalCount", { n: branchCount }) : t("branchesHint"), icon: Store, roles: ["owner", "admin"] },
     { href: "/admin/products", label: t("upload"), hint: t("uploadHint"), icon: FileSpreadsheet, roles: ["owner", "admin"] },
     { href: "/admin/catalog", label: t("catalog"), hint: t("catalogHint"), icon: LayoutList, roles: ["owner", "admin"] },
+    { href: "/admin/promo", label: t("promo"), hint: t("promoHint"), icon: Megaphone, roles: ["owner", "admin"] },
     {
       href: "/admin/feedback",
       label: t("feedback"),

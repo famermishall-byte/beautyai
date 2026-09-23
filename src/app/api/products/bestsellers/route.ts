@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
+import { mapPromotion } from "@/lib/supabase";
+import { applyActivePromotion, indexPromotionsByProduct } from "@/lib/apply-promotion";
+import type { Product } from "@/types";
 
 const LIMIT = 8;
 
@@ -46,25 +49,40 @@ export async function GET(request: NextRequest) {
     });
 
   const picked = [...sold, ...filler].slice(0, LIMIT);
+
+  const { data: promoRows } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("store_id", profile.storeId)
+    .eq("status", "active")
+    .not("product_id", "is", null);
+  const promotionsByProduct = indexPromotionsByProduct((promoRows ?? []).map(mapPromotion));
+
   return NextResponse.json({
-    products: picked.map((p) => ({
-      id: p.id,
-      sku: p.sku,
-      name: p.name,
-      brand: p.brand,
-      category: p.category,
-      price: p.price,
-      description: p.description,
-      characteristics: p.characteristics,
-      purpose: p.purpose,
-      nameKy: p.name_ky ?? null,
-      descriptionKy: p.description_ky ?? null,
-      characteristicsKy: p.characteristics_ky ?? null,
-      purposeKy: p.purpose_ky ?? null,
-      inStock: p.in_stock,
-      imageUrl: p.image_url,
-      createdAt: p.created_at,
-      attributes: p.attributes ?? undefined,
-    })),
+    products: picked.map((p) =>
+      applyActivePromotion(
+        {
+          id: p.id,
+          sku: p.sku,
+          barcode: p.barcode ?? null,
+          name: p.name,
+          brand: p.brand,
+          category: p.category,
+          price: p.price,
+          description: p.description,
+          characteristics: p.characteristics,
+          purpose: p.purpose,
+          nameKy: p.name_ky ?? null,
+          descriptionKy: p.description_ky ?? null,
+          characteristicsKy: p.characteristics_ky ?? null,
+          purposeKy: p.purpose_ky ?? null,
+          inStock: p.in_stock,
+          imageUrl: p.image_url,
+          createdAt: p.created_at,
+          attributes: p.attributes ?? undefined,
+        } as Product,
+        promotionsByProduct
+      )
+    ),
   });
 }

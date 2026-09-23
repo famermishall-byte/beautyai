@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
+import { mapPromotion } from "@/lib/supabase";
+import { applyActivePromotion, indexPromotionsByProduct } from "@/lib/apply-promotion";
+import type { Product } from "@/types";
 
 function toProduct(p: Record<string, unknown>) {
   return {
     id: p.id,
     sku: p.sku,
+    barcode: p.barcode ?? null,
     name: p.name,
     brand: p.brand,
     category: p.category,
@@ -19,6 +23,7 @@ function toProduct(p: Record<string, unknown>) {
     purposeKy: p.purpose_ky ?? null,
     inStock: p.in_stock,
     imageUrl: p.image_url,
+    attributes: p.attributes ?? undefined,
   };
 }
 
@@ -44,8 +49,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Товар не найден." }, { status: 404 });
   }
 
+  const { data: promoRows } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("store_id", profile.storeId)
+    .eq("status", "active")
+    .eq("product_id", id);
+  const promotionsByProduct = indexPromotionsByProduct((promoRows ?? []).map(mapPromotion));
+  const withPromo = (p: Product) => applyActivePromotion(p, promotionsByProduct);
+
   if (!branchId) {
-    return NextResponse.json({ product: toProduct(product) });
+    return NextResponse.json({ product: withPromo(toProduct(product) as Product) });
   }
 
   const { data: stockRows } = await supabase
@@ -57,10 +71,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const availableAtOtherBranch = (stockRows ?? []).some((r) => r.branch_id !== branchId && (r.quantity as number) > 0);
 
   return NextResponse.json({
-    product: {
+    product: withPromo({
       ...toProduct(product),
       branchQuantity: quantityAtBranch,
       availableAtOtherBranch: (quantityAtBranch === 0 || quantityAtBranch === null) && availableAtOtherBranch,
-    },
+    } as Product),
   });
 }

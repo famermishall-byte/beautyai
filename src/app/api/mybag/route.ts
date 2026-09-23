@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
+import { mapPromotion } from "@/lib/supabase";
+import { applyActivePromotion, indexPromotionsByProduct } from "@/lib/apply-promotion";
+import type { Product } from "@/types";
 
 function toProduct(p: Record<string, unknown>) {
   return {
     id: p.id,
     sku: p.sku,
+    barcode: p.barcode ?? null,
     name: p.name,
     brand: p.brand,
     category: p.category,
@@ -19,6 +23,7 @@ function toProduct(p: Record<string, unknown>) {
     purposeKy: p.purpose_ky ?? null,
     inStock: p.in_stock,
     imageUrl: p.image_url,
+    attributes: p.attributes ?? undefined,
   };
 }
 
@@ -44,7 +49,17 @@ export async function GET() {
     .filter((p): p is Record<string, unknown> => Boolean(p))
     .map(toProduct);
 
-  return NextResponse.json({ products });
+  const { data: promoRows } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("store_id", profile.storeId)
+    .eq("status", "active")
+    .not("product_id", "is", null);
+  const promotionsByProduct = indexPromotionsByProduct((promoRows ?? []).map(mapPromotion));
+
+  return NextResponse.json({
+    products: products.map((p) => applyActivePromotion(p as Product, promotionsByProduct)),
+  });
 }
 
 export async function POST(request: NextRequest) {
