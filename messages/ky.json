@@ -773,6 +773,10 @@
     "orderTitle": "Буйрутма #{number}",
     "statusUpdated": "Статус жаңыртылды: «{status}» ✅"
   },
+  "productPicker": {
+    "placeholder": "Товар табуу: аты, бренди же артикулу",
+    "clear": "Башка товар тандоо"
+  },
   "orderManager": {
     "title": "Буйрутмалар",
     "periods": {

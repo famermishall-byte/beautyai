@@ -773,6 +773,10 @@
     "orderTitle": "Заказ #{number}",
     "statusUpdated": "Статус обновлён: «{status}» ✅"
   },
+  "productPicker": {
+    "placeholder": "Найти товар: название, бренд или артикул",
+    "clear": "Выбрать другой товар"
+  },
   "orderManager": {
     "title": "Заказы",
     "periods": {
