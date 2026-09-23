@@ -438,6 +438,7 @@
     "inStock": "Бар",
     "otherBranch": "Башка филиалда бар",
     "addToCartNamed": "«{name}» себетке кошуу",
+    "removeFromCartNamed": "«{name}» себеттен алып салуу",
     "notFound": "Товар табылган жок",
     "notFoundHint": "Мүмкүн, ал өчүрүлгөн же сатыктан алынган.",
     "toCatalog": "Каталогго",

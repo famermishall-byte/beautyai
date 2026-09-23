@@ -438,6 +438,7 @@
     "inStock": "В наличии",
     "otherBranch": "Есть в другом филиале",
     "addToCartNamed": "Добавить «{name}» в корзину",
+    "removeFromCartNamed": "Убрать «{name}» из корзины",
     "notFound": "Товар не найден",
     "notFoundHint": "Возможно, он был удалён или больше не продаётся.",
     "toCatalog": "В каталог",

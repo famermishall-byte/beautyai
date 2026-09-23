@@ -9,7 +9,7 @@ import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
-import { isMarkedAdded, markAdded } from "@/lib/session-flags";
+import { isMarkedAdded, markAdded, unmarkAdded } from "@/lib/session-flags";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { Link } from "@/i18n/navigation";
 
@@ -18,7 +18,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const price = usePrice();
   const text = useProductText();
   const productName = text(product).name;
-  const { addItem } = useCart();
+  const { addItem, removeItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const { countOf } = usePurchaseHistory();
   // Держится, пока товар не убран из корзины (не 1-2 секунды) — см. session-flags.ts.
@@ -38,6 +38,12 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
+    if (added) {
+      removeItem(product.id);
+      unmarkAdded(product.id);
+      setAdded(false);
+      return;
+    }
     addItem(product);
     markAdded(product.id);
     setAdded(true);
@@ -129,7 +135,8 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <button
             onClick={handleAdd}
             disabled={outOfStock}
-            aria-label={t("addToCartNamed", { name: productName })}
+            aria-label={t(added ? "removeFromCartNamed" : "addToCartNamed", { name: productName })}
+            aria-pressed={added}
             className={[
               "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
