@@ -60,8 +60,6 @@ export function NavHeader() {
           )}
         </div>
 
-        <LanguageSwitcher compact />
-
         {!isAdmin && isManager && (
           <button
             onClick={() => switchViewMode("admin")}
@@ -76,7 +74,7 @@ export function NavHeader() {
           <Link
             href="/catalog?tab=search"
             aria-label={t("search")}
-            className="shrink-0 -mr-2 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <Search className="size-5" strokeWidth={2} aria-hidden />
           </Link>
@@ -113,6 +111,8 @@ export function NavHeader() {
             </button>
           </div>
         )}
+
+        <LanguageSwitcher compact className="-mr-2" />
       </div>
     </header>
   );
