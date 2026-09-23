@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Sparkles, ChevronRight, Wand2 } from "lucide-react";
+import { Sparkles, ChevronRight, Wand2, Flame } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { skinTypeLabel, type SkinType } from "@/lib/skincare";
 import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
@@ -54,6 +54,7 @@ export default function Home() {
 
   const [showcase, setShowcase] = useState<Product[]>([]);
   const [forYou, setForYou] = useState<Product[]>([]);
+  const [promoProducts, setPromoProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -84,6 +85,13 @@ export default function Home() {
       })
       .catch(() => setForYou([]));
   }, [skinType]);
+
+  useEffect(() => {
+    fetch("/api/promotions")
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setPromoProducts(data.products ?? []))
+      .catch(() => setPromoProducts([]));
+  }, []);
 
   const slides = showcase.slice(0, SLIDES);
   const popular = showcase.slice(0, POPULAR);
@@ -125,6 +133,18 @@ export default function Home() {
             </Link>
           )}
         </Section>
+
+        {promoProducts.length > 0 && (
+          <Section title={t("promoTitle")} icon={Flame}>
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {promoProducts.map((product) => (
+                <div key={product.id} className="w-40 shrink-0 snap-start">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
 
         <Section title={t("popular")} action={{ href: "/catalog", label: t("wholeCatalog") }}>
           {loading ? (
