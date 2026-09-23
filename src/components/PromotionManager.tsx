@@ -235,7 +235,8 @@ export function PromotionManager() {
   }
 
   async function toggleDisabled(promotion: Promotion) {
-    await fetch(`/api/admin/promotions/${promotion.id}`, {
+    setError(null);
+    const res = await fetch(`/api/admin/promotions/${promotion.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -249,6 +250,10 @@ export function PromotionManager() {
         status: promotion.status === "disabled" ? "active" : "disabled",
       }),
     });
+    if (!res.ok) {
+      setError(t("toggleFailed"));
+      return;
+    }
     load();
   }
 
