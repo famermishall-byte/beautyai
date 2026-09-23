@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
+import { BannerGate } from "@/components/BannerInterstitial";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
@@ -209,6 +210,7 @@ function CatalogContent() {
 
   return (
     <main className="flex-1 px-4 pt-6 pb-32 max-w-5xl mx-auto w-full">
+      <BannerGate page="catalog" />
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />

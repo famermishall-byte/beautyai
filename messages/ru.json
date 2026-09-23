@@ -812,6 +812,10 @@
     },
     "status": { "draft": "Черновик", "scheduled": "Запланирован", "active": "Активен", "expired": "Завершён", "disabled": "Отключён" }
   },
+  "bannerInterstitial": {
+    "close": "Закрыть",
+    "defaultCta": "Смотреть товар"
+  },
   "promotionManager": {
     "create": "Создать акцию",
     "loading": "Загружаем…",

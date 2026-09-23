@@ -7,6 +7,7 @@ import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { unmarkAdded } from "@/lib/session-flags";
+import { BannerGate } from "@/components/BannerInterstitial";
 import type { Branch } from "@/types";
 import { useRouter } from "@/i18n/navigation";
 
@@ -116,6 +117,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
+      <BannerGate page="checkout" />
       <h1 className="font-display text-3xl mb-6">{t("title")}</h1>
 
       <div className="flex items-center gap-2 mb-8">
