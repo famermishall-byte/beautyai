@@ -21,8 +21,8 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const { addItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const { countOf } = usePurchaseHistory();
-  // Держится, пока открыто это посещение приложения (не 1-2 секунды) — см. session-flags.ts.
-  // sessionStorage недоступен при рендере/SSR, поэтому читаем после монтирования
+  // Держится, пока товар не убран из корзины (не 1-2 секунды) — см. session-flags.ts.
+  // localStorage недоступен при рендере/SSR, поэтому читаем после монтирования
   // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
   const [added, setAdded] = useState(false);
   useEffect(() => {

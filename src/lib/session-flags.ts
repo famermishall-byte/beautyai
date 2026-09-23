@@ -3,6 +3,7 @@
 // Мелкие пометки на одно посещение приложения (sessionStorage — пропадают, когда
 // клиент закрывает и заново открывает приложение). Саму корзину (localStorage,
 // см. cart-context.tsx) это не трогает — она хранится отдельно и не сбрасывается.
+// Исключение — CART_MARKS_KEY ниже: он на localStorage, см. её собственный комментарий.
 
 function readSet(key: string): Set<string> {
   try {
@@ -37,22 +38,44 @@ function writeFlag(key: string) {
   }
 }
 
-// «Добавлено в корзину» — галочка на карточке товара держится, пока открыто это
-// посещение приложения, независимо от того, сколько страниц клиент успел посмотреть.
+// «Добавлено в корзину» — галочка на карточке товара. Раньше жила в sessionStorage
+// и держалась «пока открыто это посещение приложения» — на деле на телефонах при
+// переходе в WhatsApp (отправка заказа) мобильный браузер/WebView часто в фоне
+// перезагружает страницу, чтобы освободить память, а sessionStorage при такой
+// перезагрузке стирается — галочка пропадала сразу после покупки. localStorage
+// переживает это (как и сама корзина, которая уже хранится в localStorage) —
+// снимается только явным удалением товара из корзины (unmarkAdded).
 const CART_MARKS_KEY = "beautyai-cart-marks";
 
-export const isMarkedAdded = (productId: string) => readSet(CART_MARKS_KEY).has(productId);
+function readLocalSet(key: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeLocalSet(key: string, ids: Set<string>) {
+  try {
+    localStorage.setItem(key, JSON.stringify([...ids]));
+  } catch {
+    // недоступно (приватный режим и т.п.) — пометка просто не переживёт перезагрузку
+  }
+}
+
+export const isMarkedAdded = (productId: string) => readLocalSet(CART_MARKS_KEY).has(productId);
 
 export function markAdded(productId: string) {
-  const ids = readSet(CART_MARKS_KEY);
+  const ids = readLocalSet(CART_MARKS_KEY);
   ids.add(productId);
-  writeSet(CART_MARKS_KEY, ids);
+  writeLocalSet(CART_MARKS_KEY, ids);
 }
 
 export function unmarkAdded(productId: string) {
-  const ids = readSet(CART_MARKS_KEY);
+  const ids = readLocalSet(CART_MARKS_KEY);
   ids.delete(productId);
-  writeSet(CART_MARKS_KEY, ids);
+  writeLocalSet(CART_MARKS_KEY, ids);
 }
 
 // «Не хотите купить снова?» — не чаще одного раза за посещение: один раз на

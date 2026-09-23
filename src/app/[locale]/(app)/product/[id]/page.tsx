@@ -36,7 +36,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  // Держится, пока открыто это посещение приложения (не 1-2 секунды) — см. session-flags.ts.
+  // Держится, пока товар не убран из корзины (не 1-2 секунды) — см. session-flags.ts.
   const [added, setAdded] = useState(false);
   const [showBuyAgain, setShowBuyAgain] = useState(false);
 
@@ -61,7 +61,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       .finally(() => setLoading(false));
   }, [id]);
 
-  // sessionStorage недоступен при рендере/SSR — читаем и решаем после монтирования
+  // localStorage недоступен при рендере/SSR — читаем и решаем после монтирования
   // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
   useEffect(() => {
     Promise.resolve().then(() => setAdded(isMarkedAdded(id)));
