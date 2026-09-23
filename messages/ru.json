@@ -812,6 +812,35 @@
     },
     "status": { "draft": "Черновик", "scheduled": "Запланирован", "active": "Активен", "expired": "Завершён", "disabled": "Отключён" }
   },
+  "promotionManager": {
+    "create": "Создать акцию",
+    "loading": "Загружаем…",
+    "empty": "Акций пока нет.",
+    "noProduct": "Товар не выбран",
+    "edit": "Редактировать",
+    "enable": "Включить",
+    "disable": "Отключить",
+    "delete": "Удалить",
+    "deleteFailed": "Не удалось удалить акцию.",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "saveFailed": "Не удалось сохранить.",
+    "missing": "Заполните товар, название, скидку и даты.",
+    "previewLine": "Было {old} → станет {new} (-{percent}%)",
+    "filters": { "all": "Все", "active": "Активные", "draft": "Черновики", "expired": "Завершённые" },
+    "fields": {
+      "product": "Товар",
+      "title": "Название акции",
+      "discountType": "Тип скидки",
+      "showOldPrice": "Показывать старую цену зачёркнутой",
+      "startAt": "Начало",
+      "endAt": "Окончание",
+      "status": "Статус"
+    },
+    "discountType": { "percent": "Процент", "fixed": "Фикс. сумма", "special_price": "Новая цена" },
+    "discountValueLabel": { "percent": "Скидка, %", "fixed": "Скидка, сом", "special_price": "Новая цена, сом" },
+    "status": { "draft": "Черновик", "scheduled": "Запланирована", "active": "Активна", "expired": "Завершена", "disabled": "Отключена" }
+  },
   "orderManager": {
     "title": "Заказы",
     "periods": {

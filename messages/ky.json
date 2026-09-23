@@ -812,6 +812,35 @@
     },
     "status": { "draft": "Черновик", "scheduled": "Пландалган", "active": "Активдүү", "expired": "Аяктаган", "disabled": "Өчүрүлгөн" }
   },
+  "promotionManager": {
+    "create": "Акция түзүү",
+    "loading": "Жүктөлүүдө…",
+    "empty": "Акциялар азырынча жок.",
+    "noProduct": "Товар тандалган эмес",
+    "edit": "Түзөтүү",
+    "enable": "Күйгүзүү",
+    "disable": "Өчүрүү",
+    "delete": "Өчүрүп салуу",
+    "deleteFailed": "Акцияны өчүрүү мүмкүн болгон жок.",
+    "cancel": "Жокко чыгаруу",
+    "save": "Сактоо",
+    "saveFailed": "Сактоо мүмкүн болгон жок.",
+    "missing": "Товарды, аталышын, арзандатууну жана мөөнөттөрдү толтуруңуз.",
+    "previewLine": "Болгон {old} → болот {new} (-{percent}%)",
+    "filters": { "all": "Баары", "active": "Активдүү", "draft": "Черновиктер", "expired": "Аяктаган" },
+    "fields": {
+      "product": "Товар",
+      "title": "Акциянын аталышы",
+      "discountType": "Арзандатуунун түрү",
+      "showOldPrice": "Эски баасын сызылган түрдө көрсөтүү",
+      "startAt": "Башталышы",
+      "endAt": "Аяктоосу",
+      "status": "Статус"
+    },
+    "discountType": { "percent": "Пайыз", "fixed": "Так сумма", "special_price": "Жаңы баасы" },
+    "discountValueLabel": { "percent": "Арзандатуу, %", "fixed": "Арзандатуу, сом", "special_price": "Жаңы баасы, сом" },
+    "status": { "draft": "Черновик", "scheduled": "Пландалган", "active": "Активдүү", "expired": "Аяктаган", "disabled": "Өчүрүлгөн" }
+  },
   "orderManager": {
     "title": "Буйрутмалар",
     "periods": {
