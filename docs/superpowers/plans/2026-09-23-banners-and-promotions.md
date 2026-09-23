@@ -1,6 +1,6 @@
 # Баннеры и акции (План А) — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Дать владельцу/админу создавать рекламные баннеры и акции на товары через админку, без правки кода; показывать их клиенту (всплывающий баннер + блок «Акции» на главной); заодно показать граммаж и штрихкод в списке товаров админки.
 
@@ -29,7 +29,7 @@
 **Interfaces:**
 - Produces: таблицы `public.banners`, `public.promotions` с колонками ровно как в спеке (раздел 1 и 2); RLS-политики `banners_select`, `banners_write_staff`, `promotions_select`, `promotions_write_staff`; Storage bucket `banners` (public) с политиками `banners_bucket_insert`, `banners_bucket_update`, `banners_bucket_delete`, `banners_bucket_select`.
 
-- [ ] **Step 1: Написать файл миграции**
+- [x] **Step 1: Написать файл миграции**
 
 ```sql
 -- БАННЕРЫ И АКЦИИ: реклама товаров в приложении, управляется владельцем/админом из /admin/promo.
@@ -159,11 +159,11 @@ create policy banners_bucket_select on storage.objects
   using (bucket_id = 'banners');
 ```
 
-- [ ] **Step 2: Проверить, что файл — валидный SQL (без запуска в Supabase — просто визуальная сверка со спекой)**
+- [x] **Step 2: Проверить, что файл — валидный SQL (без запуска в Supabase — просто визуальная сверка со спекой)**
 
 Сверить каждую колонку `banners`/`promotions` с разделами 1 и 2 `docs/superpowers/specs/2026-09-23-marketing-and-catalog-admin-design.md`. Файл НЕ запускается агентом — только владельцем в Supabase SQL Editor, позже, перед проверкой Task 6+ (без этой миграции API из следующих задач будут возвращать «база данных недоступна», это ожидаемо, как было с `feedback_branch.sql`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add supabase/marketing.sql
@@ -183,7 +183,7 @@ git push origin main
 - Consumes: ничего (первая задача с кодом).
 - Produces: `Banner`, `Promotion` типы; `mapBanner(row)`, `mapPromotion(row)` функции; `Product.barcode: string | null` (новое поле в уже существующем типе `Product`); `mapProduct` включает `barcode`.
 
-- [ ] **Step 1: Открыть `src/types.ts`, найти тип `Product`, добавить поле `barcode`**
+- [x] **Step 1: Открыть `src/types.ts`, найти тип `Product`, добавить поле `barcode`**
 
 Существующий фрагмент (не менять остальное в типе):
 ```ts
@@ -198,7 +198,7 @@ export type Product = {
 
 Добавить строку `barcode: string | null;` сразу после `sku: string;` в определении `Product`.
 
-- [ ] **Step 2: В конец `src/types.ts` добавить типы `Banner` и `Promotion`**
+- [x] **Step 2: В конец `src/types.ts` добавить типы `Banner` и `Promotion`**
 
 ```ts
 export type Banner = {
@@ -235,7 +235,7 @@ export type Promotion = {
 };
 ```
 
-- [ ] **Step 3: В `src/lib/supabase.ts` добавить `barcode` в `mapProduct` и написать `mapBanner`/`mapPromotion`**
+- [x] **Step 3: В `src/lib/supabase.ts` добавить `barcode` в `mapProduct` и написать `mapBanner`/`mapPromotion`**
 
 В `mapProduct` (существующая функция) добавить строку `barcode: (row.barcode as string | null) ?? null,` сразу после `sku: row.sku as string,`.
 
@@ -302,7 +302,7 @@ export function mapPromotion(
 }
 ```
 
-- [ ] **Step 4: Проверить типы и линтер**
+- [x] **Step 4: Проверить типы и линтер**
 
 ```bash
 npx tsc --noEmit
@@ -310,7 +310,7 @@ npx eslint src/types.ts src/lib/supabase.ts
 ```
 Ожидается: чисто (пока эти функции ещё нигде не вызываются — предупреждений о неиспользуемом экспорте линтер для экспортов не даёт, это нормально).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/types.ts src/lib/supabase.ts
@@ -330,7 +330,7 @@ git push origin main
 - Consumes: `Banner`, `Promotion` типы из Task 2.
 - Produces: `effectiveState(row, now?)`, `isVisibleToCustomers(row, now?)` из `promo-status.ts`; `applyActivePromotion(product, promotionsByProductId)` из `apply-promotion.ts` — используются в Task 6 и 7.
 
-- [ ] **Step 1: `src/lib/promo-status.ts`**
+- [x] **Step 1: `src/lib/promo-status.ts`**
 
 ```ts
 // camelCase, как в Banner/Promotion (src/types.ts) — effectiveState/isVisibleToCustomers принимают
@@ -361,7 +361,7 @@ export function isVisibleToCustomers(row: StatusRow, now: Date = new Date()): bo
 }
 ```
 
-- [ ] **Step 2: `src/lib/apply-promotion.ts`**
+- [x] **Step 2: `src/lib/apply-promotion.ts`**
 
 ```ts
 import type { Product, Promotion } from "@/types";
@@ -405,14 +405,14 @@ export function indexPromotionsByProduct(promotions: Promotion[]): Map<string, P
 }
 ```
 
-- [ ] **Step 3: Проверить типы и линтер**
+- [x] **Step 3: Проверить типы и линтер**
 
 ```bash
 npx tsc --noEmit
 npx eslint src/lib/promo-status.ts src/lib/apply-promotion.ts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lib/promo-status.ts src/lib/apply-promotion.ts
@@ -432,7 +432,7 @@ git push origin main
 - Consumes: `mapBanner` (Task 2), `isStoreManager`, `getSessionProfile` (существующие, `src/lib/auth.ts`).
 - Produces: `GET/POST /api/admin/banners`, `PUT/DELETE /api/admin/banners/[id]` — JSON `{ banners: Banner[] }` / `{ ok: true, banner: Banner }`.
 
-- [ ] **Step 1: `src/app/api/admin/banners/route.ts`**
+- [x] **Step 1: `src/app/api/admin/banners/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -498,7 +498,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: `src/app/api/admin/banners/[id]/route.ts`**
+- [x] **Step 2: `src/app/api/admin/banners/[id]/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -563,14 +563,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 }
 ```
 
-- [ ] **Step 3: Проверить типы и линтер**
+- [x] **Step 3: Проверить типы и линтер**
 
 ```bash
 npx tsc --noEmit
 npx eslint src/app/api/admin/banners/route.ts src/app/api/admin/banners/[id]/route.ts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/admin/banners
@@ -590,7 +590,7 @@ git push origin main
 - Consumes: `mapPromotion` (Task 2), `isStoreManager`, `getSessionProfile`.
 - Produces: `GET/POST /api/admin/promotions`, `PUT/DELETE /api/admin/promotions/[id]`.
 
-- [ ] **Step 1: `src/app/api/admin/promotions/route.ts`**
+- [x] **Step 1: `src/app/api/admin/promotions/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -681,7 +681,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: `src/app/api/admin/promotions/[id]/route.ts`**
+- [x] **Step 2: `src/app/api/admin/promotions/[id]/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -769,14 +769,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 }
 ```
 
-- [ ] **Step 3: Проверить типы и линтер**
+- [x] **Step 3: Проверить типы и линтер**
 
 ```bash
 npx tsc --noEmit
 npx eslint src/app/api/admin/promotions/route.ts src/app/api/admin/promotions/[id]/route.ts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/admin/promotions
@@ -796,7 +796,7 @@ git push origin main
 - Consumes: `mapBanner`, `mapPromotion` (Task 2), `isVisibleToCustomers` (Task 3), `applyActivePromotion`/`indexPromotionsByProduct` (Task 3), `mapProduct` (existing).
 - Produces: `GET /api/banners` → `{ banners: Banner[] }` (только видимые клиенту, отсортированы по priority); `GET /api/promotions` → `{ products: Product[] }` (товары с уже применённой акционной ценой, отсортированы по `endAt` возрастанию).
 
-- [ ] **Step 1: `src/app/api/banners/route.ts`**
+- [x] **Step 1: `src/app/api/banners/route.ts`**
 
 ```ts
 import { NextResponse } from "next/server";
@@ -830,7 +830,7 @@ export async function GET() {
 }
 ```
 
-- [ ] **Step 2: `src/app/api/promotions/route.ts`**
+- [x] **Step 2: `src/app/api/promotions/route.ts`**
 
 ```ts
 import { NextResponse } from "next/server";
@@ -874,14 +874,14 @@ export async function GET() {
 }
 ```
 
-- [ ] **Step 3: Проверить типы и линтер**
+- [x] **Step 3: Проверить типы и линтер**
 
 ```bash
 npx tsc --noEmit
 npx eslint src/app/api/banners/route.ts src/app/api/promotions/route.ts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/banners src/app/api/promotions
@@ -903,7 +903,7 @@ git push origin main
 - Consumes: `applyActivePromotion`, `indexPromotionsByProduct` (Task 3), `mapPromotion` (Task 2).
 - Produces: цена товара в каталоге/поиске/детали/хитах — уже с учётом активной акции; поиск по `q` теперь matches и `sku`.
 
-- [ ] **Step 1: `src/app/api/products/route.ts` — добавить поиск по артикулу, барcode в `toProduct`, подмешать акции**
+- [x] **Step 1: `src/app/api/products/route.ts` — добавить поиск по артикулу, барcode в `toProduct`, подмешать акции**
 
 Найти локальную функцию `toProduct` (в начале файла) и заменить целиком:
 
@@ -988,7 +988,7 @@ import type { Product } from "@/types";
 
 **Важно:** дальше в файле уже есть цикл `for (const row of stockRows ?? []) { ... }` и код ниже него (построение `quantityAtBranch`/`availableElsewhere`/финальный `return`) — этот код НЕ трогать, он остаётся как есть, только самая последняя строка (`return NextResponse.json({ products: products.map(...) })`, если она использует `toProduct` напрямую) должна оборачивать результат в `withPromo(...)`, аналогично ветке `!branchId` выше. Найти этот финальный `return` и обернуть его массив в `withPromo(...)` тем же способом.
 
-- [ ] **Step 2: `src/app/api/products/[id]/route.ts` — barcode, attributes, акция**
+- [x] **Step 2: `src/app/api/products/[id]/route.ts` — barcode, attributes, акция**
 
 Заменить `toProduct` целиком:
 
@@ -1052,7 +1052,7 @@ import type { Product } from "@/types";
   });
 ```
 
-- [ ] **Step 3: `src/app/api/products/bestsellers/route.ts` — та же подмена цены**
+- [x] **Step 3: `src/app/api/products/bestsellers/route.ts` — та же подмена цены**
 
 В начало файла добавить импорты:
 ```ts
@@ -1105,11 +1105,11 @@ import type { Product } from "@/types";
   });
 ```
 
-- [ ] **Step 4: Проверить, что `src/app/api/admin/catalog/route.ts` уже отдаёт `barcode`**
+- [x] **Step 4: Проверить, что `src/app/api/admin/catalog/route.ts` уже отдаёт `barcode`**
 
 Ничего менять не нужно — эта задача уже решена в Task 2 (`mapProduct` в `src/lib/supabase.ts` теперь включает `barcode`, а этот роут уже вызывает `products.map(mapProduct)`). Просто прочитать файл и убедиться, что это так.
 
-- [ ] **Step 5: Проверить типы, линтер и сборку**
+- [x] **Step 5: Проверить типы, линтер и сборку**
 
 ```bash
 npx tsc --noEmit
@@ -1117,7 +1117,7 @@ npx eslint src/app/api/products/route.ts src/app/api/products/[id]/route.ts src/
 npm run build
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/app/api/products src/app/api/admin/catalog
@@ -1136,7 +1136,7 @@ git push origin main
 - Consumes: `GET /api/products?q=` (уже умеет искать по sku после Task 7).
 - Produces: `<ProductPicker value={productId} product={pickedProductSummary} onChange={(product) => void} />` — используется в Task 9 и 10.
 
-- [ ] **Step 1: Написать компонент**
+- [x] **Step 1: Написать компонент**
 
 ```tsx
 "use client";
@@ -1255,7 +1255,7 @@ export function ProductPicker({
 }
 ```
 
-- [ ] **Step 2: Добавить переводы `productPicker` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 2: Добавить переводы `productPicker` в `messages/ru.json` и `messages/ky.json`**
 
 В `messages/ru.json`, рядом с другими небольшими namespace (например, после `"orderLink"`), добавить:
 ```json
@@ -1273,7 +1273,7 @@ export function ProductPicker({
   },
 ```
 
-- [ ] **Step 3: Проверить типы, линтер, валидность JSON**
+- [x] **Step 3: Проверить типы, линтер, валидность JSON**
 
 ```bash
 npx tsc --noEmit
@@ -1281,7 +1281,7 @@ npx eslint src/components/ProductPicker.tsx
 node -e "JSON.parse(require('fs').readFileSync('messages/ru.json','utf8')); JSON.parse(require('fs').readFileSync('messages/ky.json','utf8')); console.log('ok')"
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/ProductPicker.tsx messages/ru.json messages/ky.json
@@ -1300,7 +1300,7 @@ git push origin main
 - Consumes: `ProductPicker` (Task 8), `/api/admin/banners` (Task 4), `effectiveState` (Task 3), `Banner` тип (Task 2), `Chip` (`src/components/ui/Chip.tsx`), `Button` (`src/components/ui/Button.tsx`).
 - Produces: `<BannerManager />` — монтируется в Task 11.
 
-- [ ] **Step 1: Написать компонент** (список карточками, фильтр, создание/редактирование инлайн, аплоад картинки — тот же приём, что `AvatarUploader.tsx`, но без обрезки в квадрат, пропорция как у `HeroSlider` — 16:11)
+- [x] **Step 1: Написать компонент** (список карточками, фильтр, создание/редактирование инлайн, аплоад картинки — тот же приём, что `AvatarUploader.tsx`, но без обрезки в квадрат, пропорция как у `HeroSlider` — 16:11)
 
 ```tsx
 "use client";
@@ -1726,7 +1726,7 @@ export function BannerManager() {
 }
 ```
 
-- [ ] **Step 2: Добавить переводы `bannerManager` в `messages/ru.json`**
+- [x] **Step 2: Добавить переводы `bannerManager` в `messages/ru.json`**
 
 ```json
   "bannerManager": {
@@ -1806,14 +1806,14 @@ export function BannerManager() {
   },
 ```
 
-- [ ] **Step 3: Проверить типы, линтер, JSON** (`BannerInterstitial` появится в Task 12 — до тех пор `tsc`/сборка на этой задаче не пройдут из-за отсутствующего импорта; поэтому Step 3 этой задачи — временно ПРОПУСТИТЬ строгую проверку и сразу закоммитить, а полную проверку сделать в конце Task 12, где `BannerInterstitial` уже существует. Явно отметить в коммите, что задача не самодостаточна.)
+- [x] **Step 3: Проверить типы, линтер, JSON** (`BannerInterstitial` появится в Task 12 — до тех пор `tsc`/сборка на этой задаче не пройдут из-за отсутствующего импорта; поэтому Step 3 этой задачи — временно ПРОПУСТИТЬ строгую проверку и сразу закоммитить, а полную проверку сделать в конце Task 12, где `BannerInterstitial` уже существует. Явно отметить в коммите, что задача не самодостаточна.)
 
 ```bash
 npx eslint src/components/BannerManager.tsx || true
 node -e "JSON.parse(require('fs').readFileSync('messages/ru.json','utf8')); JSON.parse(require('fs').readFileSync('messages/ky.json','utf8')); console.log('ok')"
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/BannerManager.tsx messages/ru.json messages/ky.json
@@ -1832,7 +1832,7 @@ git push origin main
 - Consumes: `ProductPicker` (Task 8), `/api/admin/promotions` (Task 5), `effectiveState` (Task 3), `Promotion` тип (Task 2).
 - Produces: `<PromotionManager />` — монтируется в Task 11.
 
-- [ ] **Step 1: Написать компонент**
+- [x] **Step 1: Написать компонент**
 
 ```tsx
 "use client";
@@ -2176,7 +2176,7 @@ export function PromotionManager() {
 }
 ```
 
-- [ ] **Step 2: Добавить переводы `promotionManager` в `messages/ru.json`**
+- [x] **Step 2: Добавить переводы `promotionManager` в `messages/ru.json`**
 
 ```json
   "promotionManager": {
@@ -2244,7 +2244,7 @@ export function PromotionManager() {
   },
 ```
 
-- [ ] **Step 3: Проверить типы, линтер, JSON**
+- [x] **Step 3: Проверить типы, линтер, JSON**
 
 ```bash
 npx tsc --noEmit
@@ -2252,7 +2252,7 @@ npx eslint src/components/PromotionManager.tsx
 node -e "JSON.parse(require('fs').readFileSync('messages/ru.json','utf8')); JSON.parse(require('fs').readFileSync('messages/ky.json','utf8')); console.log('ok')"
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/PromotionManager.tsx messages/ru.json messages/ky.json
@@ -2272,7 +2272,7 @@ git push origin main
 - Consumes: `BannerManager` (Task 9), `PromotionManager` (Task 10), `AdminPage` (существующий), `Chip` (существующий).
 - Produces: маршрут `/admin/promo?tab=banners|promotions`; новый пункт в меню админки.
 
-- [ ] **Step 1: `src/app/[locale]/(app)/admin/promo/page.tsx`**
+- [x] **Step 1: `src/app/[locale]/(app)/admin/promo/page.tsx`**
 
 ```tsx
 "use client";
@@ -2313,7 +2313,7 @@ export default function AdminPromoPage() {
 }
 ```
 
-- [ ] **Step 2: Добавить переводы `adminPromo` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 2: Добавить переводы `adminPromo` в `messages/ru.json` и `messages/ky.json`**
 
 `messages/ru.json`:
 ```json
@@ -2333,7 +2333,7 @@ export default function AdminPromoPage() {
   },
 ```
 
-- [ ] **Step 3: Добавить пункт меню в `src/app/[locale]/(app)/admin/page.tsx`**
+- [x] **Step 3: Добавить пункт меню в `src/app/[locale]/(app)/admin/page.tsx`**
 
 Найти массив пунктов меню (там, где уже правился пункт `feedback` в предыдущей сессии) и добавить новый объект сразу после `catalog` (или после `feedback`, порядок не принципиален) — использовать иконку `Megaphone` из `lucide-react` (добавить в импорт lucide-react в начале файла, рядом с остальными иконками):
 
@@ -2341,14 +2341,14 @@ export default function AdminPromoPage() {
 { href: "/admin/promo", label: t("promo"), hint: t("promoHint"), icon: Megaphone, roles: ["owner", "admin"] },
 ```
 
-- [ ] **Step 4: Добавить переводы `admin.promo`/`admin.promoHint` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 4: Добавить переводы `admin.promo`/`admin.promoHint` в `messages/ru.json` и `messages/ky.json`**
 
 Найти namespace `"admin"` (там же, где `"feedback"`/`"feedbackHint"` — правились в прошлой сессии) и добавить рядом:
 
 `messages/ru.json`: `"promo": "Реклама и акции", "promoHint": "Баннеры и скидки на товары",`
 `messages/ky.json`: `"promo": "Реклама жана акциялар", "promoHint": "Баннерлер жана товарларга арзандатуулар",`
 
-- [ ] **Step 5: Проверить типы, линтер, сборку**
+- [x] **Step 5: Проверить типы, линтер, сборку**
 
 ```bash
 npx tsc --noEmit
@@ -2357,7 +2357,7 @@ node -e "JSON.parse(require('fs').readFileSync('messages/ru.json','utf8')); JSON
 npm run build
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "src/app/[locale]/(app)/admin/promo" "src/app/[locale]/(app)/admin/page.tsx" messages/ru.json messages/ky.json
@@ -2379,7 +2379,7 @@ git push origin main
 - Consumes: `Banner` тип (Task 2), `/api/banners` (Task 6), `tile-sheen` CSS-класс (уже есть в `globals.css`).
 - Produces: `<BannerInterstitial banner={banner} onClose={() => void} />` (используется и в предпросмотре Task 9); `<BannerGate page="catalog" | "checkout" />` — монтируется в двух страницах.
 
-- [ ] **Step 1: `src/components/BannerInterstitial.tsx`**
+- [x] **Step 1: `src/components/BannerInterstitial.tsx`**
 
 ```tsx
 "use client";
@@ -2453,7 +2453,7 @@ export function BannerInterstitial({ banner, onClose }: { banner: Banner; onClos
 }
 ```
 
-- [ ] **Step 2: Добавить два новых ключа в `session-flags.ts`**
+- [x] **Step 2: Добавить два новых ключа в `session-flags.ts`**
 
 Открыть `src/lib/session-flags.ts`, найти секцию `PRODUCT_PROMPT_KEY`/`wasProductPromptShown`/`markProductPromptShown` (конец файла) и добавить после неё:
 
@@ -2469,7 +2469,7 @@ export const wasCheckoutAdShown = () => readFlag(CHECKOUT_AD_KEY);
 export const markCheckoutAdShown = () => writeFlag(CHECKOUT_AD_KEY);
 ```
 
-- [ ] **Step 3: Добавить `BannerGate` в конец `src/components/BannerInterstitial.tsx`**
+- [x] **Step 3: Добавить `BannerGate` в конец `src/components/BannerInterstitial.tsx`**
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -2508,19 +2508,19 @@ export function BannerGate({ page }: { page: "catalog" | "checkout" }) {
 
 (Добавить `import { useEffect, useState } from "react";` в начало файла, если такого импорта там ещё нет — в основном компоненте `BannerInterstitial` этих хуков не было.)
 
-- [ ] **Step 4: Смонтировать `<BannerGate page="catalog" />` в `src/app/[locale]/(app)/catalog/page.tsx`**
+- [x] **Step 4: Смонтировать `<BannerGate page="catalog" />` в `src/app/[locale]/(app)/catalog/page.tsx`**
 
 В начало файла, среди импортов, добавить: `import { BannerGate } from "@/components/BannerInterstitial";`
 
 Найти открывающий `<main className="flex-1 px-4 pt-6 pb-32 max-w-5xl mx-auto w-full">` (первая строка `return (`) и сразу после него добавить `<BannerGate page="catalog" />`.
 
-- [ ] **Step 5: Смонтировать `<BannerGate page="checkout" />` в `src/app/[locale]/(app)/checkout/page.tsx`**
+- [x] **Step 5: Смонтировать `<BannerGate page="checkout" />` в `src/app/[locale]/(app)/checkout/page.tsx`**
 
 В начало файла добавить: `import { BannerGate } from "@/components/BannerInterstitial";`
 
 Найти `return (\n    <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">` (основной return, не ветки `success`/`loading`/`items.length === 0`) и сразу после этого `<main ...>` добавить `<BannerGate page="checkout" />`.
 
-- [ ] **Step 6: Добавить переводы `bannerInterstitial` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 6: Добавить переводы `bannerInterstitial` в `messages/ru.json` и `messages/ky.json`**
 
 `messages/ru.json`:
 ```json
@@ -2538,7 +2538,7 @@ export function BannerGate({ page }: { page: "catalog" | "checkout" }) {
   },
 ```
 
-- [ ] **Step 7: Проверить типы, линтер, сборку — это первая точка, где `BannerManager.tsx` (Task 9) тоже становится проверяемым, т.к. `BannerInterstitial` теперь существует**
+- [x] **Step 7: Проверить типы, линтер, сборку — это первая точка, где `BannerManager.tsx` (Task 9) тоже становится проверяемым, т.к. `BannerInterstitial` теперь существует**
 
 ```bash
 npx tsc --noEmit
@@ -2546,9 +2546,9 @@ npx eslint src/components/BannerInterstitial.tsx src/components/BannerManager.ts
 npm run build
 ```
 
-- [ ] **Step 8: Ручная проверка в браузере** (`npm run dev`, тестовый аккаунт): зайти в `/admin/promo`, создать баннер (загрузить картинку, выбрать товар через поиск, статус «Активен», даты — сегодня/через неделю), сохранить. Зайти в приложение как покупатель, перейти на `/catalog` — баннер должен всплыть один раз; закрыть крестиком, зайти в `/catalog` ещё раз в этом же открытии приложения — баннер больше не всплывает. Открыть `/checkout` (с товаром в корзине) — баннер всплывает там отдельно, один раз. Кликнуть по самому баннеру (не по крестику) — должен открыться `/product/{id}` выбранного товара.
+- [x] **Step 8: Ручная проверка в браузере** (`npm run dev`, тестовый аккаунт): зайти в `/admin/promo`, создать баннер (загрузить картинку, выбрать товар через поиск, статус «Активен», даты — сегодня/через неделю), сохранить. Зайти в приложение как покупатель, перейти на `/catalog` — баннер должен всплыть один раз; закрыть крестиком, зайти в `/catalog` ещё раз в этом же открытии приложения — баннер больше не всплывает. Открыть `/checkout` (с товаром в корзине) — баннер всплывает там отдельно, один раз. Кликнуть по самому баннеру (не по крестику) — должен открыться `/product/{id}` выбранного товара.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/components/BannerInterstitial.tsx src/components/BannerManager.tsx src/lib/session-flags.ts "src/app/[locale]/(app)/catalog/page.tsx" "src/app/[locale]/(app)/checkout/page.tsx" messages/ru.json messages/ky.json
@@ -2566,7 +2566,7 @@ git push origin main
 **Interfaces:**
 - Consumes: `GET /api/promotions` (Task 6), `ProductCard` (существующий, без изменений), `Section` (уже определён внутри `page.tsx`).
 
-- [ ] **Step 1: Добавить состояние и загрузку акций**
+- [x] **Step 1: Добавить состояние и загрузку акций**
 
 В начало компонента `Home` (там, где уже объявлены `products`/`loading` через `useState`) добавить:
 ```ts
@@ -2583,7 +2583,7 @@ useEffect(() => {
 }, []);
 ```
 
-- [ ] **Step 2: Добавить секцию в разметку**
+- [x] **Step 2: Добавить секцию в разметку**
 
 Найти секцию `<Section title={t("popular")} ...>` (существующий блок «Популярные товары») и добавить перед ней новый блок (только если есть хотя бы одна акция):
 
@@ -2603,12 +2603,12 @@ useEffect(() => {
 
 Добавить `Flame` в существующий импорт из `lucide-react` в начале файла (рядом с `Sparkles, ChevronRight, Wand2`).
 
-- [ ] **Step 3: Добавить перевод `home.promoTitle` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 3: Добавить перевод `home.promoTitle` в `messages/ru.json` и `messages/ky.json`**
 
 В `messages/ru.json`, внутри namespace `"home"` (рядом с `"popular"`): `"promoTitle": "Акции",`
 В `messages/ky.json`, тот же namespace: `"promoTitle": "Акциялар",`
 
-- [ ] **Step 4: Проверить типы, линтер, сборку**
+- [x] **Step 4: Проверить типы, линтер, сборку**
 
 ```bash
 npx tsc --noEmit
@@ -2616,9 +2616,9 @@ npx eslint "src/app/[locale]/(app)/page.tsx"
 npm run build
 ```
 
-- [ ] **Step 5: Ручная проверка в браузере**: на главной с активной акцией (из Task 12 можно создать и акцию тем же способом через `/admin/promo` → вкладка «Акции») должен появиться блок «Акции» с карточкой товара — старая цена зачёркнута, новая цена и «-X%», кнопка добавления в корзину работает как обычно.
+- [x] **Step 5: Ручная проверка в браузере**: на главной с активной акцией (из Task 12 можно создать и акцию тем же способом через `/admin/promo` → вкладка «Акции») должен появиться блок «Акции» с карточкой товара — старая цена зачёркнута, новая цена и «-X%», кнопка добавления в корзину работает как обычно.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "src/app/[locale]/(app)/page.tsx" messages/ru.json messages/ky.json
@@ -2636,7 +2636,7 @@ git push origin main
 **Interfaces:**
 - Consumes: `Product.barcode` (Task 2 — уже приходит через `/api/admin/catalog`, ничего в API менять не нужно), `Product.attributes.volume` (уже приходит).
 
-- [ ] **Step 1: Добавить две колонки в таблицу**
+- [x] **Step 1: Добавить две колонки в таблицу**
 
 Найти `<thead>` со столбцами `colName`/`colBrand`/`colCategory`/`colPrice`/`colStock` и добавить два новых `<th>` после `colCategory`:
 
@@ -2652,12 +2652,12 @@ git push origin main
 <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">{p.barcode ?? "—"}</td>
 ```
 
-- [ ] **Step 2: Добавить переводы `adminCatalog.colVolume`/`colBarcode` в `messages/ru.json` и `messages/ky.json`**
+- [x] **Step 2: Добавить переводы `adminCatalog.colVolume`/`colBarcode` в `messages/ru.json` и `messages/ky.json`**
 
 `messages/ru.json`, внутри `"adminCatalog"`: `"colVolume": "Объём/вес", "colBarcode": "Штрихкод",`
 `messages/ky.json`, внутри `"adminCatalog"`: `"colVolume": "Көлөм/салмак", "colBarcode": "Штрихкод",`
 
-- [ ] **Step 3: Проверить типы, линтер, сборку**
+- [x] **Step 3: Проверить типы, линтер, сборку**
 
 ```bash
 npx tsc --noEmit
@@ -2665,9 +2665,9 @@ npx eslint "src/app/[locale]/(app)/admin/catalog/page.tsx"
 npm run build
 ```
 
-- [ ] **Step 4: Ручная проверка**: открыть `/admin/catalog` — в таблице видны колонки «Объём/вес» и «Штрихкод» (у демо-товаров без штрихкода — прочерк, это ожидаемо, колонка в базе пока ни для одного товара не заполнена).
+- [x] **Step 4: Ручная проверка**: открыть `/admin/catalog` — в таблице видны колонки «Объём/вес» и «Штрихкод» (у демо-товаров без штрихкода — прочерк, это ожидаемо, колонка в базе пока ни для одного товара не заполнена).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "src/app/[locale]/(app)/admin/catalog/page.tsx" messages/ru.json messages/ky.json
@@ -2681,7 +2681,7 @@ git push origin main
 
 **Files:** нет изменений кода — только проверка и сообщение владельцу.
 
-- [ ] **Step 1: Полная финальная проверка**
+- [x] **Step 1: Полная финальная проверка**
 
 ```bash
 npx tsc --noEmit
@@ -2690,7 +2690,7 @@ npm run build
 ```
 Все три должны пройти чисто (0 ошибок).
 
-- [ ] **Step 2: Полный ручной прогон в браузере** (тестовый аккаунт, потом удалить или попросить владельца удалить):
+- [x] **Step 2: Полный ручной прогон в браузере** (тестовый аккаунт, потом удалить или попросить владельца удалить):
   1. `/admin/promo` → «Баннеры» → создать баннер с товаром, картинкой, статус «Активен» → сохранить → «Предпросмотр» показывает то же, что увидит клиент.
   2. `/admin/promo` → «Акции» → создать акцию (процент) на другой товар → живой предпросмотр цены в форме корректный → сохранить.
   3. Как покупатель: главная — есть блок «Акции» с товаром со скидкой; тот же товар в `/catalog` и в поиске показывает ту же зачёркнутую/новую цену (не расходится).
@@ -2700,7 +2700,7 @@ npm run build
   7. Удалить баннер/акцию через админку — пропадают из списка и с клиентской стороны.
   8. Отключить (⏸) баннер/акцию — статус «Отключён», клиенту больше не показывается.
 
-- [ ] **Step 3: Сообщить владельцу**
+- [x] **Step 3: Сообщить владельцу**
 
 Одним сообщением: какие файлы и таблицы созданы/изменены (список), что нужно сделать вручную (`supabase/marketing.sql` в Supabase SQL Editor, если ещё не запущен — без этого шага всё выше вернёт «база данных недоступна»), как пользоваться новым разделом (`/admin/promo`, кнопки «Создать баннер»/«Создать акцию», предпросмотр, фильтры, отключение вместо удаления), и что именно стоит проверить владельцу самому (совпадение цены везде, что баннер не мешает при частой навигации).
 
