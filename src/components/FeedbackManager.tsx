@@ -35,6 +35,11 @@ export function FeedbackManager() {
                 <span className="font-medium text-sm">{item.authorName ?? t("noName")}</span>
                 <span className="text-xs text-muted">{new Date(item.createdAt).toLocaleString(locale)}</span>
               </div>
+              {item.branchName && (
+                <div className="text-xs text-accent bg-accent-soft rounded-full px-2 py-0.5 w-fit mb-2">
+                  {item.branchName}
+                </div>
+              )}
               <p className="text-sm whitespace-pre-wrap">{item.message}</p>
             </div>
           ))}

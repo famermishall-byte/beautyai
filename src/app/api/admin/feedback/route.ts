@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapFeedback } from "@/lib/supabase";
-import { getSessionProfile, isStoreManager } from "@/lib/auth";
+import { getSessionProfile, isStaff } from "@/lib/auth";
 
 export async function GET() {
   const profile = await getSessionProfile();
   if (!profile) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
-  if (!isStoreManager(profile.role)) {
+  if (!isStaff(profile.role)) {
     return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
   }
 
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: rows, error } = await supabase
+    let query = supabase
       .from("feedback")
-      .select("*")
+      .select("*, branches(name)")
       .eq("store_id", profile.storeId)
       .order("created_at", { ascending: false });
+    // Управляющий филиала видит только отзывы своего филиала; RLS это тоже
+    // обеспечивает, но фильтр здесь делает намерение явным и не зависит от RLS.
+    if (profile.role === "branch_manager") {
+      query = query.eq("branch_id", profile.branchId);
+    }
+    const { data: rows, error } = await query;
 
     if (error) throw error;
 

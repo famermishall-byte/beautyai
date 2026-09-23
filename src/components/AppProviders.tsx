@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { SessionProvider } from "@/lib/session-context";
 import { CartProvider } from "@/lib/cart-context";
 import { MyBagProvider } from "@/lib/mybag-context";
+import { PurchaseHistoryProvider } from "@/lib/purchase-history-context";
 import { AppSplashGate } from "@/components/AppSplashGate";
 import { AccessDeniedBanner } from "@/components/AccessDeniedBanner";
 import { NavHeader } from "@/components/NavHeader";
@@ -16,16 +17,18 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <SessionProvider>
       <CartProvider>
         <MyBagProvider>
-          <AppSplashGate>
-            <Suspense fallback={null}>
-              <AccessDeniedBanner />
-            </Suspense>
-            <NavHeader />
-            <div className="pb-20">{children}</div>
-            <CartDrawer />
-            <BottomNav />
-            <FirstRunFlow />
-          </AppSplashGate>
+          <PurchaseHistoryProvider>
+            <AppSplashGate>
+              <Suspense fallback={null}>
+                <AccessDeniedBanner />
+              </Suspense>
+              <NavHeader />
+              <div className="pb-20">{children}</div>
+              <CartDrawer />
+              <BottomNav />
+              <FirstRunFlow />
+            </AppSplashGate>
+          </PurchaseHistoryProvider>
         </MyBagProvider>
       </CartProvider>
     </SessionProvider>

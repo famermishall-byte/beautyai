@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import { unmarkAdded } from "@/lib/session-flags";
 import type { Branch } from "@/types";
 import { useRouter } from "@/i18n/navigation";
 
@@ -14,10 +16,11 @@ const STEP_KEYS: Step[] = ["branch", "contact", "review"];
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
+  const tCart = useTranslations("cart");
   const price = usePrice();
   const text = useProductText();
   const stepLabels = STEP_KEYS.map((key) => ({ key, label: t(`steps.${key}`) }));
-  const { items, hydrated, totalPrice, clearCart } = useCart();
+  const { items, hydrated, totalPrice, changeQuantity, removeItem, clearCart } = useCart();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("branch");
@@ -210,13 +213,47 @@ export default function CheckoutPage() {
 
           <div className="bg-card rounded-xl border border-black/5 p-4 mb-4">
             <div className="text-sm text-muted mb-2">{t("products")}</div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {items.map((item) => (
-                <div key={item.product.id} className="flex justify-between text-sm">
-                  <span>
-                    {text(item.product).name} × {item.quantity}
-                  </span>
-                  <span>{price(item.product.price * item.quantity)}</span>
+                <div key={item.product.id} className="flex gap-3 items-start border-b border-black/5 pb-3 last:border-0 last:pb-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">{text(item.product).name}</div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex items-center gap-1 bg-accent-soft rounded-full px-1 py-1">
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(item.product.id, -1)}
+                          aria-label={tCart("decrease", { name: text(item.product).name })}
+                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                        >
+                          <Minus className="size-3" strokeWidth={2.5} aria-hidden />
+                        </button>
+                        <span className="text-xs font-medium w-5 text-center tabular-nums">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(item.product.id, 1)}
+                          aria-label={tCart("increase", { name: text(item.product).name })}
+                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                        >
+                          <Plus className="size-3" strokeWidth={2.5} aria-hidden />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          removeItem(item.product.id);
+                          unmarkAdded(item.product.id);
+                        }}
+                        aria-label={tCart("remove", { name: text(item.product).name })}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
+                      >
+                        <Trash2 className="size-3.5" strokeWidth={1.85} aria-hidden />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-sm font-display tabular-nums shrink-0">
+                    {price(item.product.price * item.quantity)}
+                  </div>
                 </div>
               ))}
             </div>

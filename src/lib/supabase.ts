@@ -43,13 +43,17 @@ export function mapBranch(row: Record<string, unknown>) {
   };
 }
 
-export function mapFeedback(row: Record<string, unknown> & { profiles?: Record<string, unknown> | null }) {
+export function mapFeedback(
+  row: Record<string, unknown> & { profiles?: Record<string, unknown> | null; branches?: Record<string, unknown> | null }
+) {
   const profile = row.profiles as { display_name?: string | null } | null | undefined;
+  const branch = row.branches as { name?: string | null } | null | undefined;
   return {
     id: row.id as string,
     message: row.message as string,
     createdAt: row.created_at as string,
     authorName: profile?.display_name ?? null,
+    branchName: branch?.name ?? null,
   };
 }
 

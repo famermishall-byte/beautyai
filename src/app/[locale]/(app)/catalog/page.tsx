@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -37,6 +37,7 @@ function useCatalogLabels() {
 
 function CatalogContent() {
   const t = useTranslations("catalog");
+  const tc = useTranslations("common");
   const ta = useTranslations("attributes");
   const locale = useLocale();
   const labels = useCatalogLabels();
@@ -235,6 +236,15 @@ function CatalogContent() {
         )}
       </div>
 
+      {!browsing && (
+        <Link
+          href="/catalog"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-accent transition mb-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <LayoutGrid className="size-3.5" strokeWidth={2} aria-hidden />
+          {tc("allCatalog")}
+        </Link>
+      )}
       <h1 className="font-display text-3xl mb-4">{promo ? t("promo") : activeItem && activeGroup ? labels.subLabel(activeGroup, activeItem) : activeGroup && !browsing ? labels.groupTitle(activeGroup) : t("title")}</h1>
 
       {branches.length > 1 && (

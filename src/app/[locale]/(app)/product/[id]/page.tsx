@@ -4,13 +4,16 @@ import { use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
-import { ArrowLeft, Heart, Sparkle, Minus, Plus, Check, PackageX } from "lucide-react";
+import { ArrowLeft, Heart, Sparkle, Minus, Plus, Check, PackageX, LayoutGrid, BadgeCheck } from "lucide-react";
 import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
+import { usePurchaseHistory } from "@/lib/purchase-history-context";
+import { isMarkedAdded, markAdded, wasProductPromptShown, markProductPromptShown } from "@/lib/session-flags";
 import { useGoBack } from "@/lib/use-go-back";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { ProductCard } from "@/components/ProductCard";
+import { BuyAgainModal } from "@/components/BuyAgainModal";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -27,12 +30,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const goBack = useGoBack("/catalog");
   const { addItem, items, changeQuantity } = useCart();
   const { toggle, isSaved } = useMyBag();
+  const { countOf } = usePurchaseHistory();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
+  // Держится, пока открыто это посещение приложения (не 1-2 секунды) — см. session-flags.ts.
+  const [added, setAdded] = useState(false);
+  const [showBuyAgain, setShowBuyAgain] = useState(false);
 
   useEffect(() => {
     let branchId: string | null = null;
@@ -54,6 +60,22 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // sessionStorage недоступен при рендере/SSR — читаем и решаем после монтирования
+  // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
+  useEffect(() => {
+    Promise.resolve().then(() => setAdded(isMarkedAdded(id)));
+  }, [id]);
+
+  const purchaseCount = countOf(id);
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      if (purchaseCount >= 2 && !wasProductPromptShown(id)) {
+        markProductPromptShown(id);
+        setShowBuyAgain(true);
+      }
+    });
+  }, [id, purchaseCount]);
 
   if (loading) {
     return (
@@ -93,8 +115,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   function handleAdd() {
     if (!product) return;
     addItem(product);
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1200);
+    markAdded(product.id);
+    setAdded(true);
   }
 
   return (
@@ -116,6 +138,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         >
           <ArrowLeft className="size-4.5" strokeWidth={2} aria-hidden />
         </button>
+        <Link
+          href="/catalog"
+          aria-label={tc("allCatalog")}
+          title={tc("allCatalog")}
+          className="absolute top-4 left-16 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+        >
+          <LayoutGrid className="size-4.5" strokeWidth={2} aria-hidden />
+        </Link>
         <button
           onClick={() => toggle(product)}
           aria-label={saved ? t("removeFromBag") : t("saveToBag")}
@@ -141,12 +171,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <div className="text-xs uppercase tracking-wide text-muted font-medium mb-1">{product.brand}</div>
         <h1 className="font-display text-2xl leading-snug mb-3">{text(product).name}</h1>
 
-        <div className="flex items-center justify-between mb-5">
-          <span className="font-display text-3xl tabular-nums">{price(product.price)}</span>
-          {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
-            <span className={["text-sm font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
-              {product.branchQuantity <= LOW_STOCK_MAX ? t("lowStock") : t("inStock")}
-            </span>
+        <div className="flex flex-col gap-2 mb-5">
+          <div className="flex items-center justify-between">
+            <span className="font-display text-3xl tabular-nums">{price(product.price)}</span>
+            {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
+              <span className={["text-sm font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
+                {product.branchQuantity <= LOW_STOCK_MAX ? t("lowStock") : t("inStock")}
+              </span>
+            )}
+          </div>
+
+          {purchaseCount > 0 && (
+            <div className="inline-flex items-center gap-1 text-xs text-success bg-success-soft rounded-full px-2.5 py-1 w-fit">
+              <BadgeCheck className="size-3.5" strokeWidth={2.25} aria-hidden />
+              {t("purchasedBefore")}
+            </div>
           )}
         </div>
 
@@ -206,7 +245,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         ) : (
           <Button variant="primary" size="lg" fullWidth disabled={outOfStock} onClick={handleAdd}>
-            {justAdded ? (
+            {added ? (
               <>
                 <Check className="size-4.5" strokeWidth={2.5} aria-hidden /> {t("added")}
               </>
@@ -218,6 +257,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </Button>
         )}
       </div>
+
+      {showBuyAgain && <BuyAgainModal productId={product.id} onClose={() => setShowBuyAgain(false)} />}
     </main>
   );
 }

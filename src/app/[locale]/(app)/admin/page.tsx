@@ -49,7 +49,13 @@ export default function AdminHome() {
     { href: "/admin/branches", label: t("branches"), hint: branchCount !== null ? t("totalCount", { n: branchCount }) : t("branchesHint"), icon: Store, roles: ["owner", "admin"] },
     { href: "/admin/products", label: t("upload"), hint: t("uploadHint"), icon: FileSpreadsheet, roles: ["owner", "admin"] },
     { href: "/admin/catalog", label: t("catalog"), hint: t("catalogHint"), icon: LayoutList, roles: ["owner", "admin"] },
-    { href: "/admin/feedback", label: t("feedback"), hint: t("feedbackHint"), icon: MessageSquare, roles: ["owner", "admin"] },
+    {
+      href: "/admin/feedback",
+      label: t("feedback"),
+      hint: branchManager ? t("onlyYourBranch") : t("allBranches"),
+      icon: MessageSquare,
+      roles: ["owner", "admin", "branch_manager"],
+    },
     { href: "/admin/profile", label: t("store"), hint: t("storeHint"), icon: Building2, roles: ["owner", "admin"] },
     { href: "/admin/settings", label: t("account"), hint: t("accountHint"), icon: UserCog },
   ];

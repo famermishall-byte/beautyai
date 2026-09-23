@@ -8,6 +8,7 @@ import { skinTypeLabel, type SkinType } from "@/lib/skincare";
 import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
+import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
@@ -89,6 +90,7 @@ export default function Home() {
 
   return (
     <main className="flex-1 pb-6">
+      <BuyAgainPrompt />
       <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
         {loading ? (
           <Skeleton className="aspect-[16/11] rounded-[var(--radius-card)]" />

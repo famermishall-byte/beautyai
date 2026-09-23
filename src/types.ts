@@ -65,6 +65,7 @@ export type Feedback = {
   message: string;
   createdAt: string;
   authorName: string | null;
+  branchName: string | null;
 };
 
 /** A line of an order. `quantity` is what is left after the seller's changes; `orderedQuantity` is what was ordered. */

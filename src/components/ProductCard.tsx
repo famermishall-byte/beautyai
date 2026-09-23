@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
-import { Heart, Plus, Check, Sparkle } from "lucide-react";
+import { Heart, Plus, Check, Sparkle, BadgeCheck } from "lucide-react";
 import type { Product, RecommendedProduct } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
+import { usePurchaseHistory } from "@/lib/purchase-history-context";
+import { isMarkedAdded, markAdded } from "@/lib/session-flags";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { Link } from "@/i18n/navigation";
 
@@ -18,9 +20,17 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const productName = text(product).name;
   const { addItem } = useCart();
   const { toggle, isSaved } = useMyBag();
-  const [justAdded, setJustAdded] = useState(false);
+  const { countOf } = usePurchaseHistory();
+  // Держится, пока открыто это посещение приложения (не 1-2 секунды) — см. session-flags.ts.
+  // sessionStorage недоступен при рендере/SSR, поэтому читаем после монтирования
+  // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
+  const [added, setAdded] = useState(false);
+  useEffect(() => {
+    Promise.resolve().then(() => setAdded(isMarkedAdded(product.id)));
+  }, [product.id]);
   const reason = "reason" in product ? product.reason : null;
   const saved = isSaved(product.id);
+  const purchasedBefore = countOf(product.id) > 0;
   const outOfStock = product.branchQuantity === 0;
   const oldPrice = product.attributes?.oldPrice;
   const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
@@ -29,8 +39,8 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
     addItem(product);
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1200);
+    markAdded(product.id);
+    setAdded(true);
   }
 
   function handleToggleSaved(e: React.MouseEvent) {
@@ -93,6 +103,13 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <div className="text-xs bg-accent-soft text-accent-strong rounded-lg px-2.5 py-1.5 mt-0.5 w-fit">{reason}</div>
         )}
 
+        {purchasedBefore && (
+          <div className="inline-flex items-center gap-1 text-[11px] text-success bg-success-soft rounded-full px-2 py-0.5 w-fit">
+            <BadgeCheck className="size-3" strokeWidth={2.25} aria-hidden />
+            {t("purchasedBefore")}
+          </div>
+        )}
+
         {product.branchQuantity !== undefined && product.branchQuantity !== null && product.branchQuantity > 0 && (
           <div className={["text-[11px] font-medium", product.branchQuantity <= LOW_STOCK_MAX ? "text-warning" : "text-success"].join(" ")}>
             {product.branchQuantity <= LOW_STOCK_MAX ? t("lowStock") : t("inStock")}
@@ -117,10 +134,10 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
               "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
               "disabled:bg-border disabled:text-muted disabled:pointer-events-none",
-              justAdded ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong active:scale-90",
+              added ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong active:scale-90",
             ].join(" ")}
           >
-            {justAdded ? (
+            {added ? (
               <Check className="size-4.5" strokeWidth={2.5} aria-hidden />
             ) : (
               <Plus className="size-4.5" strokeWidth={2.25} aria-hidden />

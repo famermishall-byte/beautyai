@@ -7,6 +7,7 @@ import { useProductText } from "@/lib/product-text";
 import { ShoppingBag, X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
+import { unmarkAdded } from "@/lib/session-flags";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useRouter, usePathname } from "@/i18n/navigation";
@@ -96,7 +97,10 @@ export function CartDrawer() {
                           </button>
                         </div>
                         <button
-                          onClick={() => removeItem(item.product.id)}
+                          onClick={() => {
+                            removeItem(item.product.id);
+                            unmarkAdded(item.product.id);
+                          }}
                           aria-label={t("remove", { name: text(item.product).name })}
                           className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
                         >

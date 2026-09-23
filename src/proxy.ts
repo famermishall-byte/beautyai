@@ -17,7 +17,7 @@ const LOCALE_HEADER = "X-NEXT-INTL-LOCALE";
 const PUBLIC_PATHS = ["/login", "/reset-password", "/o"];
 
 // A branch manager only gets these admin screens (everything else is for the owner / admin).
-const BRANCH_MANAGER_PATHS = ["/admin", "/admin/stock", "/admin/orders", "/admin/settings"];
+const BRANCH_MANAGER_PATHS = ["/admin", "/admin/stock", "/admin/orders", "/admin/settings", "/admin/feedback"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

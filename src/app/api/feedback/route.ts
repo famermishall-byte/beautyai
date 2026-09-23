@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
-import { buildFeedbackMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export async function POST(request: NextRequest) {
   const profile = await getSessionProfile();
@@ -33,18 +32,12 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.from("feedback").insert({
       store_id: profile.storeId,
       user_id: profile.userId,
+      branch_id: branch.id,
       message,
     });
     if (error) throw error;
 
-    const whatsappMessage = buildFeedbackMessage({
-      message,
-      customerName: profile.displayName ?? profile.email ?? "Клиент",
-      storeName: profile.storeName,
-    });
-    const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, whatsappMessage);
-
-    return NextResponse.json({ ok: true, whatsappUrl });
+    return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Не удалось отправить сообщение — база данных недоступна." }, { status: 500 });
   }

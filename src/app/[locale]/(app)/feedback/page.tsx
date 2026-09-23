@@ -38,9 +38,6 @@ export default function FeedbackPage() {
       }
       setSent(true);
       setMessage("");
-      if (data.whatsappUrl) {
-        window.open(data.whatsappUrl, "_blank", "noopener,noreferrer");
-      }
     } finally {
       setSubmitting(false);
     }
