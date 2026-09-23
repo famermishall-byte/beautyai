@@ -1175,6 +1175,8 @@
     "colName": "Аталышы",
     "colBrand": "Бренд",
     "colCategory": "Категория",
+    "colVolume": "Көлөм/салмак",
+    "colBarcode": "Штрихкод",
     "colPrice": "Баасы",
     "colStock": "Бар болушу",
     "showMore": "Дагы {n} көрсөтүү",

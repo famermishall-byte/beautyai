@@ -1175,6 +1175,8 @@
     "colName": "Название",
     "colBrand": "Бренд",
     "colCategory": "Категория",
+    "colVolume": "Объём/вес",
+    "colBarcode": "Штрихкод",
     "colPrice": "Цена",
     "colStock": "Наличие",
     "showMore": "Показать ещё {n}",

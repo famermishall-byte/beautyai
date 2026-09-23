@@ -58,6 +58,8 @@ export default function AdminCatalogPage() {
                   <th className="py-2 pr-4">{t("colName")}</th>
                   <th className="py-2 pr-4">{t("colBrand")}</th>
                   <th className="py-2 pr-4">{t("colCategory")}</th>
+                  <th className="py-2 pr-4">{t("colVolume")}</th>
+                  <th className="py-2 pr-4">{t("colBarcode")}</th>
                   <th className="py-2 pr-4">{t("colPrice")}</th>
                   <th className="py-2 pr-4">{t("colStock")}</th>
                 </tr>
@@ -68,6 +70,8 @@ export default function AdminCatalogPage() {
                     <td className="py-2 pr-4">{p.name}</td>
                     <td className="py-2 pr-4">{p.brand}</td>
                     <td className="py-2 pr-4">{p.category}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap">{p.attributes?.volume ?? "—"}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">{p.barcode ?? "—"}</td>
                     <td className="py-2 pr-4 whitespace-nowrap">{price(p.price)}</td>
                     <td className="py-2 pr-4">{p.inStock ? "✅" : "—"}</td>
                   </tr>
