@@ -35,7 +35,10 @@ const EMPTY_FORM: FormState = {
 };
 
 function toDatetimeLocal(iso: string): string {
-  return iso ? new Date(iso).toISOString().slice(0, 16) : "";
+  if (!iso) return "";
+  const date = new Date(iso);
+  const localMs = date.getTime() - date.getTimezoneOffset() * 60000;
+  return new Date(localMs).toISOString().slice(0, 16);
 }
 
 function promotionToForm(p: Promotion): FormState {

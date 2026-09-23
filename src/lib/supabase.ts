@@ -27,6 +27,7 @@ export function mapProduct(row: Record<string, unknown>) {
     purposeKy: (row.purpose_ky as string | null) ?? null,
     inStock: row.in_stock as boolean,
     imageUrl: row.image_url as string | null,
+    attributes: row.attributes ?? undefined,
   };
 }
 

@@ -28,7 +28,13 @@ export async function GET() {
     const productsById = new Map((productRows ?? []).map((p) => [p.id as string, mapProduct(p)]));
 
     // Порядок — как у акций (по дате окончания), не как вернула таблица products.
-    const products = promotions
+    // promotions может содержать несколько status='active' строк на один товар
+    // в БД (в т.ч. уже истёкшую по end_at), но byProduct уже дедуплицирован по
+    // productId (indexPromotionsByProduct берёт первую эффективно-активную
+    // акцию на товар). Раз promotions отсортирован по end_at по возрастанию,
+    // порядок первых вхождений в byProduct — тоже по возрастанию end_at, так
+    // что итерация по byProduct.values() сохраняет нужный порядок без дублей.
+    const products = [...byProduct.values()]
       .filter((p) => p.productId && productsById.has(p.productId))
       .map((p) => applyActivePromotion(productsById.get(p.productId as string)!, byProduct));
 

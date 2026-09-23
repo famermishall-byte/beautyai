@@ -61,7 +61,10 @@ const EMPTY_FORM: FormState = {
 };
 
 function toDatetimeLocal(iso: string): string {
-  return iso ? new Date(iso).toISOString().slice(0, 16) : "";
+  if (!iso) return "";
+  const date = new Date(iso);
+  const localMs = date.getTime() - date.getTimezoneOffset() * 60000;
+  return new Date(localMs).toISOString().slice(0, 16);
 }
 
 function bannerToForm(b: Banner): FormState {
@@ -316,8 +319,9 @@ export function BannerManager() {
   }
 
   async function toggleDisabled(banner: Banner) {
+    setError(null);
     const nextStatus = banner.status === "disabled" ? "active" : "disabled";
-    await fetch(`/api/admin/banners/${banner.id}`, {
+    const res = await fetch(`/api/admin/banners/${banner.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -332,6 +336,10 @@ export function BannerManager() {
         priority: banner.priority,
       }),
     });
+    if (!res.ok) {
+      setError(t("toggleFailed"));
+      return;
+    }
     load();
   }
 

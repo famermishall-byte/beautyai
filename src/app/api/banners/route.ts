@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { mapBanner } from "@/lib/supabase";
+import { mapBanner, mapPromotion } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
 import { isVisibleToCustomers } from "@/lib/promo-status";
+import { indexPromotionsByProduct } from "@/lib/apply-promotion";
 
 export async function GET() {
   const profile = await getSessionProfile();
@@ -21,6 +22,20 @@ export async function GET() {
     const banners = rows
       .map(mapBanner)
       .filter((b) => b.productId !== null && isVisibleToCustomers(b));
+
+    const { data: promoRows } = await supabase
+      .from("promotions")
+      .select("*")
+      .eq("store_id", profile.storeId)
+      .eq("status", "active")
+      .not("product_id", "is", null);
+    const promotionsByProduct = indexPromotionsByProduct((promoRows ?? []).map(mapPromotion));
+
+    for (const banner of banners) {
+      if (!banner.product) continue;
+      const promotion = promotionsByProduct.get(banner.product.id);
+      if (promotion) banner.product.price = promotion.newPrice;
+    }
 
     return NextResponse.json({ banners });
   } catch {
