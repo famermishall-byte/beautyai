@@ -166,7 +166,7 @@ function BannerForm({
     imageUrl: form.imageUrl,
     buttonText: form.buttonText || null,
     startAt: new Date().toISOString(),
-    endAt: new Date(Date.now() + 86400000).toISOString(),
+    endAt: new Date(new Date().getTime() + 86400000).toISOString(),
     status: "active",
     priority: 0,
     createdAt: new Date().toISOString(),
@@ -257,7 +257,7 @@ function BannerForm({
         </Button>
       </div>
 
-      {preview && <BannerInterstitial banner={previewBanner} onClose={() => setPreview(false)} />}
+      {preview && <BannerInterstitial banner={previewBanner} onClose={() => setPreview(false)} previewOnly />}
     </form>
   );
 }

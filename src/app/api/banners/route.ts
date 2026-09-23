@@ -19,9 +19,10 @@ export async function GET() {
       .order("priority", { ascending: true });
     if (error) throw error;
 
-    const banners = rows
-      .map(mapBanner)
-      .filter((b) => b.productId !== null && isVisibleToCustomers(b));
+    // Баннер без товара — законный случай (общая реклама/акция без привязки к конкретной
+    // позиции, напр. «скидки именинникам»); раньше такие баннеры сюда не попадали вовсе,
+    // хотя админка позволяет их создать — клиент их просто никогда не видел.
+    const banners = rows.map(mapBanner).filter((b) => isVisibleToCustomers(b));
 
     const { data: promoRows } = await supabase
       .from("promotions")

@@ -291,25 +291,36 @@ function CatalogContent() {
         <>
       {promo && banners.length > 0 && (
         <div className="mb-4 flex flex-col gap-3">
-          {banners.map((banner) => (
-            <Link
-              key={banner.id}
-              href={`/product/${banner.productId}`}
-              className="tile-sheen relative overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] flex items-center gap-4 p-3 transition active:scale-[0.99]"
-            >
-              {banner.imageUrl && (
-                <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-accent-soft">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+          {banners.map((banner) => {
+            // Баннер может быть без привязанного товара (общая акция) — мы уже на «Акции»,
+            // так что просто показываем карточку без ссылки, вместо перехода в никуда/на себя.
+            const cardClass =
+              "tile-sheen relative overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] flex items-center gap-4 p-3";
+            const inner = (
+              <>
+                {banner.imageUrl && (
+                  <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-accent-soft">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-base leading-snug truncate">{banner.title}</div>
+                  {banner.subtitle && <div className="text-xs text-muted truncate mt-0.5">{banner.subtitle}</div>}
                 </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="font-display text-base leading-snug truncate">{banner.title}</div>
-                {banner.subtitle && <div className="text-xs text-muted truncate mt-0.5">{banner.subtitle}</div>}
+                {banner.productId && <ChevronRight className="size-4.5 text-muted shrink-0" strokeWidth={2} aria-hidden />}
+              </>
+            );
+            return banner.productId ? (
+              <Link key={banner.id} href={`/product/${banner.productId}`} className={`${cardClass} transition active:scale-[0.99]`}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={banner.id} className={cardClass}>
+                {inner}
               </div>
-              <ChevronRight className="size-4.5 text-muted shrink-0" strokeWidth={2} aria-hidden />
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
       <div className="mb-2 -mx-4 px-4 overflow-x-auto">

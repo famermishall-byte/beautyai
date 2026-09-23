@@ -8,8 +8,13 @@ import { Link } from "@/i18n/navigation";
 import { wasCatalogAdShown, markCatalogAdShown, wasCheckoutAdShown, markCheckoutAdShown } from "@/lib/session-flags";
 import type { Banner } from "@/types";
 
-/** Всплывающий баннер: клик по карточке (не по крестику) ведёт на товар. */
-export function BannerInterstitial({ banner, onClose }: { banner: Banner; onClose: () => void }) {
+/**
+ * Всплывающий баннер: клик по карточке (не по крестику) ведёт на товар, а если баннер без
+ * привязанного товара (законный случай — общая акция без конкретной позиции) — на «Акции».
+ * `previewOnly` — только для предпросмотра в админке (BannerManager.tsx), пока форма ещё
+ * черновик без сохранённого товара: там клик по недособранному баннеру никуда вести не должен.
+ */
+export function BannerInterstitial({ banner, onClose, previewOnly = false }: { banner: Banner; onClose: () => void; previewOnly?: boolean }) {
   const t = useTranslations("bannerInterstitial");
   const price = usePrice();
 
@@ -50,7 +55,7 @@ export function BannerInterstitial({ banner, onClose }: { banner: Banner; onClos
     </div>
   );
 
-  if (!banner.productId) {
+  if (previewOnly && !banner.productId) {
     // Предпросмотр без товара (форма ещё не сохранена) — не кликабельно.
     return (
       <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
@@ -60,10 +65,13 @@ export function BannerInterstitial({ banner, onClose }: { banner: Banner; onClos
     );
   }
 
+  // Товара нет — ведём на общую страницу «Акции», а не никуда (баннер без товара всё равно
+  // должен быть кликабелен для покупателя, раз в нём есть кнопка-призыв вроде «купи меня»).
+  const href = banner.productId ? `/product/${banner.productId}` : "/catalog?promo=1";
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
-      <Link href={`/product/${banner.productId}`} onClick={onClose} className="contents">
+      <Link href={href} onClick={onClose} className="contents">
         {body}
       </Link>
     </div>
