@@ -17,7 +17,7 @@ export function FeedbackManager() {
   }, []);
 
   return (
-    <div className="bg-card rounded-card border border-border p-6">
+    <div className="surface-card p-6">
       <h2 className="font-medium mb-1">{t("title")}</h2>
       <p className="text-sm text-muted mb-4">{t("subtitle")}</p>
 

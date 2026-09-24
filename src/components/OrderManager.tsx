@@ -7,6 +7,7 @@ import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
+import { buttonClasses } from "@/components/ui/Button";
 import {
   NEXT_ORDER_STEP,
   ORDER_STATUSES,
@@ -219,7 +220,7 @@ function OrderRow({
                     onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.max(0, v - 1) : v)))}
                     disabled={saving || draft[i] <= 0}
                     aria-label={t("decrease")}
-                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
+                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 focus-ring"
                   >
                     <Minus className="size-3.5" aria-hidden />
                   </button>
@@ -227,7 +228,7 @@ function OrderRow({
                     onClick={() => setDraft((d) => d.map((v, idx) => (idx === i ? Math.min(max, v + 1) : v)))}
                     disabled={saving || draft[i] >= max}
                     aria-label={t("increase")}
-                    className="w-7 h-7 rounded-full border border-border flex items-center justify-center disabled:opacity-30"
+                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 focus-ring"
                   >
                     <Plus className="size-3.5" aria-hidden />
                   </button>
@@ -262,7 +263,7 @@ function OrderRow({
             <button
               onClick={saveEdit}
               disabled={saving || draft.every((q, i) => q === order.items[i].quantity)}
-              className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              className={buttonClasses({ size: "sm" })}
             >
               {saving ? t("saving") : t("saveTotal", { total: money(draftTotal) })}
             </button>
@@ -271,7 +272,7 @@ function OrderRow({
                 setEditing(false);
                 setDraft(order.items.map((i) => i.quantity));
               }}
-              className="text-sm text-muted underline"
+              className="text-sm text-muted underline focus-ring"
             >
               {t("cancel")}
             </button>
@@ -282,7 +283,7 @@ function OrderRow({
               <button
                 onClick={() => changeStatus(next.status)}
                 disabled={saving}
-                className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className={buttonClasses({ size: "sm" })}
               >
                 {saving ? t("saving") : ts(`next.${next.labelKey}`)}
               </button>
@@ -293,7 +294,7 @@ function OrderRow({
                   setDraft(order.items.map((i) => i.quantity));
                   setEditing(true);
                 }}
-                className="rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:border-accent/40"
+                className={buttonClasses({ variant: "ghost", size: "sm" })}
               >
                 {t("editItems")}
               </button>
@@ -356,7 +357,7 @@ function SalesSummary({
   const byBranch = [...rows.values()].sort((a, b) => b.sum - a.sum);
 
   return (
-    <div className="bg-card rounded-card border border-border p-5 mb-6">
+    <div className="surface-card p-5 mb-6">
       <div className="flex items-start justify-between gap-3 mb-3">
         <h2 className="font-medium">
           {!allBranches ? t("salesOwn") : oneBranch ? t("salesOne", { name: oneBranch.name }) : t("salesAll")}
@@ -369,7 +370,7 @@ function SalesSummary({
           <select
             value={branchId}
             onChange={(e) => onBranch(e.target.value)}
-            className="w-full rounded-control border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+            className="field"
           >
             <option value="all">{t("allBranchesTotal")}</option>
             {branchOptions.map((b) => (
@@ -609,7 +610,7 @@ export function OrderManager() {
         />
       )}
 
-      <div className="bg-card rounded-card border border-border p-6">
+      <div className="surface-card p-6">
         <div className="flex items-start justify-between gap-3 mb-1">
           <h2 className="font-medium">{t("title")}</h2>
           <button
@@ -628,7 +629,7 @@ export function OrderManager() {
         </p>
 
         {alert && (
-          <button onClick={() => setAlert("")} className="w-full text-left rounded-control bg-accent text-on-accent px-4 py-3 text-sm font-semibold mb-3">
+          <button onClick={() => setAlert("")} className="w-full text-left rounded-control bg-accent text-on-accent px-4 py-3 text-sm font-semibold mb-3 focus-ring">
             🔔 {alert} <span className="font-normal opacity-80">— {t("tapToHide")}</span>
           </button>
         )}
@@ -648,7 +649,7 @@ export function OrderManager() {
                   setShown(PAGE);
                 }}
                 placeholder={t("searchPlaceholder")}
-                className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+                className="field pl-10 pr-4"
               />
             </div>
             {q && (
@@ -656,7 +657,7 @@ export function OrderManager() {
                 <span className="font-medium">
                   {t("found", { n: filtered.length })} <span className="font-normal text-muted">({t("searchAll")})</span>
                 </span>
-                <button onClick={() => setQuery("")} className="text-accent underline shrink-0">
+                <button onClick={() => setQuery("")} className="text-accent underline shrink-0 focus-ring">
                   {t("resetSearch")}
                 </button>
               </div>
@@ -667,7 +668,7 @@ export function OrderManager() {
               <select
                 value={newestFirst ? "new" : "old"}
                 onChange={(e) => setNewestFirst(e.target.value === "new")}
-                className="rounded-control border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+                className="field"
               >
                 <option value="new">{t("newestFirst")}</option>
                 <option value="old">{t("oldestFirst")}</option>
@@ -679,7 +680,7 @@ export function OrderManager() {
                 <span>
                   {t.rich("branchOrders", { name: chosenBranch.name, b: (chunks) => <span className="font-semibold">{chunks}</span> })}
                 </span>
-                <button onClick={() => setBranchFilter("all")} className="text-accent underline shrink-0">
+                <button onClick={() => setBranchFilter("all")} className="text-accent underline shrink-0 focus-ring">
                   {t("showAllBranches")}
                 </button>
               </div>
@@ -704,18 +705,18 @@ export function OrderManager() {
 
             {(group === "action" || group === "problems") && visibleOpenIds.length > 1 && (
               <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
-                <button onClick={() => setSelected(new Set(visibleOpenIds))} className="text-accent underline">
+                <button onClick={() => setSelected(new Set(visibleOpenIds))} className="text-accent underline focus-ring">
                   {t("selectAll")}
                 </button>
                 {selectedIds.length > 0 && (
                   <>
-                    <button onClick={() => setSelected(new Set())} className="text-muted underline">
+                    <button onClick={() => setSelected(new Set())} className="text-muted underline focus-ring">
                       {t("clearSelection")}
                     </button>
                     <button
                       onClick={markSelectedPaid}
                       disabled={bulkBusy}
-                      className="rounded-full bg-success text-on-accent px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                      className={buttonClasses({ variant: "success", size: "sm" })}
                     >
                       {bulkBusy ? t("marking") : t("paymentReceivedCount", { n: selectedIds.length })}
                     </button>
@@ -751,7 +752,7 @@ export function OrderManager() {
             {shown < filtered.length && (
               <button
                 onClick={() => setShown((n) => n + PAGE)}
-                className="mt-4 w-full rounded-full border border-border py-2.5 text-sm font-medium transition hover:border-accent/40"
+                className="mt-4 w-full rounded-full border border-border py-2.5 text-sm font-medium transition hover:border-accent/40 focus-ring"
               >
                 {t("showMore", { n: Math.min(PAGE, filtered.length - shown) })}
               </button>

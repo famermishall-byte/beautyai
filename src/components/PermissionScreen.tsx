@@ -52,7 +52,7 @@ export function PermissionScreen({
 
         <ul className="flex flex-col gap-3 w-full text-left">
           {perks.map(({ icon: PerkIcon, text }) => (
-            <li key={text} className="flex items-center gap-3.5 bg-card border border-border rounded-card px-4 py-3.5">
+            <li key={text} className="flex items-center gap-3.5 surface-card px-4 py-3.5">
               <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
                 <PerkIcon className="size-4.5" strokeWidth={1.85} aria-hidden />
               </span>

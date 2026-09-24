@@ -175,7 +175,7 @@ function BannerForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 flex flex-col gap-3.5 mb-5">
+    <form onSubmit={handleSubmit} className="surface-card p-5 flex flex-col gap-3.5 mb-5">
       <input className={inputClass} placeholder={t("fields.title")} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
       <textarea
         className={inputClass}
@@ -377,7 +377,7 @@ export function BannerManager() {
               onSaved={(form) => submitForm(banner.id, form)}
             />
           ) : (
-            <div key={banner.id} className="bg-card rounded-card border border-border p-4 flex gap-3.5 items-center">
+            <div key={banner.id} className="surface-card p-4 flex gap-3.5 items-center">
               <div className="w-16 h-16 rounded-control overflow-hidden bg-accent-soft shrink-0">
                 {banner.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -401,21 +401,21 @@ export function BannerManager() {
                 <button
                   onClick={() => setEditingId(banner.id)}
                   aria-label={t("edit")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground focus-ring"
                 >
                   <Eye className="size-4" strokeWidth={2} aria-hidden />
                 </button>
                 <button
                   onClick={() => toggleDisabled(banner)}
                   aria-label={banner.status === "disabled" ? t("enable") : t("disable")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground focus-ring"
                 >
                   {banner.status === "disabled" ? <Play className="size-4" strokeWidth={2} aria-hidden /> : <Pause className="size-4" strokeWidth={2} aria-hidden />}
                 </button>
                 <button
                   onClick={() => handleDelete(banner.id)}
                   aria-label={t("delete")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-error-soft hover:text-error"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-error-soft hover:text-error focus-ring"
                 >
                   <Trash2 className="size-4" strokeWidth={2} aria-hidden />
                 </button>

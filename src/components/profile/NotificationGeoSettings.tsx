@@ -96,12 +96,12 @@ export function NotificationGeoSettings() {
   }
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card mb-6 overflow-hidden">
+    <div className="surface-card mb-6 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover"
+        className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover focus-ring"
       >
         <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
           <Settings className="size-4.5" strokeWidth={1.85} aria-hidden />

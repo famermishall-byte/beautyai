@@ -65,13 +65,13 @@ export default function FeedbackPage() {
         <div className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 shadow-card">
+      <form onSubmit={handleSubmit} className="surface-card p-5">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("placeholder")}
           rows={6}
-          className="w-full rounded-control border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none mb-4"
+          className="field resize-none mb-4"
         />
         <Button type="submit" size="lg" loading={submitting} disabled={!message.trim()} fullWidth>
           {t("send")}

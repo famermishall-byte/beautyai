@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import type { Branch } from "@/types";
 
+import { buttonClasses } from "@/components/ui/Button";
 type Form = { name: string; city: string; address: string; phone: string; whatsapp: string; hours: string; latitude: string; longitude: string };
 type Notice = { kind: "ok" | "error"; text: string };
 
@@ -117,7 +118,7 @@ function BranchCard({
 
   return (
     <div id={`branch-${branch.id}`} className="border border-border rounded-control overflow-hidden">
-      <button onClick={onToggle} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-state-hover transition" aria-expanded={open}>
+      <button onClick={onToggle} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-state-hover transition focus-ring" aria-expanded={open}>
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{branch.name}</div>
           <div className="text-xs text-muted truncate">
@@ -169,11 +170,11 @@ function BranchCard({
             <button
               onClick={handleSave}
               disabled={state === "saving" || !dirty}
-              className="rounded-full bg-accent text-on-accent px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className={buttonClasses({ size: "sm" })}
             >
               {state === "saving" ? t("saving") : t("save")}
             </button>
-            <button onClick={handleDelete} className="text-sm text-muted underline hover:text-accent transition">
+            <button onClick={handleDelete} className="text-sm text-muted underline hover:text-accent transition focus-ring">
               {t("deleteBranch")}
             </button>
             <span aria-live="polite" className="text-sm">
@@ -258,12 +259,12 @@ export function BranchManager() {
   }
 
   return (
-    <div className="bg-card rounded-card border border-border p-6">
+    <div className="surface-card p-6">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h2 className="font-medium">{t("title")} · {branches.length}</h2>
         <button
           onClick={() => setShowAdd((v) => !v)}
-          className="flex items-center gap-1 rounded-full bg-accent-soft text-accent px-3.5 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent"
+          className={buttonClasses({ variant: "secondary", size: "sm" })}
         >
           <Plus className="size-4" aria-hidden />
           {t("add")}
@@ -300,11 +301,11 @@ export function BranchManager() {
             <button
               type="submit"
               disabled={adding}
-              className="rounded-full bg-accent text-on-accent px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className={buttonClasses({ size: "sm" })}
             >
               {adding ? t("adding") : t("addBranch")}
             </button>
-            <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-muted underline">
+            <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-muted underline focus-ring">
               {t("cancel")}
             </button>
           </div>

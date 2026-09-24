@@ -65,7 +65,7 @@ export function ProductPicker({
           type="button"
           onClick={() => onPick(null)}
           aria-label={t("clear")}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-error shrink-0"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-error shrink-0 focus-ring"
         >
           <X className="size-4" strokeWidth={2} aria-hidden />
         </button>
@@ -85,7 +85,7 @@ export function ProductPicker({
           }}
           onFocus={() => setOpen(true)}
           placeholder={t("placeholder")}
-          className="w-full rounded-control border border-border bg-background pl-10 pr-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent"
+          className="field pl-10 pr-3"
         />
       </div>
       {open && results.length > 0 && (
@@ -100,7 +100,7 @@ export function ProductPicker({
                 setResults([]);
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 p-2.5 text-left transition hover:bg-state-hover border-b border-border last:border-0"
+              className="w-full flex items-center gap-3 p-2.5 text-left transition hover:bg-state-hover border-b border-border last:border-0 focus-ring"
             >
               <div className="w-10 h-10 rounded-control overflow-hidden bg-accent-soft shrink-0">
                 {product.imageUrl && (

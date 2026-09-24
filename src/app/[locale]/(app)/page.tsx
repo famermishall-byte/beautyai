@@ -132,7 +132,7 @@ export default function Home() {
           ) : (
             <Link
               href="/profile"
-              className="bg-card rounded-card border border-border p-4.5 flex items-center justify-between gap-4 shadow-card transition hover:border-accent/30 active:scale-[0.99]"
+              className="surface-card p-4.5 flex items-center justify-between gap-4 transition hover:border-accent/30 active:scale-[0.99]"
             >
               <div className="flex items-center gap-3.5">
                 <span className="flex items-center justify-center w-11 h-11 rounded-full bg-accent-soft text-accent shrink-0">

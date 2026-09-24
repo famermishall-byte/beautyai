@@ -164,7 +164,7 @@ export default function AdminStockPage() {
       <select
         value={branchId ?? ""}
         onChange={(e) => selectBranch(e.target.value)}
-        className="w-full rounded-control border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-4"
+        className="field mb-4"
       >
         {branches.length === 0 && <option value="">{t("noBranches")}</option>}
         {branches.map((b) => (
@@ -182,7 +182,7 @@ export default function AdminStockPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent"
+          className="field pl-11 pr-4"
         />
       </div>
 
@@ -215,7 +215,7 @@ export default function AdminStockPage() {
               setSort(e.target.value as "problems" | "name");
               setPage(1);
             }}
-            className="rounded-control border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+            className="field"
           >
             <option value="problems">{t("problemsFirst")}</option>
             <option value="name">{t("byName")}</option>
@@ -241,7 +241,7 @@ export default function AdminStockPage() {
         <button
           onClick={() => setPage((p) => p + 1)}
           disabled={loading}
-          className="mt-4 w-full rounded-full border border-border bg-card py-3 text-sm font-medium transition hover:border-accent/40 disabled:opacity-50"
+          className="mt-4 w-full rounded-full border border-border bg-card py-3 text-sm font-medium transition hover:border-accent/40 disabled:opacity-50 focus-ring"
         >
           {t("showMore", { n: Math.min(PAGE_SIZE, total - items.length) })}
         </button>
@@ -273,7 +273,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
   }
 
   return (
-    <li className="bg-card rounded-card border border-border p-3 flex items-center gap-3">
+    <li className="surface-card p-3 flex items-center gap-3">
       <div className="w-14 h-14 shrink-0 rounded-control bg-accent-soft overflow-hidden flex items-center justify-center">
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -315,7 +315,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
           aria-label={t("quantityOf", { name: item.name })}
-          className="w-20 rounded-control border border-border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
+          className="field w-20 text-center"
         />
         <button
           onClick={() => {
@@ -323,7 +323,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
             commit("0");
           }}
           disabled={saving || item.quantity === 0}
-          className="text-2xs font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
+          className="text-2xs font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline focus-ring"
         >
           {t("zeroOut")}
         </button>

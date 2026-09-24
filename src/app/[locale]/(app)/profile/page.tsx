@@ -209,7 +209,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline"
+              className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline focus-ring"
             >
               <Pencil className="size-3.5" strokeWidth={2} aria-hidden />
               {t("edit")}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="bg-card rounded-card border border-border shadow-card overflow-hidden mb-4">
+      <div className="surface-card overflow-hidden mb-4">
         <MenuRow href="/city" icon={MapPin} label={t("menu.city")} hint={city ?? t("menu.cityNotChosen")} />
         <MenuRow href="/branches" icon={Store} label={t("menu.stores")} hint={t("menu.storesHint")} />
         <MenuRow href="/mybag" icon={Heart} label={t("menu.myBag")} hint={t("menu.myBagHint")} />
@@ -268,12 +268,12 @@ export default function ProfilePage() {
 
       <NotificationGeoSettings />
 
-      <div className="bg-card rounded-card border border-border shadow-card mb-6 overflow-hidden">
+      <div className="surface-card mb-6 overflow-hidden">
         <button
           type="button"
           onClick={() => setShowAccount((v) => !v)}
           aria-expanded={showAccount}
-          className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover"
+          className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover focus-ring"
         >
           <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
             <KeyRound className="size-4.5" strokeWidth={1.85} aria-hidden />

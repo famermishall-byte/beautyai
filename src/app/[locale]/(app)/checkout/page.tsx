@@ -268,7 +268,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, -1)}
                           aria-label={tCart("decrease", { name: text(item.product).name })}
-                          className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
+                          className="w-9 h-9 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                         >
                           <Minus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, 1)}
                           aria-label={tCart("increase", { name: text(item.product).name })}
-                          className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
+                          className="w-9 h-9 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                         >
                           <Plus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
+import { buttonClasses } from "@/components/ui/Button";
 import {
   IMPORT_FIELDS,
   detectFormat,
@@ -215,7 +216,7 @@ export default function ImportPage() {
       {step === "file" && (
         <>
           {templates.length > 0 && (
-            <div className="bg-card rounded-card border border-border p-5 mb-6">
+            <div className="surface-card p-5 mb-6">
               <h2 className="font-medium mb-3">{ti("myTemplates")}</h2>
               <ul className="flex flex-col gap-2">
                 {templates.map((t) => (
@@ -223,7 +224,7 @@ export default function ImportPage() {
                     <span>{t.name}</span>
                     <button
                       onClick={() => handleDeleteTemplate(t.id)}
-                      className="text-xs text-muted underline hover:text-accent"
+                      className="text-xs text-muted underline hover:text-accent focus-ring"
                     >
                       {ti("delete")}
                     </button>
@@ -233,7 +234,7 @@ export default function ImportPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-card border border-border p-6">
+          <div className="surface-card p-6">
             <h2 className="font-medium mb-3">{ti("step1")}</h2>
             <input
               ref={fileInputRef}
@@ -247,7 +248,7 @@ export default function ImportPage() {
       )}
 
       {step === "mapping" && table && (
-        <div className="bg-card rounded-card border border-border p-6">
+        <div className="surface-card p-6">
           <h2 className="font-medium mb-1">{ti("step2")}</h2>
           <p className="text-sm text-muted mb-4">
             {ti("step2Hint")}
@@ -299,7 +300,7 @@ export default function ImportPage() {
           {!showSaveTemplate ? (
             <button
               onClick={() => setShowSaveTemplate(true)}
-              className="text-sm text-accent underline mb-5"
+              className="text-sm text-accent underline mb-5 focus-ring"
             >
               💾 {ti("saveAsTemplate")}
             </button>
@@ -314,7 +315,7 @@ export default function ImportPage() {
               <button
                 onClick={handleSaveTemplate}
                 disabled={savingTemplate || !templateNameDraft.trim()}
-                className="shrink-0 rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:bg-state-hover disabled:opacity-50"
+                className={buttonClasses({ variant: "ghost", size: "sm", className: "shrink-0" })}
               >
                 {savingTemplate ? ti("saving") : ti("save")}
               </button>
@@ -324,13 +325,13 @@ export default function ImportPage() {
           <div className="flex gap-2">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
+              className={buttonClasses({ variant: "ghost" })}
             >
               {ti("cancel")}
             </button>
             <button
               onClick={goToPreview}
-              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className={buttonClasses()}
             >
               {ti("nextPreview")}
             </button>
@@ -340,7 +341,7 @@ export default function ImportPage() {
 
       {step === "preview" && (
         <div className="flex flex-col gap-6">
-          <div className="bg-card rounded-card border border-border p-6">
+          <div className="surface-card p-6">
             <h2 className="font-medium mb-1">{ti("step3")}</h2>
             <p className="text-sm text-muted mb-4">
               {ti("readyToImport")}: <span className="text-foreground font-medium">{okRows.length}</span>
@@ -404,14 +405,14 @@ export default function ImportPage() {
           <div className="flex gap-2">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
+              className={buttonClasses({ variant: "ghost" })}
             >
               {ti("cancel")}
             </button>
             <button
               onClick={handleImport}
               disabled={importing || okRows.length === 0}
-              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              className={buttonClasses()}
             >
               {importing ? ti("importing") : ti("importN", { n: okRows.length })}
             </button>
@@ -420,7 +421,7 @@ export default function ImportPage() {
       )}
 
       {step === "done" && importResult && (
-        <div className="bg-card rounded-card border border-border p-6 text-center">
+        <div className="surface-card p-6 text-center">
           <div className="text-4xl mb-3">💚</div>
           <h2 className="font-display text-2xl mb-2">{ti("done")}</h2>
           <p className="text-muted mb-1">{ti("added", { n: importResult.imported })}</p>
@@ -432,13 +433,13 @@ export default function ImportPage() {
           <div className="flex gap-2 justify-center mt-4">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
+              className={buttonClasses({ variant: "ghost" })}
             >
               {ti("uploadAnother")}
             </button>
             <Link
               href="/admin"
-              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className={buttonClasses()}
             >
               {ti("toPanel")}
             </Link>

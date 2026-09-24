@@ -97,7 +97,7 @@ export function NewArrivalsManager() {
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">{t("intro")}</p>
 
-      <div className="bg-card border border-border rounded-card p-4">
+      <div className="surface-card p-4">
         <div className="text-sm font-medium mb-2 flex items-center gap-1.5">
           <Plus className="size-4" strokeWidth={2} aria-hidden />
           {t("addLabel")}
@@ -118,7 +118,7 @@ export function NewArrivalsManager() {
                   <div className="flex-1 h-px bg-border" />
                 </div>
               )}
-              <div className="bg-card border border-border rounded-card p-3 flex items-center gap-3">
+              <div className="surface-card p-3 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-control overflow-hidden bg-accent-soft shrink-0">
                   {item.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -137,7 +137,7 @@ export function NewArrivalsManager() {
                     onClick={() => handleMove(i, -1)}
                     disabled={i === 0}
                     aria-label={t("moveUp")}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30 focus-ring"
                   >
                     <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
                   </button>
@@ -146,7 +146,7 @@ export function NewArrivalsManager() {
                     onClick={() => handleMove(i, 1)}
                     disabled={i === items.length - 1}
                     aria-label={t("moveDown")}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30 focus-ring"
                   >
                     <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
                   </button>

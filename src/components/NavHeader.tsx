@@ -10,6 +10,7 @@ import { getStoredCity } from "@/lib/city";
 import { switchViewMode } from "@/lib/view-mode";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
+import { buttonClasses } from "@/components/ui/Button";
 export function NavHeader() {
   const t = useTranslations("nav");
   const tMeta = useTranslations("meta");
@@ -63,7 +64,7 @@ export function NavHeader() {
         {!isAdmin && isManager && (
           <button
             onClick={() => switchViewMode("admin")}
-            className="shrink-0 flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className={buttonClasses({ variant: "secondary", size: "sm", className: "shrink-0" })}
           >
             <LayoutDashboard className="size-4" strokeWidth={2} aria-hidden />
             {t("adminShort")}
@@ -105,7 +106,7 @@ export function NavHeader() {
             <button
               onClick={() => signOut()}
               aria-label={t("signOut")}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted transition hover:text-foreground hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-muted transition hover:text-foreground hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <LogOut className="size-4" strokeWidth={1.85} aria-hidden />
             </button>

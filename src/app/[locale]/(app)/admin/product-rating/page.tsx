@@ -94,7 +94,7 @@ export default function AdminProductRatingPage() {
           <select
             value={branchId ?? ""}
             onChange={(e) => selectBranch(e.target.value)}
-            className="w-full rounded-control border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-5"
+            className="field mb-5"
           >
             {branches.length === 0 && <option value="">{t("noBranches")}</option>}
             {branches.map((b) => (
@@ -115,7 +115,7 @@ export default function AdminProductRatingPage() {
       ) : (
         <ol className="flex flex-col gap-2">
           {items.map((item, i) => (
-            <li key={item.id} className="bg-card rounded-card border border-border p-3 flex items-center gap-3">
+            <li key={item.id} className="surface-card p-3 flex items-center gap-3">
               <span
                 className={[
                   "shrink-0 size-8 rounded-full flex items-center justify-center text-sm font-bold",

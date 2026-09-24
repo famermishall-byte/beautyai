@@ -27,7 +27,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
           onClose();
         }}
         aria-label={t("close")}
-        className="absolute top-3 right-3 z-raised w-8 h-8 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
+        className="absolute top-3 right-3 z-raised w-9 h-9 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90 focus-ring"
       >
         <X className="size-4" strokeWidth={2} aria-hidden />
       </button>

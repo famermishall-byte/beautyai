@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import { markAdded } from "@/lib/session-flags";
 import type { Product } from "@/types";
 
+import { buttonClasses } from "@/components/ui/Button";
 /** «Не хотите купить снова?» — товар, который клиент уже покупал 2+ раза. */
 export function BuyAgainModal({ productId, onClose }: { productId: string; onClose: () => void }) {
   const t = useTranslations("buyAgain");
@@ -46,7 +47,7 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
         <button
           onClick={onClose}
           aria-label={t("close")}
-          className="absolute top-3 right-3 z-raised w-8 h-8 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
+          className="absolute top-3 right-3 z-raised w-9 h-9 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90 focus-ring"
         >
           <X className="size-4" strokeWidth={2} aria-hidden />
         </button>
@@ -73,13 +74,13 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className={buttonClasses({ variant: "ghost", className: "flex-1" })}
           >
             {t("dismiss")}
           </button>
           <button
             onClick={handleBuyAgain}
-            className="flex-1 rounded-full bg-accent text-on-accent px-4 py-3 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className={buttonClasses({ className: "flex-1" })}
           >
             {t("buyAgain")}
           </button>

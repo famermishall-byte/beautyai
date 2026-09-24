@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 import type { Branch } from "@/types";
 
+import { buttonClasses } from "@/components/ui/Button";
 type Person = { userId: string; email: string; displayName: string | null; role: string; branchId: string | null; branchName: string | null };
 type Notice = { kind: "ok" | "error"; text: string };
 
@@ -98,7 +99,7 @@ export default function AdminStaffPage() {
         </div>
       )}
 
-      <form onSubmit={handleAssign} className="bg-card rounded-card border border-border p-5 mb-6">
+      <form onSubmit={handleAssign} className="surface-card p-5 mb-6">
         <h2 className="font-medium mb-1">{t("grantTitle")}</h2>
         <p className="text-sm text-muted mb-4">
           {t("grantHint")}
@@ -132,13 +133,13 @@ export default function AdminStaffPage() {
         <button
           type="submit"
           disabled={saving}
-          className="mt-4 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className={buttonClasses({ size: "sm", className: "mt-4" })}
         >
           {saving ? t("granting") : t("grantTitle")}
         </button>
       </form>
 
-      <div className="bg-card rounded-card border border-border p-5">
+      <div className="surface-card p-5">
         <h2 className="font-medium mb-3">{t("currentTitle")}{staff ? ` · ${staff.length}` : ""}</h2>
         {loadError && <p className="text-sm text-error font-medium">{loadError}</p>}
         {staff === null ? (
@@ -157,7 +158,7 @@ export default function AdminStaffPage() {
                   </div>
                 </div>
                 {p.role !== "owner" && (
-                  <button onClick={() => handleRemove(p)} className="text-sm text-muted underline hover:text-error transition shrink-0">
+                  <button onClick={() => handleRemove(p)} className="text-sm text-muted underline hover:text-error transition shrink-0 focus-ring">
                     {t("revoke")}
                   </button>
                 )}

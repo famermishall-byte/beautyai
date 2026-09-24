@@ -41,7 +41,7 @@ export function PasswordInput({
         onClick={() => setVisible((v) => !v)}
         tabIndex={-1}
         aria-label={visible ? t("hidePassword") : t("showPassword")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-foreground transition"
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-foreground transition focus-ring"
       >
         {visible ? (
           <EyeOff className="size-5" strokeWidth={2} aria-hidden />

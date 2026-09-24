@@ -85,7 +85,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
   return (
     <div className="flex flex-col gap-4">
       {kit.skinSteps.length > 0 && (
-        <div className="bg-card rounded-card border border-border shadow-card overflow-hidden">
+        <div className="surface-card overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h3 className="font-display text-lg">{t("forFace")}</h3>
           </div>
@@ -98,7 +98,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
       )}
 
       {(kit.hairProducts.length > 0 || kit.hairTips.length > 0) && (
-        <div className="bg-card rounded-card border border-border shadow-card overflow-hidden">
+        <div className="surface-card overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h3 className="font-display text-lg">{t("forHair")}</h3>
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 
+import { buttonClasses } from "@/components/ui/Button";
 export default function AdminProfilePage() {
   const t = useTranslations("adminProfile");
   const [storeName, setStoreName] = useState("");
@@ -47,7 +48,7 @@ export default function AdminProfilePage() {
 
   return (
     <AdminPage title={t("title")} subtitle={t("subtitle")}>
-      <div className="bg-card rounded-card border border-border p-6">
+      <div className="surface-card p-6">
         <form onSubmit={handleSave} className="flex flex-wrap items-center gap-2">
           <input
             value={storeName}
@@ -56,12 +57,12 @@ export default function AdminProfilePage() {
               setSaved(false);
             }}
             placeholder={t("namePlaceholder")}
-            className="flex-1 min-w-[12rem] rounded-control border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent"
+            className="field flex-1 min-w-[12rem]"
           />
           <button
             type="submit"
             disabled={saving || !storeName.trim()}
-            className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className={buttonClasses({ size: "sm" })}
           >
             {saving ? t("saving") : t("save")}
           </button>

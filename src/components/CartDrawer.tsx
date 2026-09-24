@@ -61,7 +61,7 @@ export function CartDrawer() {
               <button
                 onClick={() => setOpen(false)}
                 aria-label={t("close")}
-                className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-state-hover active:scale-90"
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-state-hover active:scale-90 focus-ring"
               >
                 <X className="size-4.5" strokeWidth={2} aria-hidden />
               </button>
@@ -83,7 +83,7 @@ export function CartDrawer() {
                           <button
                             onClick={() => changeQuantity(item.product.id, -1)}
                             aria-label={t("decrease", { name: text(item.product).name })}
-                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                           >
                             <Minus className="size-3" strokeWidth={2.5} aria-hidden />
                           </button>
@@ -91,7 +91,7 @@ export function CartDrawer() {
                           <button
                             onClick={() => changeQuantity(item.product.id, 1)}
                             aria-label={t("increase", { name: text(item.product).name })}
-                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                           >
                             <Plus className="size-3" strokeWidth={2.5} aria-hidden />
                           </button>
@@ -102,7 +102,7 @@ export function CartDrawer() {
                             unmarkAdded(item.product.id);
                           }}
                           aria-label={t("remove", { name: text(item.product).name })}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft focus-ring"
                         >
                           <Trash2 className="size-3.5" strokeWidth={1.85} aria-hidden />
                         </button>

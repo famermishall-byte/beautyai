@@ -8,7 +8,7 @@ import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CATEGORIES, CATEGORY_GROUPS, CATEGORY_KEYS, groupCategoryFilter, subKey, type CategoryGroup, type CatalogSub } from "@/lib/categories";
 import { HAIR_TYPE_KEYS, SKIN_TYPE_KEYS, hairTypesOf, skinTypesOf } from "@/lib/attributes";
@@ -249,14 +249,14 @@ function CatalogContent() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search")}
-            className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent"
+            className="field pl-11 pr-4"
           />
         </div>
         {!browsing && !groupMenu && (
           <button
             onClick={() => setFiltersOpen(true)}
             aria-label={t("filtersAndSort")}
-            className="relative shrink-0 w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center transition hover:border-accent/40 active:scale-95"
+            className="relative shrink-0 w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center transition hover:border-accent/40 active:scale-95 focus-ring"
           >
             <SlidersHorizontal className="size-4.5" strokeWidth={2} aria-hidden />
             {activeFilterCount > 0 && (
@@ -610,7 +610,7 @@ function GroupMenu({ group }: { group: CategoryGroup }) {
             <h2 className="font-display text-2xl">{t("hits")}</h2>
             <Link
               href={`${base}&item=${encodeURIComponent(ALL_ITEM)}`}
-              className="flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium"
+              className={buttonClasses({ variant: "ghost", size: "sm" })}
             >
               {t("all")} <ChevronRight className="size-4" strokeWidth={2} aria-hidden />
             </Link>

@@ -135,7 +135,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <button
           onClick={goBack}
           aria-label={tc("back")}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90 focus-ring"
         >
           <ArrowLeft className="size-4.5" strokeWidth={2} aria-hidden />
         </button>
@@ -151,7 +151,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           onClick={() => toggle(product)}
           aria-label={saved ? t("removeFromBag") : t("saveToBag")}
           aria-pressed={saved}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90 focus-ring"
         >
           <Heart
             className={["size-4.5", saved ? "animate-pop text-accent" : "text-foreground/60"].join(" ")}
@@ -233,7 +233,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               onClick={() => changeQuantity(product.id, -1)}
               aria-label={t("decrease")}
-              className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+              className="w-9 h-9 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
             >
               <Minus className="size-3.5" strokeWidth={2.25} aria-hidden />
             </button>
@@ -241,7 +241,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               onClick={() => changeQuantity(product.id, 1)}
               aria-label={t("increase")}
-              className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+              className="w-9 h-9 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
             >
               <Plus className="size-3.5" strokeWidth={2.25} aria-hidden />
             </button>

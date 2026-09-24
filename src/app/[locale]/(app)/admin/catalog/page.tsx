@@ -38,7 +38,7 @@ export default function AdminCatalogPage() {
             setShown(PAGE);
           }}
           placeholder={t("searchPlaceholder")}
-          className="w-full rounded-full border border-border bg-card pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent"
+          className="field pl-11 pr-4"
         />
       </div>
 
@@ -47,7 +47,7 @@ export default function AdminCatalogPage() {
       ) : filtered.length === 0 ? (
         <p className="text-muted text-sm">{t("nothingFound")}</p>
       ) : (
-        <div className="bg-card rounded-card border border-border p-4">
+        <div className="surface-card p-4">
           <div className="text-sm text-muted mb-3">
             {t("shown", { shown: Math.min(shown, filtered.length), total: filtered.length })}
           </div>
@@ -82,7 +82,7 @@ export default function AdminCatalogPage() {
           {shown < filtered.length && (
             <button
               onClick={() => setShown((n) => n + PAGE)}
-              className="mt-4 w-full rounded-full border border-border py-2.5 text-sm font-medium transition hover:border-accent/40"
+              className="mt-4 w-full rounded-full border border-border py-2.5 text-sm font-medium transition hover:border-accent/40 focus-ring"
             >
               {t("showMore", { n: Math.min(PAGE, filtered.length - shown) })}
             </button>

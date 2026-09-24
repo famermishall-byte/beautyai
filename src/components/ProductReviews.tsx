@@ -28,7 +28,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           onClick={() => onChange(n)}
           aria-label={t("rateStars", { count: n })}
           aria-pressed={value === n}
-          className="p-0.5 text-accent transition active:scale-90"
+          className="p-0.5 text-accent transition active:scale-90 focus-ring"
         >
           <Star className="size-7" strokeWidth={1.75} fill={n <= value ? "currentColor" : "none"} />
         </button>
@@ -149,14 +149,14 @@ export function ProductReviews({ productId }: { productId: string }) {
       )}
 
       {formOpen && (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-card p-4 mb-4 flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="surface-card p-4 mb-4 flex flex-col gap-3">
           <StarPicker value={rating} onChange={setRating} />
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={t("commentPlaceholder")}
             rows={3}
-            className="w-full rounded-control border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none"
+            className="field resize-none"
           />
           {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
           <div className="flex gap-2">
@@ -176,7 +176,7 @@ export function ProductReviews({ productId }: { productId: string }) {
       ) : (
         <div className="flex flex-col gap-3">
           {reviews.map((r) => (
-            <div key={r.id} className="bg-card border border-border rounded-card p-4">
+            <div key={r.id} className="surface-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Stars value={r.rating} />
@@ -190,7 +190,7 @@ export function ProductReviews({ productId }: { productId: string }) {
                     onClick={() => handleDelete(r.id)}
                     disabled={deletingId === r.id}
                     aria-label={t("delete")}
-                    className="p-1.5 rounded-full text-muted transition hover:text-error hover:bg-error-soft shrink-0"
+                    className="p-1.5 rounded-full text-muted transition hover:text-error hover:bg-error-soft shrink-0 focus-ring"
                   >
                     <Trash2 className="size-4" strokeWidth={1.85} aria-hidden />
                   </button>

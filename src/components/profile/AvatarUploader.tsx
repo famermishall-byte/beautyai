@@ -135,7 +135,7 @@ export function AvatarUploader({
       </div>
 
       {avatarUrl && !busy && (
-        <button type="button" onClick={handleRemove} className="mt-2.5 text-xs text-muted hover:text-error transition">
+        <button type="button" onClick={handleRemove} className="mt-2.5 text-xs text-muted hover:text-error transition focus-ring">
           {t("deletePhoto")}
         </button>
       )}

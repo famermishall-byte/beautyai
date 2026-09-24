@@ -108,7 +108,7 @@ function PromotionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 flex flex-col gap-3.5 mb-5">
+    <form onSubmit={handleSubmit} className="surface-card p-5 flex flex-col gap-3.5 mb-5">
       <div>
         <div className="text-xs text-muted mb-1.5">{t("fields.product")}</div>
         <ProductPicker picked={form.product} onPick={(product) => setForm({ ...form, product })} />
@@ -294,7 +294,7 @@ export function PromotionManager() {
               onSaved={(form) => submitForm(promotion.id, form)}
             />
           ) : (
-            <div key={promotion.id} className="bg-card rounded-card border border-border p-4 flex gap-3.5 items-center">
+            <div key={promotion.id} className="surface-card p-4 flex gap-3.5 items-center">
               <div className="w-16 h-16 rounded-control overflow-hidden bg-accent-soft shrink-0">
                 {promotion.product?.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -319,21 +319,21 @@ export function PromotionManager() {
                 <button
                   onClick={() => setEditingId(promotion.id)}
                   aria-label={t("edit")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground focus-ring"
                 >
                   <Pencil className="size-4" strokeWidth={2} aria-hidden />
                 </button>
                 <button
                   onClick={() => toggleDisabled(promotion)}
                   aria-label={promotion.status === "disabled" ? t("enable") : t("disable")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground focus-ring"
                 >
                   {promotion.status === "disabled" ? <Play className="size-4" strokeWidth={2} aria-hidden /> : <Pause className="size-4" strokeWidth={2} aria-hidden />}
                 </button>
                 <button
                   onClick={() => handleDelete(promotion.id)}
                   aria-label={t("delete")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-error-soft hover:text-error"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-error-soft hover:text-error focus-ring"
                 >
                   <Trash2 className="size-4" strokeWidth={2} aria-hidden />
                 </button>

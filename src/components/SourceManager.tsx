@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { buttonClasses } from "@/components/ui/Button";
 import {
   SYNC_IMPORT_FIELDS,
   detectFormat,
@@ -382,7 +383,7 @@ export function SourceManager() {
   }
 
   return (
-    <div className="bg-card rounded-card border border-border p-6 mb-8">
+    <div className="surface-card p-6 mb-8">
       <div className="flex items-center justify-between mb-1">
         <h2 className="font-medium">{t("title")}</h2>
       </div>
@@ -406,7 +407,7 @@ export function SourceManager() {
                       {source.connectionType === "api" ? "API" : t("fileType", { type: source.sourceType.toUpperCase() })}
                     </span>
                   </div>
-                  <button onClick={() => handleDeleteSource(source.id)} className="text-xs text-muted underline hover:text-accent">
+                  <button onClick={() => handleDeleteSource(source.id)} className="text-xs text-muted underline hover:text-accent focus-ring">
                     {t("delete")}
                   </button>
                 </div>
@@ -421,7 +422,7 @@ export function SourceManager() {
                     <button
                       onClick={() => handleSyncApiSource(source)}
                       disabled={syncingId === source.id}
-                      className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                      className={buttonClasses({ size: "sm" })}
                     >
                       {syncingId === source.id ? t("syncing") : t("syncNow")}
                     </button>
@@ -429,7 +430,7 @@ export function SourceManager() {
                     <button
                       onClick={() => triggerResyncFile(source.id)}
                       disabled={syncingId === source.id}
-                      className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                      className={buttonClasses({ size: "sm" })}
                     >
                       {syncingId === source.id ? t("syncing") : t("uploadNewFile")}
                     </button>
@@ -455,10 +456,10 @@ export function SourceManager() {
                     .join(" · ")}
                 </p>
                 <div className="flex gap-3">
-                  <button onClick={() => handleReviewAction(item.id, "resolved")} className="underline hover:opacity-80">
+                  <button onClick={() => handleReviewAction(item.id, "resolved")} className="underline hover:opacity-80 focus-ring">
                     {t("markResolved")}
                   </button>
-                  <button onClick={() => handleReviewAction(item.id, "ignored")} className="underline hover:opacity-80">
+                  <button onClick={() => handleReviewAction(item.id, "ignored")} className="underline hover:opacity-80 focus-ring">
                     {t("ignore")}
                   </button>
                 </div>
@@ -473,7 +474,7 @@ export function SourceManager() {
       {createStep === "closed" && (
         <button
           onClick={() => setCreateStep("choose-type")}
-          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium transition hover:bg-state-hover active:scale-95"
+          className={buttonClasses({ variant: "ghost", size: "sm" })}
         >
           + {t("connect")}
         </button>
@@ -483,17 +484,17 @@ export function SourceManager() {
         <div className="border-t border-border pt-4">
           <h3 className="text-sm font-medium mb-3">{t("howTracked")}</h3>
           <div className="flex flex-wrap gap-2 mb-3">
-            <button onClick={() => fileInputRef.current?.click()} className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium hover:opacity-90">
+            <button onClick={() => fileInputRef.current?.click()} className={buttonClasses({ size: "sm" })}>
               {t("importFile")}
             </button>
-            <button onClick={() => setCreateStep("api-form")} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
+            <button onClick={() => setCreateStep("api-form")} className={buttonClasses({ variant: "ghost", size: "sm" })}>
               {t("connectApi")}
             </button>
-            <button onClick={() => setCreateStep("other")} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
+            <button onClick={() => setCreateStep("other")} className={buttonClasses({ variant: "ghost", size: "sm" })}>
               {t("otherSource")}
             </button>
           </div>
-          <button onClick={resetCreateFlow} className="text-sm text-muted underline">
+          <button onClick={resetCreateFlow} className="text-sm text-muted underline focus-ring">
             {t("cancel")}
           </button>
         </div>
@@ -504,7 +505,7 @@ export function SourceManager() {
           <p className="text-sm text-muted mb-3">
             {t("otherText")}
           </p>
-          <button onClick={resetCreateFlow} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
+          <button onClick={resetCreateFlow} className={buttonClasses({ variant: "ghost", size: "sm" })}>
             {t("gotIt")}
           </button>
         </div>
@@ -530,13 +531,13 @@ export function SourceManager() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
+            <button onClick={resetCreateFlow} className={buttonClasses({ variant: "ghost", size: "sm" })}>
               {t("cancel")}
             </button>
             <button
               onClick={handleCreateFileSource}
               disabled={saving}
-              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className={buttonClasses({ size: "sm" })}
             >
               {saving ? t("saving") : t("saveAndSync")}
             </button>
@@ -582,13 +583,13 @@ export function SourceManager() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
+            <button onClick={resetCreateFlow} className={buttonClasses({ variant: "ghost", size: "sm" })}>
               {t("cancel")}
             </button>
             <button
               onClick={handleCreateApiSource}
               disabled={saving}
-              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className={buttonClasses({ size: "sm" })}
             >
               {saving ? t("connecting") : t("connectAndFetch")}
             </button>
@@ -601,13 +602,13 @@ export function SourceManager() {
           <h3 className="text-sm font-medium mb-3">{t("mapResponse")}</h3>
           <MappingEditor headers={apiPreviewHeaders} mapping={apiMapping} onChange={handleApiMappingChange} />
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
+            <button onClick={resetCreateFlow} className={buttonClasses({ variant: "ghost", size: "sm" })}>
               {t("cancel")}
             </button>
             <button
               onClick={handleConfirmApiMapping}
               disabled={saving}
-              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className={buttonClasses({ size: "sm" })}
             >
               {saving ? t("syncing") : t("saveMappingAndSync")}
             </button>

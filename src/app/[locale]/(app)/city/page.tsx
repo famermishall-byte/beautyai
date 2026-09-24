@@ -55,7 +55,7 @@ export default function CityPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("search")}
-          className="w-full rounded-control border border-border bg-card pl-11 pr-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent shadow-card"
+          className="field pl-11 pr-4"
         />
       </div>
 

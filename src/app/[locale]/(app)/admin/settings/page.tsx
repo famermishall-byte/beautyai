@@ -6,6 +6,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
 
+import { buttonClasses } from "@/components/ui/Button";
 // Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
 const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
 
@@ -134,12 +135,12 @@ export default function AdminSettingsPage() {
 
       <button
         onClick={() => signOut()}
-        className="mb-6 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className={buttonClasses({ variant: "ghost", size: "sm", className: "mb-6" })}
       >
         {t("signOut")}
       </button>
 
-      <div className="bg-card rounded-card border border-border p-6 mb-6">
+      <div className="surface-card p-6 mb-6">
         <h2 className="font-medium mb-3">Email</h2>
         {emailNotice && (
           <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{emailNotice}</p>
@@ -158,14 +159,14 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={emailSubmitting || !newEmail.trim()}
-            className="shrink-0 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className={buttonClasses({ size: "sm", className: "shrink-0" })}
           >
             {emailSubmitting ? t("sending") : t("changeEmail")}
           </button>
         </form>
       </div>
 
-      <div className="bg-card rounded-card border border-border p-6 mb-6">
+      <div className="surface-card p-6 mb-6">
         <h2 className="font-medium mb-3">{t("password")}</h2>
         {passwordNotice && (
           <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{passwordNotice}</p>
@@ -191,7 +192,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={passwordSubmitting || !newPassword}
-            className="self-start rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className={buttonClasses({ size: "sm", className: "self-start" })}
           >
             {passwordSubmitting ? t("saving") : t("changePassword")}
           </button>
@@ -199,7 +200,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {isOwner && (
-        <div className="bg-card rounded-card border border-border p-6">
+        <div className="surface-card p-6">
           <h2 className="font-medium mb-1">{t("transferTitle")}</h2>
           <p className="text-sm text-muted mb-4">
             {t("transferHint")}
@@ -218,7 +219,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={transferSubmitting || !transferEmail.trim()}
-              className="shrink-0 rounded-full bg-error text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+              className={buttonClasses({ variant: "danger", size: "sm", className: "shrink-0" })}
             >
               {transferSubmitting ? t("transferring") : t("transfer")}
             </button>

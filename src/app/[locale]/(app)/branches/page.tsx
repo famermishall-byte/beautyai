@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Link } from "@/i18n/navigation";
 
+import { buttonClasses } from "@/components/ui/Button";
 type Coords = { latitude: number; longitude: number };
 
 function distanceKm(a: Coords, b: Coords): number {
@@ -113,7 +114,7 @@ export default function BranchesPage() {
                   <button
                     onClick={() => hasPoint && selectBranch(branch.id)}
                     disabled={!hasPoint}
-                    className="w-full flex items-start justify-between gap-3 mb-3.5 text-left disabled:cursor-default"
+                    className="w-full flex items-start justify-between gap-3 mb-3.5 text-left disabled:cursor-default focus-ring"
                   >
                     <div className="flex items-center gap-3">
                       <span className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-soft text-accent shrink-0">
@@ -147,7 +148,7 @@ export default function BranchesPage() {
                       href={buildWhatsAppUrl(branch.whatsapp, `Здравствуйте! Пишу по поводу филиала «${branch.name}».`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:bg-accent-strong active:scale-95"
+                      className={buttonClasses({ size: "sm" })}
                     >
                       <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
                       WhatsApp
@@ -157,7 +158,7 @@ export default function BranchesPage() {
                         href={`https://www.google.com/maps/search/?api=1&query=${branch.latitude},${branch.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-accent-soft text-accent-strong px-5 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent active:scale-95"
+                        className={buttonClasses({ variant: "secondary", size: "sm" })}
                       >
                         <Navigation className="size-4" strokeWidth={2} aria-hidden />
                         {t("route")}

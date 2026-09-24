@@ -91,7 +91,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
         {order.branchName ? <span className="text-muted"> · {order.branchName}</span> : null}
       </p>
 
-      <ul className="bg-card rounded-card border border-border divide-y divide-border mb-4">
+      <ul className="surface-card divide-y divide-border mb-4">
         {order.items.map((item, i) => {
           const q = quantities[i];
           const max = orderedQty(item);
@@ -111,7 +111,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
                     onClick={() => setQty(i, q - 1)}
                     disabled={busy || q <= 0}
                     aria-label={t("decrease")}
-                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90"
+                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90 focus-ring"
                   >
                     <Minus className="size-4" aria-hidden />
                   </button>
@@ -120,7 +120,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
                     onClick={() => setQty(i, q + 1)}
                     disabled={busy || q >= max}
                     aria-label={t("increase")}
-                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90"
+                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center disabled:opacity-30 active:scale-90 focus-ring"
                   >
                     <Plus className="size-4" aria-hidden />
                   </button>
@@ -160,7 +160,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
           <button
             onClick={() => call({ action: "edit", quantities }, t("editedOk"))}
             disabled={busy}
-            className="rounded-full bg-accent text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-50"
+            className="rounded-full bg-accent text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-50 focus-ring"
           >
             {busy ? t("saving") : t("saveChanges", { total: money(newTotal) })}
           </button>
@@ -169,7 +169,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
           <button
             onClick={() => call({ action: "status", status: "paid" }, t("paidOk"))}
             disabled={busy || changed}
-            className="rounded-full bg-success text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
+            className="rounded-full bg-success text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40 focus-ring"
           >
             💰 {t("paymentReceived")}
           </button>
@@ -191,7 +191,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
               if (confirm(t("cancelConfirm"))) call({ action: "status", status: "cancelled" }, t("cancelled"));
             }}
             disabled={busy}
-            className="text-sm text-muted underline py-2 disabled:opacity-50"
+            className="text-sm text-muted underline py-2 disabled:opacity-50 focus-ring"
           >
             {t("cancelOrder")}
           </button>
