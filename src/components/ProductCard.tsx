@@ -11,6 +11,9 @@ import { usePurchaseHistory } from "@/lib/purchase-history-context";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { Link } from "@/i18n/navigation";
 
+/** Width + snap for a ProductCard inside a horizontal rail — the same everywhere (home, catalog). */
+export const PRODUCT_RAIL_ITEM = "w-40 shrink-0 snap-start";
+
 export function ProductCard({ product }: { product: Product | RecommendedProduct }) {
   const t = useTranslations("product");
   const price = usePrice();
@@ -51,7 +54,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group bg-card rounded-[var(--radius-card)] border border-border overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="group h-full bg-card rounded-[var(--radius-card)] border border-border overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="relative aspect-[4/5] bg-accent-soft overflow-hidden">
         {product.imageUrl ? (

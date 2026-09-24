@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles } from "lucide-react";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -388,7 +388,7 @@ function CatalogContent() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
           {visible.map((product, i) => (
             <div key={product.id} className="animate-rise-in" style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}>
               <ProductCard product={product} />
@@ -617,7 +617,7 @@ function GroupMenu({ group }: { group: CategoryGroup }) {
           </div>
           <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {hits.map((product) => (
-              <div key={product.id} className="w-44 shrink-0 snap-start">
+              <div key={product.id} className={PRODUCT_RAIL_ITEM}>
                 <ProductCard product={product} />
               </div>
             ))}
