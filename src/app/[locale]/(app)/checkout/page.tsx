@@ -148,7 +148,11 @@ export default function CheckoutPage() {
           const isActive = s.key === step;
           const isDone = stepLabels.findIndex((x) => x.key === step) > i;
           return (
-            <li key={s.key} className="flex items-center gap-2 min-w-0" aria-current={isActive ? "step" : undefined}>
+            <li
+              key={s.key}
+              className={["flex items-center gap-2 min-w-0", i < stepLabels.length - 1 ? "flex-1" : ""].join(" ")}
+              aria-current={isActive ? "step" : undefined}
+            >
               <span
                 className={[
                   "w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold transition-colors",
@@ -157,8 +161,11 @@ export default function CheckoutPage() {
               >
                 {isDone ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : i + 1}
               </span>
-              <span className={["text-sm truncate", isActive ? "font-semibold" : "text-muted"].join(" ")}>{s.label}</span>
-              {i < stepLabels.length - 1 && <span className="w-4 sm:w-6 h-px bg-border-strong shrink-0" aria-hidden />}
+              {/* On phones only the current step is named; the others are numbered dots (label kept for screen readers). */}
+              <span className={["text-sm whitespace-nowrap", isActive ? "font-semibold" : "text-muted sr-only sm:not-sr-only"].join(" ")}>
+                {s.label}
+              </span>
+              {i < stepLabels.length - 1 && <span className="flex-1 min-w-3 h-px bg-border-strong" aria-hidden />}
             </li>
           );
         })}
@@ -237,7 +244,7 @@ export default function CheckoutPage() {
           <div className="flex gap-3">
             <Button variant="ghost" size="lg" onClick={() => setStep("branch")}>
               <ChevronLeft className="size-4.5" strokeWidth={2} aria-hidden />
-              {t("back")}
+              <span className="sr-only sm:not-sr-only">{t("back")}</span>
             </Button>
             <Button
               size="lg"
@@ -256,7 +263,7 @@ export default function CheckoutPage() {
           <h2 className="font-display text-xl mb-4">{t("reviewTitle")}</h2>
 
           <div className="surface-card p-4 mb-4">
-            <div className="text-sm text-muted mb-2">{t("products")}</div>
+            <div className="eyebrow mb-2">{t("products")}</div>
             <div className="flex flex-col gap-3">
               {items.map((item) => (
                 <div key={item.product.id} className="flex gap-3 items-start border-b border-border pb-3 last:border-0 last:pb-0">
@@ -338,7 +345,7 @@ export default function CheckoutPage() {
           <div className="flex gap-3">
             <Button variant="ghost" size="lg" onClick={() => setStep("contact")}>
               <ChevronLeft className="size-4.5" strokeWidth={2} aria-hidden />
-              {t("back")}
+              <span className="sr-only sm:not-sr-only">{t("back")}</span>
             </Button>
             <Button variant="whatsapp" size="lg" className="flex-1" onClick={handleSubmitOrder} loading={submitting}>
               {!submitting && <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />}
