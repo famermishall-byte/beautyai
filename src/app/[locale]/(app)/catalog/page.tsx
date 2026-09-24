@@ -221,7 +221,7 @@ function CatalogContent() {
 
   return (
     <main className="flex-1 px-4 pt-6 pb-32 max-w-5xl mx-auto w-full">
-      <MarketingGate page="catalog" />
+      <MarketingGate page="catalog" promoIndex={2} />
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />

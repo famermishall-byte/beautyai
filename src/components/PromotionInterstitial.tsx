@@ -22,7 +22,7 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
   const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
       <Link href={`/product/${product.id}`} onClick={onClose} className="contents">
         <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
@@ -70,8 +70,13 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
   );
 }
 
-/** Монтируется на / и /catalog — сам решает, показывать ли акцию (раз за посещение). */
-export function PromotionGate({ page }: { page: PromoAdPage }) {
+/**
+ * Монтируется на /, /catalog и /profile — сам решает, показывать ли акцию (раз за посещение).
+ * `index` — какая по счёту акция из активных: на разных страницах разные акции (0 = первая,
+ * 1 = вторая, 2 = третья…), чтобы покупатель не видел одно и то же объявление три раза подряд.
+ * Если акций меньше, чем index — на этой странице просто ничего не всплывает.
+ */
+export function PromotionGate({ page, index = 0 }: { page: PromoAdPage; index?: number }) {
   const [product, setProduct] = useState<Product | null>(null);
 
   useEffect(() => {
@@ -81,18 +86,18 @@ export function PromotionGate({ page }: { page: PromoAdPage }) {
       .then((res) => (res.ok ? res.json() : { products: [] }))
       .then((data: { products: Product[] }) => {
         if (cancelled) return;
-        const top = (data.products ?? [])[0];
-        if (!top) return;
+        const chosen = (data.products ?? [])[index];
+        if (!chosen) return;
         Promise.resolve().then(() => {
           markPromoAdShown(page);
-          setProduct(top);
+          setProduct(chosen);
         });
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, index]);
 
   if (!product) return null;
   return <PromotionInterstitial product={product} onClose={() => setProduct(null)} />;

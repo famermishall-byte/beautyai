@@ -31,6 +31,7 @@ import { QuestionnaireSummary } from "@/components/profile/QuestionnaireSummary"
 import { QuestionnaireForm } from "@/components/profile/QuestionnaireForm";
 import { CareKitView } from "@/components/profile/CareKitView";
 import { NotificationGeoSettings } from "@/components/profile/NotificationGeoSettings";
+import { PromotionGate } from "@/components/PromotionInterstitial";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
@@ -190,6 +191,7 @@ export default function ProfilePage() {
 
   return (
     <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
+      <PromotionGate page="profile" index={1} />
       <h1 className="font-title text-3xl leading-tight mb-6 text-center">{t("title")}</h1>
 
       <div className={`${cardClass} flex flex-col items-center pt-6`}>

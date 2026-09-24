@@ -8,15 +8,22 @@ import type { Banner, Product } from "@/types";
 
 type MarketingPage = "home" | "catalog";
 
+// Пауза между закрытием баннера и всплытием акции — чтобы окна не били по клиенту одно сразу за
+// другим (по просьбе владельца, 24.09). Считается от закрытия именно ПОКАЗАННОГО баннера — если
+// баннера не было (ещё не создан/уже показан в этот заход), акция всплывает сразу, паузы нет.
+const PROMOTION_DELAY_MS = 3000;
+
 /**
  * Показывает баннер и акцию как ДВА отдельных всплывающих окна одно за другим (не одновременно
  * поверх друг друга, иначе они наложились бы) — сначала баннер (если есть и ещё не показан в
- * этом посещении), потом акция (если есть и ещё не показана). Каждое — не чаще раза за посещение
- * на страницу, см. session-flags.ts. По просьбе владельца (24.09): акции всплывают отдельно от
+ * этом посещении), потом (через паузу — см. PROMOTION_DELAY_MS) акция (если есть и ещё не
+ * показана). Каждое — не чаще раза за посещение на страницу, см. session-flags.ts. `promoIndex` —
+ * какая по счёту акция из активных (0 = первая, 1 = вторая…) — на разных страницах разные акции,
+ * см. PromotionInterstitial.tsx. По просьбе владельца (24.09): акции всплывают отдельно от
  * баннеров, на главной и в каталоге (на /checkout остался только баннер — BannerGate).
  */
-export function MarketingGate({ page }: { page: MarketingPage }) {
-  const [step, setStep] = useState<"banner" | "promotion" | "done">("banner");
+export function MarketingGate({ page, promoIndex = 0 }: { page: MarketingPage; promoIndex?: number }) {
+  const [step, setStep] = useState<"banner" | "delay" | "promotion" | "done">("banner");
   const [banner, setBanner] = useState<Banner | null>(null);
   const [promotion, setPromotion] = useState<Product | null>(null);
 
@@ -55,6 +62,12 @@ export function MarketingGate({ page }: { page: MarketingPage }) {
   }, [page, step]);
 
   useEffect(() => {
+    if (step !== "delay") return;
+    const timer = setTimeout(() => setStep("promotion"), PROMOTION_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [step]);
+
+  useEffect(() => {
     if (step !== "promotion") return;
     if (wasPromoAdShown(page)) {
       Promise.resolve().then(() => setStep("done"));
@@ -65,14 +78,14 @@ export function MarketingGate({ page }: { page: MarketingPage }) {
       .then((res) => (res.ok ? res.json() : { products: [] }))
       .then((data: { products: Product[] }) => {
         if (cancelled) return;
-        const top = (data.products ?? [])[0];
-        if (!top) {
+        const chosen = (data.products ?? [])[promoIndex];
+        if (!chosen) {
           setStep("done");
           return;
         }
         Promise.resolve().then(() => {
           markPromoAdShown(page);
-          setPromotion(top);
+          setPromotion(chosen);
           setStep("done");
         });
       })
@@ -82,7 +95,7 @@ export function MarketingGate({ page }: { page: MarketingPage }) {
     return () => {
       cancelled = true;
     };
-  }, [page, step]);
+  }, [page, step, promoIndex]);
 
   if (banner) {
     return (
@@ -90,7 +103,7 @@ export function MarketingGate({ page }: { page: MarketingPage }) {
         banner={banner}
         onClose={() => {
           setBanner(null);
-          setStep("promotion");
+          setStep("delay");
         }}
       />
     );

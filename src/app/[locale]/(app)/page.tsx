@@ -99,7 +99,7 @@ export default function Home() {
 
   return (
     <main className="flex-1 pb-6">
-      <MarketingGate page="home" />
+      <MarketingGate page="home" promoIndex={0} />
       <BuyAgainPrompt />
       <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
         {loading ? (

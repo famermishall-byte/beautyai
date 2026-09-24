@@ -133,10 +133,12 @@ export function consumeJustRegistered(): boolean {
 }
 
 // Отдельное всплывающее окно про активную акцию (скидка на товар) — своё, не баннерное; тоже
-// не чаще раза за посещение, на главной и в каталоге (по просьбе владельца, 24.09).
+// не чаще раза за посещение, на главной, в каталоге и в профиле (по просьбе владельца, 24.09) —
+// на каждой странице своя акция по номеру, см. MarketingGate.tsx/PromotionInterstitial.tsx.
 const PROMO_AD_KEYS = {
   home: "beautyai-promo-ad-home-shown",
   catalog: "beautyai-promo-ad-catalog-shown",
+  profile: "beautyai-promo-ad-profile-shown",
 } as const;
 export type PromoAdPage = keyof typeof PROMO_AD_KEYS;
 export const wasPromoAdShown = (page: PromoAdPage) => readFlag(PROMO_AD_KEYS[page]);
