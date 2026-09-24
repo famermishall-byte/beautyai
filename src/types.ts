@@ -136,3 +136,16 @@ export type Promotion = {
   product: Pick<Product, "id" | "name" | "brand" | "imageUrl" | "price"> | null;
 };
 
+export type ProductReview = {
+  id: string;
+  productId: string;
+  userId: string;
+  orderId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  authorName: string | null;
+  /** Отзыв текущего вошедшего клиента — на своих показывается кнопка удаления без доп. проверок. */
+  isOwn: boolean;
+};
+

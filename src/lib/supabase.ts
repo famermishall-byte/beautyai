@@ -108,6 +108,20 @@ export function mapBanner(
   };
 }
 
+export function mapProductReview(row: Record<string, unknown>, authorName: string | null, currentUserId: string | null) {
+  return {
+    id: row.id as string,
+    productId: row.product_id as string,
+    userId: row.user_id as string,
+    orderId: row.order_id as string,
+    rating: row.rating as number,
+    comment: (row.comment as string | null) ?? null,
+    createdAt: row.created_at as string,
+    authorName,
+    isOwn: currentUserId !== null && row.user_id === currentUserId,
+  };
+}
+
 export function mapPromotion(
   row: Record<string, unknown> & { products?: Record<string, unknown> | null }
 ) {

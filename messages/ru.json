@@ -451,6 +451,23 @@
     "added": "Добавлено",
     "addToCart": "Добавить в корзину"
   },
+  "productReviews": {
+    "title": "Отзывы",
+    "countLabel": "{count, plural, one {# отзыв} few {# отзыва} many {# отзывов} other {# отзыва}}",
+    "leaveReview": "Оставить отзыв",
+    "unavailableNoPurchase": "Доступно после покупки этого товара",
+    "unavailableReviewed": "Вы уже оставили отзыв по всем своим покупкам этого товара",
+    "commentPlaceholder": "Расскажите о товаре (необязательно)",
+    "submit": "Отправить",
+    "sending": "Отправляем…",
+    "cancel": "Отмена",
+    "anonymous": "Покупатель",
+    "delete": "Удалить отзыв",
+    "deleteConfirm": "Удалить этот отзыв?",
+    "empty": "Отзывов пока нет — будьте первым!",
+    "error": "Не удалось отправить отзыв.",
+    "rateStars": "Оценка {count} из 5"
+  },
   "intro": {
     "label": "Заставка",
     "tagline": "Красота начинается с правильного ухода",

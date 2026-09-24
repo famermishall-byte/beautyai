@@ -13,6 +13,7 @@ import { isMarkedAdded, markAdded, wasProductPromptShown, markProductPromptShown
 import { useGoBack } from "@/lib/use-go-back";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductReviews } from "@/components/ProductReviews";
 import { BuyAgainModal } from "@/components/BuyAgainModal";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -219,6 +220,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         )}
+
+        <ProductReviews productId={product.id} />
       </div>
 
       <div
