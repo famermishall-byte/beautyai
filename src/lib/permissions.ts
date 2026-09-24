@@ -6,11 +6,11 @@
 import type { Branch } from "@/types";
 import { setStoredCity } from "@/lib/city";
 
-export const NOTIF_KEY = "beautyai-notif-prompt";
-export const GEO_KEY = "beautyai-geo-prompt";
-export const COORDS_KEY = "beautyai-coords";
+const NOTIF_KEY = "beautyai-notif-prompt";
+const GEO_KEY = "beautyai-geo-prompt";
+const COORDS_KEY = "beautyai-coords";
 
-export function readPermissionFlag(key: string): string | null {
+function readPermissionFlag(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -19,7 +19,7 @@ export function readPermissionFlag(key: string): string | null {
   }
 }
 
-export function writePermissionFlag(key: string, value: string) {
+function writePermissionFlag(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {
@@ -73,7 +73,7 @@ export function dismissNotif() {
   writePermissionFlag(NOTIF_KEY, "dismissed");
 }
 
-export function requestPosition(): Promise<GeolocationPosition | null> {
+function requestPosition(): Promise<GeolocationPosition | null> {
   return new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       resolve(null);
@@ -91,7 +91,7 @@ export function requestPosition(): Promise<GeolocationPosition | null> {
 // where the store has a branch, select it. Uses BigDataCloud's free
 // client-side reverse-geocoding endpoint (no API key) — the coordinates are
 // sent to that third-party service, and only when the user allowed location.
-export async function detectCity(latitude: number, longitude: number) {
+async function detectCity(latitude: number, longitude: number) {
   try {
     const [branchesRes, geoRes] = await Promise.all([
       fetch("/api/branches"),

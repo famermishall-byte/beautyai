@@ -1,6 +1,6 @@
 // The user's chosen city is a per-device preference (not account data),
 // same pattern as the branch choice already saved in catalog/page.tsx.
-export const CITY_STORAGE_KEY = "beautyai-city";
+const CITY_STORAGE_KEY = "beautyai-city";
 
 export function getStoredCity(): string | null {
   try {

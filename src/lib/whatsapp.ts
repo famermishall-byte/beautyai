@@ -4,7 +4,7 @@ export function formatOrderNumber(sequence: number): string {
   return `BA-${String(sequence).padStart(5, "0")}`;
 }
 
-export function sanitizePhoneForWhatsApp(phone: string): string {
+function sanitizePhoneForWhatsApp(phone: string): string {
   return phone.replace(/[^\d]/g, "");
 }
 

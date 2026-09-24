@@ -11,7 +11,7 @@ export type ExistingProductRef = {
 
 export type SyncBranch = { id: string; name: string };
 
-export type NewProductInput = {
+type NewProductInput = {
   name: string;
   price: number;
   sku: string;
@@ -26,9 +26,9 @@ export type NewProductInput = {
 };
 
 /** Only fields the source row actually had a value for — never blank out an existing field. */
-export type ProductUpdateInput = Partial<Omit<NewProductInput, "sku" | "name">>;
+type ProductUpdateInput = Partial<Omit<NewProductInput, "sku" | "name">>;
 
-export type BranchQuantity = { branchId: string; quantity: number };
+type BranchQuantity = { branchId: string; quantity: number };
 
 export type SyncRowOutcome =
   | { kind: "error"; rowNumber: number; errors: string[] }

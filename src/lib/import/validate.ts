@@ -15,7 +15,7 @@ function parseInStock(value: string): boolean {
   return !["нет", "нет в наличии", "закончился", "false", "no", "0"].includes(text);
 }
 
-export function randomSku(): string {
+function randomSku(): string {
   return `AUTO-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 

@@ -5,4 +5,4 @@ export { detectFormat, detectFormatFromContentType, parseFile, SUPPORTED_EXTENSI
 export { suggestMapping } from "./autoMap";
 export { buildImportRows, missingRequiredColumns } from "./validate";
 export { mappingToHeaderNames, mappingFromHeaderNames, type HeaderMapping } from "./templates";
-export { planSyncRows, summarizeSyncPlan, type SyncRowOutcome, type SyncSummary } from "./sync";
+export { planSyncRows, type SyncSummary } from "./sync";

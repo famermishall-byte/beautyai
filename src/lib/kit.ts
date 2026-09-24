@@ -3,7 +3,7 @@ import { buildRoutine, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { buildHairTips, HAIR_STEMS, type HairType, type HairConcern } from "@/lib/haircare";
 import { fitByStems, skinFit } from "@/lib/personalization";
 
-export type KitStep = { label: string; category: string; product: Product | null };
+type KitStep = { label: string; category: string; product: Product | null };
 
 type T = (key: string) => string;
 type RawT = T & { raw: (key: string) => unknown };

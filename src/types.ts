@@ -1,9 +1,3 @@
-export type SkinProfile = {
-  displayName: string | null;
-  skinType: string | null;
-  skinConcerns: string[];
-};
-
 /** Filterable characteristics (products.attributes jsonb) — see src/lib/attributes.ts. */
 export type ProductAttributes = {
   productType?: string;

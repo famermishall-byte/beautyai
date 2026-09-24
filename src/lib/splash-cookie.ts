@@ -9,7 +9,7 @@
 // читается уже на сервере, до всякой гидратации — сервер сразу решает не рисовать заставку,
 // если её показывали недавно, и никакого «моргания» просто не из чего возникнуть.
 export const SPLASH_COOKIE = "beautyai-splash-last-shown";
-export const SPLASH_REOPEN_GAP_MS = 20 * 60 * 1000;
+const SPLASH_REOPEN_GAP_MS = 20 * 60 * 1000;
 
 export function splashRecentlyShown(lastShownRaw: string | undefined | null): boolean {
   const last = Number(lastShownRaw ?? 0);
