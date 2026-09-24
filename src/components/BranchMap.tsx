@@ -7,11 +7,18 @@ import type { Branch } from "@/types";
 
 type Coords = { latitude: number; longitude: number };
 
+// The pin lives in the page DOM, so it reads the palette straight from the design tokens.
 const PIN = (active: boolean) => `
-  <svg width="${active ? 44 : 36}" height="${active ? 54 : 44}" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 4px rgba(36,15,20,.35))">
-    <path d="M18 43C18 43 33 28.5 33 17.5C33 9 26.3 2 18 2C9.7 2 3 9 3 17.5C3 28.5 18 43 18 43Z" fill="${active ? "#970e49" : "#c8135f"}" stroke="#fff" stroke-width="2.5"/>
-    <circle cx="18" cy="17.5" r="6" fill="#fff"/>
+  <svg width="${active ? 44 : 36}" height="${active ? 54 : 44}" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 3px 4px var(--scrim))">
+    <path d="M18 43C18 43 33 28.5 33 17.5C33 9 26.3 2 18 2C9.7 2 3 9 3 17.5C3 28.5 18 43 18 43Z" style="fill: var(${active ? "--accent-strong" : "--accent"}); stroke: var(--on-accent)" stroke-width="2.5"/>
+    <circle cx="18" cy="17.5" r="6" style="fill: var(--on-accent)"/>
   </svg>`;
+
+// Leaflet vector layers take literal colors, so resolve the token at runtime.
+function tokenColor(name: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
 
 export function BranchMap({
   branches,
@@ -72,7 +79,7 @@ export function BranchMap({
 
       if (userPosition) {
         const u: [number, number] = [userPosition.latitude, userPosition.longitude];
-        L.circleMarker(u, { radius: 8, color: "#c8135f", weight: 3, fillColor: "#fff", fillOpacity: 1 }).addTo(layer);
+        L.circleMarker(u, { radius: 8, color: tokenColor("--accent", "#c8135f"), weight: 3, fillColor: tokenColor("--on-accent", "#fff"), fillOpacity: 1 }).addTo(layer);
         points.push(u);
       }
 
@@ -113,5 +120,5 @@ export function BranchMap({
     if (selected) map.flyTo(selected.getLatLng(), Math.max(map.getZoom(), 15), { duration: 0.6 });
   }, [selectedId, locatedKey]);
 
-  return <div ref={containerRef} className="isolate h-72 w-full rounded-[var(--radius-card)] overflow-hidden border border-border bg-accent-soft" />;
+  return <div ref={containerRef} className="isolate h-72 w-full rounded-card overflow-hidden border border-border bg-accent-soft" />;
 }

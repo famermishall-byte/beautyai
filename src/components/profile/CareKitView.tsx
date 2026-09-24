@@ -24,9 +24,9 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
   if (!product) {
     return (
       <div className="flex items-center gap-3 px-4 py-3.5">
-        <div className="w-14 h-14 rounded-[var(--radius-control)] bg-accent-soft/60 shrink-0" aria-hidden />
+        <div className="w-14 h-14 rounded-control bg-accent-soft/60 shrink-0" aria-hidden />
         <div>
-          <div className="text-[11px] uppercase tracking-wide text-muted font-medium">{label}</div>
+          <div className="text-2xs uppercase tracking-wide text-muted font-medium">{label}</div>
           <div className="text-sm text-muted">{t("noProduct")}</div>
         </div>
       </div>
@@ -36,7 +36,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
   return (
     <div className="flex items-center gap-3 px-4 py-3.5">
       <Link href={`/product/${product.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-        <div className="w-14 h-14 rounded-[var(--radius-control)] bg-accent-soft overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-control bg-accent-soft overflow-hidden shrink-0 flex items-center justify-center">
           {product.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -45,7 +45,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
           )}
         </div>
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-wide text-accent font-medium">{label}</div>
+          <div className="text-2xs uppercase tracking-wide text-accent font-medium">{label}</div>
           <div className="text-sm font-medium leading-snug line-clamp-2">{text(product).name}</div>
           <div className="text-xs text-muted tabular-nums">
             {product.brand} · {price(product.price)}
@@ -57,7 +57,7 @@ function KitRow({ label, product }: { label: string; product: Product | null }) 
         aria-label={t(added ? "removeFromCartNamed" : "addToCartNamed", { name: text(product).name })}
         className={[
           "shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90",
-          added ? "bg-success text-white" : "bg-accent text-white hover:bg-accent-strong",
+          added ? "bg-success text-on-accent" : "bg-accent text-on-accent hover:bg-accent-strong",
         ].join(" ")}
       >
         {added ? <Check className="size-4.5" strokeWidth={2.5} aria-hidden /> : <Plus className="size-4.5" strokeWidth={2.25} aria-hidden />}
@@ -85,7 +85,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
   return (
     <div className="flex flex-col gap-4">
       {kit.skinSteps.length > 0 && (
-        <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="bg-card rounded-card border border-border shadow-card overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h3 className="font-display text-lg">{t("forFace")}</h3>
           </div>
@@ -98,7 +98,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
       )}
 
       {(kit.hairProducts.length > 0 || kit.hairTips.length > 0) && (
-        <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="bg-card rounded-card border border-border shadow-card overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h3 className="font-display text-lg">{t("forHair")}</h3>
           </div>
@@ -128,7 +128,7 @@ export function CareKitView({ kit }: { kit: CareKit }) {
       )}
 
       {hasTips && (
-        <div className="bg-accent-soft rounded-[var(--radius-card)] p-5">
+        <div className="bg-accent-soft rounded-card p-5">
           <div className="flex items-center gap-2 mb-3 text-accent-strong">
             <Lightbulb className="size-4.5" strokeWidth={2} aria-hidden />
             <h3 className="font-display text-lg">{t("tips")}</h3>

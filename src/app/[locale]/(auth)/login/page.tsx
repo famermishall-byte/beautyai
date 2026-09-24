@@ -205,15 +205,15 @@ export default function LoginPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-black/10 bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-control border border-border bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
 
   return (
-    <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
+    <div className="bg-card rounded-sheet shadow-modal border border-border p-8">
       <div className="flex justify-end -mt-3 -mr-3 mb-1">
         <LanguageSwitcher />
       </div>
       <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-white">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-card bg-accent text-on-accent">
           <BrandMark size={26} />
         </div>
         <h1 className="font-display text-2xl">{tMeta("title")}</h1>
@@ -227,7 +227,7 @@ export default function LoginPage() {
             onClick={() => switchMode(tab)}
             className={[
               "flex-1 rounded-full py-2 text-sm font-medium transition",
-              mode === tab ? "bg-white shadow-sm text-foreground" : "text-muted hover:text-foreground",
+              mode === tab ? "bg-card shadow-control text-foreground" : "text-muted hover:text-foreground",
             ].join(" ")}
           >
             {t(`tabs.${tab}`)}
@@ -236,10 +236,10 @@ export default function LoginPage() {
       </div>
 
       {notice && (
-        <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-4">{notice}</p>
+        <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-4">{notice}</p>
       )}
       {error && (
-        <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4">{error}</p>
+        <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</p>
       )}
 
       {mode === "login" && (
@@ -263,7 +263,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? t("signingIn") : t("signIn")}
           </button>
@@ -272,20 +272,20 @@ export default function LoginPage() {
 
       {mode === "register" && registerResult?.kind === "check-email" && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">
+          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3">
             {t.rich("accountCreated", { email: registerResult.email, b: (chunks) => <span className="font-medium">{chunks}</span> })}
           </p>
           {resendNotice && (
-            <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3">{resendNotice}</p>
+            <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3">{resendNotice}</p>
           )}
           {resendError && (
-            <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3">{resendError}</p>
+            <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{resendError}</p>
           )}
           <button
             type="button"
             onClick={handleResendConfirmation}
             disabled={resending}
-            className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {resending ? t("sending") : t("resend")}
           </button>
@@ -301,13 +301,13 @@ export default function LoginPage() {
 
       {mode === "register" && registerResult?.kind === "already-registered" && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3">
+          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">
             {t("errors.alreadyRegistered")}
           </p>
           <button
             type="button"
             onClick={() => switchMode("login")}
-            className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {t("signIn")}
           </button>
@@ -350,7 +350,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? t("creating") : t("register")}
           </button>
@@ -370,7 +370,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {submitting ? t("sending") : t("sendReset")}
           </button>

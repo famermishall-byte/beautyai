@@ -200,7 +200,7 @@ export default function ImportPage() {
   const errorRows = rowResults.filter((r) => r.status === "error");
 
   const selectClass =
-    "w-full rounded-lg border border-black/10 bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-control border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
   return (
     <main className="flex-1 px-4 py-10 max-w-3xl mx-auto w-full">
@@ -210,12 +210,12 @@ export default function ImportPage() {
       <h1 className="font-display text-3xl mb-2">{ti("title")}</h1>
       <p className="text-muted mb-6">{ti("subtitle")}</p>
 
-      {error && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-6">{error}</p>}
+      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-6">{error}</p>}
 
       {step === "file" && (
         <>
           {templates.length > 0 && (
-            <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
+            <div className="bg-card rounded-card border border-border p-5 mb-6">
               <h2 className="font-medium mb-3">{ti("myTemplates")}</h2>
               <ul className="flex flex-col gap-2">
                 {templates.map((t) => (
@@ -233,21 +233,21 @@ export default function ImportPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-2xl border border-black/5 p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h2 className="font-medium mb-3">{ti("step1")}</h2>
             <input
               ref={fileInputRef}
               type="file"
               accept={SUPPORTED_EXTENSIONS.join(",")}
               onChange={handleFileChange}
-              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-accent file:text-white file:px-4 file:py-2 file:font-medium file:transition file:cursor-pointer hover:file:opacity-90"
+              className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-accent file:text-on-accent file:px-4 file:py-2 file:font-medium file:transition file:cursor-pointer hover:file:opacity-90"
             />
           </div>
         </>
       )}
 
       {step === "mapping" && table && (
-        <div className="bg-card rounded-2xl border border-black/5 p-6">
+        <div className="bg-card rounded-card border border-border p-6">
           <h2 className="font-medium mb-1">{ti("step2")}</h2>
           <p className="text-sm text-muted mb-4">
             {ti("step2Hint")}
@@ -314,7 +314,7 @@ export default function ImportPage() {
               <button
                 onClick={handleSaveTemplate}
                 disabled={savingTemplate || !templateNameDraft.trim()}
-                className="shrink-0 rounded-full border border-black/10 px-4 py-2 text-sm font-medium transition hover:bg-black/5 disabled:opacity-50"
+                className="shrink-0 rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:bg-state-hover disabled:opacity-50"
               >
                 {savingTemplate ? ti("saving") : ti("save")}
               </button>
@@ -324,13 +324,13 @@ export default function ImportPage() {
           <div className="flex gap-2">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
+              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
             >
               {ti("cancel")}
             </button>
             <button
               onClick={goToPreview}
-              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
               {ti("nextPreview")}
             </button>
@@ -340,14 +340,14 @@ export default function ImportPage() {
 
       {step === "preview" && (
         <div className="flex flex-col gap-6">
-          <div className="bg-card rounded-2xl border border-black/5 p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h2 className="font-medium mb-1">{ti("step3")}</h2>
             <p className="text-sm text-muted mb-4">
               {ti("readyToImport")}: <span className="text-foreground font-medium">{okRows.length}</span>
               {errorRows.length > 0 && (
                 <>
                   {" "}
-                  · {ti("errors")}: <span className="text-red-600 font-medium">{errorRows.length}</span>
+                  · {ti("errors")}: <span className="text-error font-medium">{errorRows.length}</span>
                 </>
               )}
             </p>
@@ -356,7 +356,7 @@ export default function ImportPage() {
               <div className="overflow-x-auto mb-2">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-muted border-b border-black/10">
+                    <tr className="text-left text-muted border-b border-border">
                       <th className="py-2 pr-4">{tf("name")}</th>
                       <th className="py-2 pr-4">{tf("price")}</th>
                       <th className="py-2 pr-4">{tf("sku")}</th>
@@ -367,7 +367,7 @@ export default function ImportPage() {
                   <tbody>
                     {okRows.slice(0, 10).map((r) =>
                       r.status === "ok" ? (
-                        <tr key={r.rowNumber} className="border-b border-black/5">
+                        <tr key={r.rowNumber} className="border-b border-border">
                           <td className="py-2 pr-4">{r.product.name}</td>
                           <td className="py-2 pr-4">{price(r.product.price)}</td>
                           <td className="py-2 pr-4">{r.product.sku}</td>
@@ -386,9 +386,9 @@ export default function ImportPage() {
           </div>
 
           {errorRows.length > 0 && (
-            <div className="bg-red-50 rounded-2xl p-6">
-              <h2 className="font-medium text-red-700 mb-3">{ti("errorRowsTitle")}</h2>
-              <ul className="flex flex-col gap-2 text-sm text-red-700">
+            <div className="bg-error-soft rounded-card p-6">
+              <h2 className="font-medium text-error mb-3">{ti("errorRowsTitle")}</h2>
+              <ul className="flex flex-col gap-2 text-sm text-error">
                 {errorRows.map((r) =>
                   r.status === "error" ? (
                     <li key={r.rowNumber}>
@@ -404,14 +404,14 @@ export default function ImportPage() {
           <div className="flex gap-2">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
+              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
             >
               {ti("cancel")}
             </button>
             <button
               onClick={handleImport}
               disabled={importing || okRows.length === 0}
-              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
               {importing ? ti("importing") : ti("importN", { n: okRows.length })}
             </button>
@@ -420,7 +420,7 @@ export default function ImportPage() {
       )}
 
       {step === "done" && importResult && (
-        <div className="bg-card rounded-2xl border border-black/5 p-6 text-center">
+        <div className="bg-card rounded-card border border-border p-6 text-center">
           <div className="text-4xl mb-3">💚</div>
           <h2 className="font-display text-2xl mb-2">{ti("done")}</h2>
           <p className="text-muted mb-1">{ti("added", { n: importResult.imported })}</p>
@@ -432,13 +432,13 @@ export default function ImportPage() {
           <div className="flex gap-2 justify-center mt-4">
             <button
               onClick={resetWizard}
-              className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95"
+              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95"
             >
               {ti("uploadAnother")}
             </button>
             <Link
               href="/admin"
-              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
             >
               {ti("toPanel")}
             </Link>

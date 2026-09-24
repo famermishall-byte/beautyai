@@ -52,14 +52,14 @@ export function AppSplashGate({
     <>
       <div
         aria-hidden={!showSplash}
-        className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-accent text-white px-6 transition-opacity duration-500 ${
+        className={`fixed inset-0 z-modal flex flex-col items-center justify-center bg-accent text-on-accent px-6 transition-opacity duration-500 ${
           showSplash ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <div className="relative w-32 h-32 flex items-center justify-center mb-7">
-          <span className="intro-ring absolute inset-0 rounded-full border-2 border-white/60" aria-hidden />
+          <span className="intro-ring absolute inset-0 rounded-full border-2 border-card/60" aria-hidden />
           <span
-            className="intro-ring absolute inset-0 rounded-full border-2 border-white/60"
+            className="intro-ring absolute inset-0 rounded-full border-2 border-card/60"
             style={{ animationDelay: "1.1s" }}
             aria-hidden
           />
@@ -71,7 +71,7 @@ export function AppSplashGate({
         >
           {session?.storeName || tMeta("title")}
         </h1>
-        <p className="intro-text text-white/75 text-sm mt-2 text-center" style={{ animationDelay: "0.3s" }}>
+        <p className="intro-text text-on-accent/75 text-sm mt-2 text-center" style={{ animationDelay: "0.3s" }}>
           {t("tagline")}
         </p>
       </div>

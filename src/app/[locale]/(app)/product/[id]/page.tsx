@@ -135,7 +135,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         <button
           onClick={goBack}
           aria-label={tc("back")}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
         >
           <ArrowLeft className="size-4.5" strokeWidth={2} aria-hidden />
         </button>
@@ -143,7 +143,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           href="/catalog"
           aria-label={tc("allCatalog")}
           title={tc("allCatalog")}
-          className="absolute top-4 left-16 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+          className="absolute top-4 left-16 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
         >
           <LayoutGrid className="size-4.5" strokeWidth={2} aria-hidden />
         </Link>
@@ -151,7 +151,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           onClick={() => toggle(product)}
           aria-label={saved ? t("removeFromBag") : t("saveToBag")}
           aria-pressed={saved}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/95 backdrop-blur flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
         >
           <Heart
             className={["size-4.5", saved ? "animate-pop text-accent" : "text-foreground/60"].join(" ")}
@@ -162,7 +162,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         </button>
 
         {outOfStock && (
-          <div className="absolute inset-x-0 bottom-0 bg-foreground/75 backdrop-blur-sm text-white text-sm font-medium text-center py-2">
+          <div className="absolute inset-x-0 bottom-0 bg-scrim-strong backdrop-blur-sm text-on-accent text-sm font-medium text-center py-2">
             {t("outOfStock")}
           </div>
         )}
@@ -225,7 +225,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       </div>
 
       <div
-        className="sticky z-30 bg-card/95 backdrop-blur-xl border-t border-border px-4 py-3.5 flex items-center gap-3"
+        className="sticky z-sticky bg-card/95 backdrop-blur-xl border-t border-border px-4 py-3.5 flex items-center gap-3"
         style={{ bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom))" }}
       >
         {inCart ? (
@@ -233,7 +233,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               onClick={() => changeQuantity(product.id, -1)}
               aria-label={t("decrease")}
-              className="w-8 h-8 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+              className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90"
             >
               <Minus className="size-3.5" strokeWidth={2.25} aria-hidden />
             </button>
@@ -241,7 +241,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <button
               onClick={() => changeQuantity(product.id, 1)}
               aria-label={t("increase")}
-              className="w-8 h-8 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+              className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90"
             >
               <Plus className="size-3.5" strokeWidth={2.25} aria-hidden />
             </button>

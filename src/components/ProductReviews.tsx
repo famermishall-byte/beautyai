@@ -149,16 +149,16 @@ export function ProductReviews({ productId }: { productId: string }) {
       )}
 
       {formOpen && (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-[var(--radius-card)] p-4 mb-4 flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-card p-4 mb-4 flex flex-col gap-3">
           <StarPicker value={rating} onChange={setRating} />
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={t("commentPlaceholder")}
             rows={3}
-            className="w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none"
+            className="w-full rounded-control border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none"
           />
-          {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
+          {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
           <div className="flex gap-2">
             <Button type="submit" size="sm" disabled={rating < 1 || submitting}>
               {submitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
@@ -176,7 +176,7 @@ export function ProductReviews({ productId }: { productId: string }) {
       ) : (
         <div className="flex flex-col gap-3">
           {reviews.map((r) => (
-            <div key={r.id} className="bg-card border border-border rounded-[var(--radius-card)] p-4">
+            <div key={r.id} className="bg-card border border-border rounded-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Stars value={r.rating} />

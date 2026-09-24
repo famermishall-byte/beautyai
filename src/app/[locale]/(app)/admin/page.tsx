@@ -74,22 +74,22 @@ export default function AdminHome() {
             href={href}
             style={{ ["--sheen-delay" as string]: `${(i % 6) * 0.7}s` } as React.CSSProperties}
             className={[
-              "tile-sheen relative h-32 overflow-hidden rounded-[22px] p-4 transition active:scale-[0.98] hover:shadow-[var(--shadow-float)]",
-              accent ? "bg-accent text-white" : "bg-card border border-border shadow-[var(--shadow-card)]",
+              "tile-sheen relative h-32 overflow-hidden rounded-tile p-4 transition active:scale-[0.98] hover:shadow-float",
+              accent ? "bg-accent text-on-accent" : "bg-card border border-border shadow-card",
             ].join(" ")}
           >
             <span className="relative block max-w-[65%] text-base font-semibold leading-tight">{label}</span>
-            <span className={["relative block max-w-[65%] text-xs mt-1", accent ? "text-white/85" : "text-muted"].join(" ")}>{hint}</span>
+            <span className={["relative block max-w-[65%] text-xs mt-1", accent ? "text-on-accent/85" : "text-muted"].join(" ")}>{hint}</span>
             <span
               className={[
-                "absolute bottom-3 right-3 flex items-center justify-center size-14 rounded-2xl",
-                accent ? "bg-white/20 text-white" : "bg-accent-soft text-accent",
+                "absolute bottom-3 right-3 flex items-center justify-center size-14 rounded-card",
+                accent ? "bg-card/20 text-on-accent" : "bg-accent-soft text-accent",
               ].join(" ")}
             >
               <Icon className="size-8" strokeWidth={1.6} aria-hidden />
             </span>
             {badge ? (
-              <span className="absolute top-3 right-3 min-w-6 h-6 px-1.5 rounded-full bg-accent text-white text-xs font-semibold flex items-center justify-center">
+              <span className="absolute top-3 right-3 min-w-6 h-6 px-1.5 rounded-full bg-accent text-on-accent text-xs font-semibold flex items-center justify-center">
                 {badge}
               </span>
             ) : null}

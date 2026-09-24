@@ -86,8 +86,8 @@ export default function BranchesPage() {
 
       {loading ? (
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-72 rounded-[var(--radius-card)]" />
-          <Skeleton className="h-40 rounded-[var(--radius-card)]" />
+          <Skeleton className="h-72 rounded-card" />
+          <Skeleton className="h-40 rounded-card" />
         </div>
       ) : ordered.length === 0 ? (
         <EmptyState icon={Store} title={t("none")} description={t("noneHint")} />
@@ -105,7 +105,7 @@ export default function BranchesPage() {
                 <div
                   key={branch.id}
                   className={[
-                    "animate-rise-in bg-card rounded-[var(--radius-card)] border p-5 shadow-[var(--shadow-card)] transition-colors",
+                    "animate-rise-in bg-card rounded-card border p-5 shadow-card transition-colors",
                     active ? "border-accent" : "border-border",
                   ].join(" ")}
                   style={{ animationDelay: `${i * 45}ms` }}
@@ -147,7 +147,7 @@ export default function BranchesPage() {
                       href={buildWhatsAppUrl(branch.whatsapp, `Здравствуйте! Пишу по поводу филиала «${branch.name}».`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:bg-accent-strong active:scale-95"
+                      className="inline-flex items-center gap-2 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:bg-accent-strong active:scale-95"
                     >
                       <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
                       WhatsApp
@@ -157,7 +157,7 @@ export default function BranchesPage() {
                         href={`https://www.google.com/maps/search/?api=1&query=${branch.latitude},${branch.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-accent-soft text-accent-strong px-5 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-white active:scale-95"
+                        className="inline-flex items-center gap-2 rounded-full bg-accent-soft text-accent-strong px-5 py-2.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent active:scale-95"
                       >
                         <Navigation className="size-4" strokeWidth={2} aria-hidden />
                         {t("route")}

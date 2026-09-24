@@ -40,13 +40,13 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl p-5 animate-rise-in">
+    <div className="fixed inset-0 z-overlay flex items-end sm:items-center justify-center p-4">
+      <div className="absolute inset-0 bg-scrim backdrop-blur-[2px]" onClick={onClose} />
+      <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-sheet bg-card border border-border shadow-modal p-5 animate-rise-in">
         <button
           onClick={onClose}
           aria-label={t("close")}
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+          className="absolute top-3 right-3 z-raised w-8 h-8 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
         >
           <X className="size-4" strokeWidth={2} aria-hidden />
         </button>
@@ -57,15 +57,15 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
         </div>
 
         <div className="flex gap-3 items-center mb-4">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-accent-soft shrink-0">
+          <div className="w-16 h-16 rounded-card overflow-hidden bg-accent-soft shrink-0">
             {product.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={product.imageUrl} alt={text(product).name} className="w-full h-full object-cover" />
             ) : null}
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-wide text-muted font-medium truncate">{product.brand}</div>
-            <div className="font-display text-[15px] leading-snug line-clamp-2">{text(product).name}</div>
+            <div className="text-2xs uppercase tracking-wide text-muted font-medium truncate">{product.brand}</div>
+            <div className="font-display text-md leading-snug line-clamp-2">{text(product).name}</div>
             <div className="font-display text-base mt-0.5">{price(product.price)}</div>
           </div>
         </div>
@@ -73,13 +73,13 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 rounded-full border border-black/10 px-4 py-3 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex-1 rounded-full border border-border px-4 py-3 text-sm font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {t("dismiss")}
           </button>
           <button
             onClick={handleBuyAgain}
-            className="flex-1 rounded-full bg-accent text-white px-4 py-3 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="flex-1 rounded-full bg-accent text-on-accent px-4 py-3 text-sm font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {t("buyAgain")}
           </button>

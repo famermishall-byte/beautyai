@@ -37,7 +37,7 @@ function missingFields(form: Form) {
   return REQUIRED.filter((f) => !form[f.key].trim());
 }
 
-const inputClass = "rounded-lg border border-black/10 bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+const inputClass = "rounded-control border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 function nowLabel(locale: string) {
   return new Date().toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
@@ -116,8 +116,8 @@ function BranchCard({
   }
 
   return (
-    <div id={`branch-${branch.id}`} className="border border-black/5 rounded-xl overflow-hidden">
-      <button onClick={onToggle} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-black/[0.02] transition" aria-expanded={open}>
+    <div id={`branch-${branch.id}`} className="border border-border rounded-control overflow-hidden">
+      <button onClick={onToggle} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-state-hover transition" aria-expanded={open}>
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{branch.name}</div>
           <div className="text-xs text-muted truncate">
@@ -125,13 +125,13 @@ function BranchCard({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {open && dirty && <span className="text-[11px] font-medium text-warning bg-warning-soft rounded-full px-2 py-0.5">{t("unsaved")}</span>}
+          {open && dirty && <span className="text-2xs font-medium text-warning bg-warning-soft rounded-full px-2 py-0.5">{t("unsaved")}</span>}
           <ChevronDown className={["size-4 text-muted transition-transform", open ? "rotate-180" : ""].join(" ")} aria-hidden />
         </div>
       </button>
 
       {open && (
-        <div className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-black/5">
+        <div className="px-4 pb-4 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-border">
           <label className="flex flex-col gap-1 text-xs text-muted">
             {t("fields.name")}
             <input className={inputClass} value={form.name} onChange={(e) => edit({ name: e.target.value })} />
@@ -169,7 +169,7 @@ function BranchCard({
             <button
               onClick={handleSave}
               disabled={state === "saving" || !dirty}
-              className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="rounded-full bg-accent text-on-accent px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               {state === "saving" ? t("saving") : t("save")}
             </button>
@@ -258,12 +258,12 @@ export function BranchManager() {
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-black/5 p-6">
+    <div className="bg-card rounded-card border border-border p-6">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h2 className="font-medium">{t("title")} · {branches.length}</h2>
         <button
           onClick={() => setShowAdd((v) => !v)}
-          className="flex items-center gap-1 rounded-full bg-accent-soft text-accent px-3.5 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-white"
+          className="flex items-center gap-1 rounded-full bg-accent-soft text-accent px-3.5 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent"
         >
           <Plus className="size-4" aria-hidden />
           {t("add")}
@@ -276,14 +276,14 @@ export function BranchManager() {
       {notice && (
         <div
           role="status"
-          className={["rounded-xl px-4 py-3 text-sm font-medium mb-4", notice.kind === "ok" ? "bg-success-soft text-success" : "bg-error-soft text-error"].join(" ")}
+          className={["rounded-control px-4 py-3 text-sm font-medium mb-4", notice.kind === "ok" ? "bg-success-soft text-success" : "bg-error-soft text-error"].join(" ")}
         >
           {notice.text}
         </div>
       )}
 
       {showAdd && (
-        <form onSubmit={handleAdd} className="border border-accent/30 bg-accent-soft/40 rounded-xl p-4 mb-5">
+        <form onSubmit={handleAdd} className="border border-accent/30 bg-accent-soft/40 rounded-control p-4 mb-5">
           <h3 className="text-sm font-medium mb-3">{t("newBranch")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input className={inputClass} placeholder={t("fields.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -300,7 +300,7 @@ export function BranchManager() {
             <button
               type="submit"
               disabled={adding}
-              className="rounded-full bg-accent text-white px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="rounded-full bg-accent text-on-accent px-5 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               {adding ? t("adding") : t("addBranch")}
             </button>

@@ -8,7 +8,7 @@ import type { Branch } from "@/types";
 type Person = { userId: string; email: string; displayName: string | null; role: string; branchId: string | null; branchName: string | null };
 type Notice = { kind: "ok" | "error"; text: string };
 
-const inputClass = "w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+const inputClass = "w-full rounded-control border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 export default function AdminStaffPage() {
   const t = useTranslations("adminStaff");
@@ -92,13 +92,13 @@ export default function AdminStaffPage() {
       {notice && (
         <div
           role="status"
-          className={["rounded-xl px-4 py-3 text-sm font-medium mb-4", notice.kind === "ok" ? "bg-success-soft text-success" : "bg-error-soft text-error"].join(" ")}
+          className={["rounded-control px-4 py-3 text-sm font-medium mb-4", notice.kind === "ok" ? "bg-success-soft text-success" : "bg-error-soft text-error"].join(" ")}
         >
           {notice.text}
         </div>
       )}
 
-      <form onSubmit={handleAssign} className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
+      <form onSubmit={handleAssign} className="bg-card rounded-card border border-border p-5 mb-6">
         <h2 className="font-medium mb-1">{t("grantTitle")}</h2>
         <p className="text-sm text-muted mb-4">
           {t("grantHint")}
@@ -132,13 +132,13 @@ export default function AdminStaffPage() {
         <button
           type="submit"
           disabled={saving}
-          className="mt-4 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-4 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {saving ? t("granting") : t("grantTitle")}
         </button>
       </form>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-5">
+      <div className="bg-card rounded-card border border-border p-5">
         <h2 className="font-medium mb-3">{t("currentTitle")}{staff ? ` · ${staff.length}` : ""}</h2>
         {loadError && <p className="text-sm text-error font-medium">{loadError}</p>}
         {staff === null ? (
@@ -146,7 +146,7 @@ export default function AdminStaffPage() {
         ) : staff.length === 0 && !loadError ? (
           <p className="text-sm text-muted">{t("nobody")}</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-black/5">
+          <ul className="flex flex-col divide-y divide-border">
             {staff.map((p) => (
               <li key={p.userId} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">

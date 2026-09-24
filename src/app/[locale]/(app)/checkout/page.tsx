@@ -88,7 +88,7 @@ export default function CheckoutPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-black/10 bg-card px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-control border border-border bg-card px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
 
   if (step === "success" && successInfo) {
     return (
@@ -102,14 +102,14 @@ export default function CheckoutPage() {
           {t("sentHint")}
         </p>
 
-        <div className="w-full max-w-md rounded-[var(--radius-card)] bg-warning-soft text-warning px-4 py-3.5 mb-4 text-left flex gap-3">
+        <div className="w-full max-w-md rounded-card bg-warning-soft text-warning px-4 py-3.5 mb-4 text-left flex gap-3">
           <TriangleAlert className="size-5 shrink-0 mt-0.5" strokeWidth={2} aria-hidden />
           <p className="text-sm font-medium leading-snug">{t("sentWhatsappWarning")}</p>
         </div>
 
         <button
           onClick={() => window.open(successInfo.whatsappUrl, "_blank")?.focus()}
-          className="w-full max-w-md rounded-full bg-[#25D366] text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2 mb-3"
+          className="w-full max-w-md rounded-full bg-whatsapp text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2 mb-3"
         >
           <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
           {t("reopenWhatsapp")}
@@ -117,7 +117,7 @@ export default function CheckoutPage() {
 
         <button
           onClick={() => router.push("/")}
-          className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           {t("backToCatalog")}
         </button>
@@ -151,13 +151,13 @@ export default function CheckoutPage() {
               <span
                 className={[
                   "w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium",
-                  isActive ? "bg-accent text-white" : isDone ? "bg-accent-soft text-accent" : "bg-black/5 text-muted",
+                  isActive ? "bg-accent text-on-accent" : isDone ? "bg-accent-soft text-accent" : "bg-state-hover text-muted",
                 ].join(" ")}
               >
                 {i + 1}
               </span>
               <span className={isActive ? "text-sm font-medium" : "text-sm text-muted"}>{s.label}</span>
-              {i < stepLabels.length - 1 && <span className="w-6 h-px bg-black/10 mx-1" />}
+              {i < stepLabels.length - 1 && <span className="w-6 h-px bg-state-pressed mx-1" />}
             </div>
           );
         })}
@@ -175,8 +175,8 @@ export default function CheckoutPage() {
                   key={branch.id}
                   onClick={() => setBranchId(branch.id)}
                   className={[
-                    "text-left rounded-xl border p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                    branchId === branch.id ? "border-accent bg-accent-soft" : "border-black/10 bg-card hover:border-accent/50",
+                    "text-left rounded-control border p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    branchId === branch.id ? "border-accent bg-accent-soft" : "border-border bg-card hover:border-accent/50",
                   ].join(" ")}
                 >
                   <div className="font-medium">{branch.name}</div>
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
           <button
             onClick={() => setStep("contact")}
             disabled={!branchId}
-            className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {t("next")}
           </button>
@@ -216,14 +216,14 @@ export default function CheckoutPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setStep("branch")}
-              className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               {t("back")}
             </button>
             <button
               onClick={() => setStep("review")}
               disabled={!customerName.trim() || !customerPhone.trim()}
-              className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               {t("next")}
             </button>
@@ -235,11 +235,11 @@ export default function CheckoutPage() {
         <div>
           <h2 className="font-medium mb-4">{t("reviewTitle")}</h2>
 
-          <div className="bg-card rounded-xl border border-black/5 p-4 mb-4">
+          <div className="bg-card rounded-control border border-border p-4 mb-4">
             <div className="text-sm text-muted mb-2">{t("products")}</div>
             <div className="flex flex-col gap-3">
               {items.map((item) => (
-                <div key={item.product.id} className="flex gap-3 items-start border-b border-black/5 pb-3 last:border-0 last:pb-0">
+                <div key={item.product.id} className="flex gap-3 items-start border-b border-border pb-3 last:border-0 last:pb-0">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm truncate">{text(item.product).name}</div>
                     <div className="flex items-center gap-2 mt-1.5">
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, -1)}
                           aria-label={tCart("decrease", { name: text(item.product).name })}
-                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                          className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
                         >
                           <Minus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>
@@ -257,7 +257,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, 1)}
                           aria-label={tCart("increase", { name: text(item.product).name })}
-                          className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                          className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
                         >
                           <Plus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>
@@ -281,13 +281,13 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-between font-display text-lg mt-3 pt-3 border-t border-black/10">
+            <div className="flex justify-between font-display text-lg mt-3 pt-3 border-t border-border">
               <span>{t("total")}</span>
               <span>{price(totalPrice)}</span>
             </div>
           </div>
 
-          <div className="bg-card rounded-xl border border-black/5 p-4 mb-4">
+          <div className="bg-card rounded-control border border-border p-4 mb-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-sm text-muted">{t("branch")}</div>
               <button onClick={() => setStep("branch")} className="text-xs text-accent underline">
@@ -298,7 +298,7 @@ export default function CheckoutPage() {
             <div className="text-sm text-muted">{selectedBranch.address}</div>
           </div>
 
-          <div className="bg-card rounded-xl border border-black/5 p-4 mb-6">
+          <div className="bg-card rounded-control border border-border p-4 mb-6">
             <div className="flex items-center justify-between mb-1">
               <div className="text-sm text-muted">{t("contacts")}</div>
               <button onClick={() => setStep("contact")} className="text-xs text-accent underline">
@@ -309,19 +309,19 @@ export default function CheckoutPage() {
             <div className="text-sm text-muted">{customerPhone}</div>
           </div>
 
-          {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+          {error && <p className="text-sm text-error mb-4">{error}</p>}
 
           <div className="flex gap-2">
             <button
               onClick={() => setStep("contact")}
-              className="rounded-full border border-black/10 px-6 py-3 font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               {t("back")}
             </button>
             <button
               onClick={handleSubmitOrder}
               disabled={submitting}
-              className="rounded-full bg-[#25D366] text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="rounded-full bg-whatsapp text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               {submitting ? t("sending") : t("sendWhatsApp")}
             </button>

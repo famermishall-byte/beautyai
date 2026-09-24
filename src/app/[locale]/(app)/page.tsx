@@ -115,7 +115,7 @@ export default function Home() {
       <BuyAgainPrompt />
       <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
         {loading ? (
-          <Skeleton className="aspect-[16/11] rounded-[var(--radius-card)]" />
+          <Skeleton className="aspect-[16/11] rounded-card" />
         ) : slides.length > 0 ? (
           <HeroSlider products={slides} isNew={newArrivals.length > 0} />
         ) : null}
@@ -132,7 +132,7 @@ export default function Home() {
           ) : (
             <Link
               href="/profile"
-              className="bg-card rounded-[var(--radius-card)] border border-border p-4.5 flex items-center justify-between gap-4 shadow-[var(--shadow-card)] transition hover:border-accent/30 active:scale-[0.99]"
+              className="bg-card rounded-card border border-border p-4.5 flex items-center justify-between gap-4 shadow-card transition hover:border-accent/30 active:scale-[0.99]"
             >
               <div className="flex items-center gap-3.5">
                 <span className="flex items-center justify-center w-11 h-11 rounded-full bg-accent-soft text-accent shrink-0">
@@ -174,7 +174,7 @@ export default function Home() {
 
         <Link
           href="/routine"
-          className="bg-accent-soft rounded-[var(--radius-card)] p-5 flex items-center justify-between gap-4 transition hover:brightness-[0.98] active:scale-[0.99]"
+          className="bg-accent-soft rounded-card p-5 flex items-center justify-between gap-4 transition hover:brightness-[0.98] active:scale-[0.99]"
         >
           <div>
             <div className="font-display text-lg mb-1">{t("myCare")}</div>

@@ -47,14 +47,14 @@ export default function AdminCatalogPage() {
       ) : filtered.length === 0 ? (
         <p className="text-muted text-sm">{t("nothingFound")}</p>
       ) : (
-        <div className="bg-card rounded-2xl border border-black/5 p-4">
+        <div className="bg-card rounded-card border border-border p-4">
           <div className="text-sm text-muted mb-3">
             {t("shown", { shown: Math.min(shown, filtered.length), total: filtered.length })}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-muted border-b border-black/10">
+                <tr className="text-left text-muted border-b border-border">
                   <th className="py-2 pr-4">{t("colName")}</th>
                   <th className="py-2 pr-4">{t("colBrand")}</th>
                   <th className="py-2 pr-4">{t("colCategory")}</th>
@@ -66,7 +66,7 @@ export default function AdminCatalogPage() {
               </thead>
               <tbody>
                 {filtered.slice(0, shown).map((p) => (
-                  <tr key={p.id} className="border-b border-black/5">
+                  <tr key={p.id} className="border-b border-border">
                     <td className="py-2 pr-4">{p.name}</td>
                     <td className="py-2 pr-4">{p.brand}</td>
                     <td className="py-2 pr-4">{p.category}</td>

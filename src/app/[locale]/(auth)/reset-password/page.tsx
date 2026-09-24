@@ -60,11 +60,11 @@ export default function ResetPasswordPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-black/10 bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-control border border-border bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
 
   if (!ready) {
     return (
-      <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
+      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
         <p className="text-muted animate-pulse">{t("checking")}</p>
       </div>
     );
@@ -72,14 +72,14 @@ export default function ResetPasswordPage() {
 
   if (!hasValidSession) {
     return (
-      <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
+      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
         <h1 className="font-display text-2xl mb-3">{t("invalidTitle")}</h1>
         <p className="text-muted mb-6">
           {t("invalidText")}
         </p>
         <Link
           href="/login"
-          className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
+          className="inline-block rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90"
         >
           {t("backToLogin")}
         </Link>
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8 text-center">
+      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
         <div className="text-4xl mb-3">💚</div>
         <h1 className="font-display text-2xl mb-2">{t("updatedTitle")}</h1>
         <p className="text-muted">{t("redirecting")}</p>
@@ -98,13 +98,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="bg-card rounded-3xl shadow-xl shadow-black/5 border border-black/5 p-8">
+    <div className="bg-card rounded-sheet shadow-modal border border-border p-8">
       <div className="text-center mb-6">
         <h1 className="font-display text-2xl">{t("title")}</h1>
         <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
       </div>
 
-      {error && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4">{error}</p>}
+      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <PasswordInput
@@ -126,7 +126,7 @@ export default function ResetPasswordPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           {submitting ? t("saving") : t("save")}
         </button>

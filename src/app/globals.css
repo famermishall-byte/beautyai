@@ -60,7 +60,6 @@
 
   /* Third-party brand: the WhatsApp hand-off button (order submit / contact). */
   --whatsapp: #25d366;
-  --whatsapp-strong: #128c7e;
 
   /* Motion durations (easing lives in @theme as --ease-out-expo). */
   --duration-fast: 150ms; /* press/hover feedback, color changes */
@@ -106,7 +105,6 @@
   --color-rank-bronze: var(--rank-bronze);
   --color-rank-bronze-ink: var(--rank-bronze-ink);
   --color-whatsapp: var(--whatsapp);
-  --color-whatsapp-strong: var(--whatsapp-strong);
   --font-sans: var(--font-manrope);
   --font-display: var(--font-manrope);
   --font-title: var(--font-manrope);

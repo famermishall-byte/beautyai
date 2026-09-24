@@ -178,15 +178,15 @@ export default function ProfilePage() {
     return (
       <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full flex flex-col gap-4">
         <Skeleton className="h-9 w-56" />
-        <Skeleton className="h-28 rounded-[var(--radius-card)]" />
-        <Skeleton className="h-64 rounded-[var(--radius-card)]" />
+        <Skeleton className="h-28 rounded-card" />
+        <Skeleton className="h-64 rounded-card" />
       </main>
     );
   }
 
   const inputClass =
-    "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
-  const cardClass = "bg-card rounded-[var(--radius-card)] border border-border p-5 mb-4 shadow-[var(--shadow-card)]";
+    "w-full rounded-control border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
+  const cardClass = "bg-card rounded-card border border-border p-5 mb-4 shadow-card";
   const initial = (session.displayName ?? session.email ?? "").trim().charAt(0).toUpperCase();
 
   return (
@@ -248,11 +248,11 @@ export default function ProfilePage() {
             <Sparkles className="size-4 text-accent" strokeWidth={2} aria-hidden />
             <h2 className="font-display text-xl">{t("yourKit")}</h2>
           </div>
-          {kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-[var(--radius-card)]" />}
+          {kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-card" />}
         </div>
       )}
 
-      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-4">
+      <div className="bg-card rounded-card border border-border shadow-card overflow-hidden mb-4">
         <MenuRow href="/city" icon={MapPin} label={t("menu.city")} hint={city ?? t("menu.cityNotChosen")} />
         <MenuRow href="/branches" icon={Store} label={t("menu.stores")} hint={t("menu.storesHint")} />
         <MenuRow href="/mybag" icon={Heart} label={t("menu.myBag")} hint={t("menu.myBagHint")} />
@@ -268,12 +268,12 @@ export default function ProfilePage() {
 
       <NotificationGeoSettings />
 
-      <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] mb-6 overflow-hidden">
+      <div className="bg-card rounded-card border border-border shadow-card mb-6 overflow-hidden">
         <button
           type="button"
           onClick={() => setShowAccount((v) => !v)}
           aria-expanded={showAccount}
-          className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-black/[0.02]"
+          className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover"
         >
           <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
             <KeyRound className="size-4.5" strokeWidth={1.85} aria-hidden />
@@ -287,10 +287,10 @@ export default function ProfilePage() {
             <form onSubmit={handleChangeEmail} className="flex flex-col gap-3 pt-4">
               <h3 className="text-sm font-medium">Email</h3>
               {emailNotice && (
-                <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3">{emailNotice}</p>
+                <p className="text-sm bg-accent-soft text-accent-strong rounded-control px-4 py-3">{emailNotice}</p>
               )}
               {emailError && (
-                <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{emailError}</p>
+                <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{emailError}</p>
               )}
               <div className="flex gap-2">
                 <input
@@ -309,10 +309,10 @@ export default function ProfilePage() {
             <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">{t("password")}</h3>
               {passwordNotice && (
-                <p className="text-sm bg-accent-soft text-accent-strong rounded-[var(--radius-control)] px-4 py-3">{passwordNotice}</p>
+                <p className="text-sm bg-accent-soft text-accent-strong rounded-control px-4 py-3">{passwordNotice}</p>
               )}
               {passwordError && (
-                <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{passwordError}</p>
+                <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{passwordError}</p>
               )}
               <PasswordInput
                 placeholder={t("newPassword")}
@@ -350,9 +350,9 @@ export default function ProfilePage() {
       </button>
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => !deleting && setShowDeleteConfirm(false)} />
-          <div className="relative w-full max-w-sm bg-background rounded-[var(--radius-card)] shadow-xl p-6 animate-rise-in">
+        <div className="fixed inset-0 z-modal flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-scrim backdrop-blur-[2px]" onClick={() => !deleting && setShowDeleteConfirm(false)} />
+          <div className="relative w-full max-w-sm bg-background rounded-card shadow-modal p-6 animate-rise-in">
             <h2 className="font-display text-xl mb-3">{t("deleteTitle")}</h2>
             <p className="text-sm text-muted mb-6 leading-relaxed">
               {t("deleteWarning")}
@@ -390,7 +390,7 @@ function MenuRow({
     <Link
       href={href}
       className={[
-        "flex items-center gap-3.5 px-5 py-4 transition hover:bg-black/[0.02] active:bg-black/[0.04]",
+        "flex items-center gap-3.5 px-5 py-4 transition hover:bg-state-hover active:bg-state-hover",
         !last ? "border-b border-border" : "",
       ].join(" ")}
     >

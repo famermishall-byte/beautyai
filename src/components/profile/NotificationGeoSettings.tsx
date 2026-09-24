@@ -30,7 +30,7 @@ function Switch({ checked, disabled, label, onClick }: { checked: boolean; disab
     >
       <span
         aria-hidden
-        className={["absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform", checked ? "translate-x-5" : "translate-x-0"].join(
+        className={["absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card shadow-control transition-transform", checked ? "translate-x-5" : "translate-x-0"].join(
           " "
         )}
       />
@@ -96,12 +96,12 @@ export function NotificationGeoSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] mb-6 overflow-hidden">
+    <div className="bg-card rounded-card border border-border shadow-card mb-6 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-black/[0.02]"
+        className="w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-state-hover"
       >
         <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
           <Settings className="size-4.5" strokeWidth={1.85} aria-hidden />

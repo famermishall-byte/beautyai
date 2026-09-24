@@ -89,7 +89,7 @@ const STATE_LABEL_KEY: Record<EffectiveState, string> = {
   disabled: "disabled",
 };
 
-const inputClass = "w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+const inputClass = "w-full rounded-control border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 function BannerForm({
   initial,
@@ -175,7 +175,7 @@ function BannerForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-black/5 p-5 flex flex-col gap-3.5 mb-5">
+    <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 flex flex-col gap-3.5 mb-5">
       <input className={inputClass} placeholder={t("fields.title")} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
       <textarea
         className={inputClass}
@@ -188,12 +188,12 @@ function BannerForm({
       <div>
         <div className="text-xs text-muted mb-1.5">{t("fields.image")}</div>
         {form.imageUrl ? (
-          <div className="relative rounded-xl overflow-hidden aspect-[16/11] bg-accent-soft mb-2">
+          <div className="relative rounded-control overflow-hidden aspect-[16/11] bg-accent-soft mb-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          <div className="rounded-xl aspect-[16/11] bg-accent-soft flex items-center justify-center mb-2 text-muted">
+          <div className="rounded-control aspect-[16/11] bg-accent-soft flex items-center justify-center mb-2 text-muted">
             <ImageOff className="size-8" strokeWidth={1.5} aria-hidden />
           </div>
         )}
@@ -377,8 +377,8 @@ export function BannerManager() {
               onSaved={(form) => submitForm(banner.id, form)}
             />
           ) : (
-            <div key={banner.id} className="bg-card rounded-2xl border border-black/5 p-4 flex gap-3.5 items-center">
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-accent-soft shrink-0">
+            <div key={banner.id} className="bg-card rounded-card border border-border p-4 flex gap-3.5 items-center">
+              <div className="w-16 h-16 rounded-control overflow-hidden bg-accent-soft shrink-0">
                 {banner.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -388,11 +388,11 @@ export function BannerManager() {
                 <div className="font-medium truncate">{banner.title}</div>
                 <div className="text-xs text-muted truncate">{banner.product?.name ?? t("noProduct")}</div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[11px] rounded-full bg-accent-soft text-accent px-2 py-0.5">
+                  <span className="text-2xs rounded-full bg-accent-soft text-accent px-2 py-0.5">
                     {t(`status.${STATE_LABEL_KEY[effectiveState(banner)]}`)}
                   </span>
-                  <span className="text-[11px] text-muted">{t("priorityShort", { n: banner.priority })}</span>
-                  <span className="text-[11px] text-muted">
+                  <span className="text-2xs text-muted">{t("priorityShort", { n: banner.priority })}</span>
+                  <span className="text-2xs text-muted">
                     {new Date(banner.startAt).toLocaleDateString(locale)} – {new Date(banner.endAt).toLocaleDateString(locale)}
                   </span>
                 </div>
@@ -401,14 +401,14 @@ export function BannerManager() {
                 <button
                   onClick={() => setEditingId(banner.id)}
                   aria-label={t("edit")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
                 >
                   <Eye className="size-4" strokeWidth={2} aria-hidden />
                 </button>
                 <button
                   onClick={() => toggleDisabled(banner)}
                   aria-label={banner.status === "disabled" ? t("enable") : t("disable")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
                 >
                   {banner.status === "disabled" ? <Play className="size-4" strokeWidth={2} aria-hidden /> : <Pause className="size-4" strokeWidth={2} aria-hidden />}
                 </button>

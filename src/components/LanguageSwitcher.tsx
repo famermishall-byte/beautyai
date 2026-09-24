@@ -35,10 +35,10 @@ export function LanguageSwitcher({ className = "", compact = false }: { classNam
         onClick={() => choose(other)}
         aria-label={`${t("language")}: ${LABELS[other]}`}
         title={`${t("language")}: ${LABELS[locale]} → ${LABELS[other]}`}
-        className={`shrink-0 relative w-9 h-9 rounded-full flex items-center justify-center text-accent transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${className}`}
+        className={`shrink-0 relative w-9 h-9 rounded-full flex items-center justify-center text-accent transition hover:bg-state-hover active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${className}`}
       >
         <Globe className="size-5" strokeWidth={1.85} aria-hidden />
-        <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent text-white text-[8px] font-bold leading-none px-1 py-0.5">
+        <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent text-on-accent text-[8px] font-bold leading-none px-1 py-0.5">
           {LABELS[locale]}
         </span>
       </button>
@@ -49,7 +49,7 @@ export function LanguageSwitcher({ className = "", compact = false }: { classNam
     <div
       role="group"
       aria-label={t("language")}
-      className={`shrink-0 flex items-center gap-1 rounded-full bg-black/[0.05] py-0.5 pl-2 pr-0.5 ${className}`}
+      className={`shrink-0 flex items-center gap-1 rounded-full bg-state-hover py-0.5 pl-2 pr-0.5 ${className}`}
     >
       <Globe className="size-4 text-accent" strokeWidth={2} aria-hidden />
       {routing.locales.map((code) => {
@@ -61,9 +61,9 @@ export function LanguageSwitcher({ className = "", compact = false }: { classNam
             onClick={() => choose(code)}
             aria-pressed={active}
             className={[
-              "px-2 py-1 rounded-full text-[11px] font-semibold leading-none transition",
+              "px-2 py-1 rounded-full text-2xs font-semibold leading-none transition",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-              active ? "bg-card text-accent shadow-sm" : "text-muted hover:text-foreground",
+              active ? "bg-card text-accent shadow-control" : "text-muted hover:text-foreground",
             ].join(" ")}
           >
             {LABELS[code]}

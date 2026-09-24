@@ -16,7 +16,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   danger: "bg-error text-on-accent hover:opacity-90 active:scale-[0.97] disabled:opacity-40",
   success: "bg-success text-on-accent hover:opacity-90 active:scale-[0.97] disabled:opacity-40",
   // The WhatsApp hand-off — the one place a third-party brand color is allowed.
-  whatsapp: "bg-whatsapp-strong text-on-accent hover:opacity-90 active:scale-[0.97] disabled:opacity-40",
+  whatsapp: "bg-whatsapp text-on-accent hover:opacity-90 active:scale-[0.97] disabled:opacity-40",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {

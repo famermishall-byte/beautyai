@@ -101,7 +101,7 @@ export function AvatarUploader({
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <div className="w-24 h-24 rounded-full bg-accent-soft text-accent flex items-center justify-center overflow-hidden ring-4 ring-card shadow-[var(--shadow-card)]">
+        <div className="w-24 h-24 rounded-full bg-accent-soft text-accent flex items-center justify-center overflow-hidden ring-4 ring-card shadow-card">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatarUrl} alt={t("yourPhoto")} className="w-full h-full object-cover" />
@@ -111,7 +111,7 @@ export function AvatarUploader({
             <User className="size-10" strokeWidth={1.5} aria-hidden />
           )}
           {busy && (
-            <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
+            <div className="absolute inset-0 bg-card/70 flex items-center justify-center rounded-full">
               <Loader2 className="size-6 animate-spin text-accent" aria-hidden />
             </div>
           )}
@@ -121,7 +121,7 @@ export function AvatarUploader({
           onClick={() => inputRef.current?.click()}
           disabled={busy}
           aria-label={avatarUrl ? t("changePhoto") : t("addPhoto")}
-          className="absolute -bottom-0.5 -right-0.5 w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center shadow-[var(--shadow-float)] transition hover:bg-accent-strong active:scale-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="absolute -bottom-0.5 -right-0.5 w-9 h-9 rounded-full bg-accent text-on-accent flex items-center justify-center shadow-float transition hover:bg-accent-strong active:scale-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <Camera className="size-4.5" strokeWidth={2} aria-hidden />
         </button>

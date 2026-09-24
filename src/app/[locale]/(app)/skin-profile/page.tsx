@@ -76,8 +76,8 @@ export default function SkinProfilePage() {
               className={[
                 "rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 skinType === s.value
-                  ? "bg-accent text-white"
-                  : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                  ? "bg-accent text-on-accent"
+                  : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
               ].join(" ")}
             >
               {tSkin(`types.${s.value}`)}
@@ -99,8 +99,8 @@ export default function SkinProfilePage() {
                 className={[
                   "rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                   active
-                    ? "bg-accent text-white"
-                    : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                    ? "bg-accent text-on-accent"
+                    : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
                 ].join(" ")}
               >
                 {tSkin(`concerns.${c.value}`)}
@@ -114,7 +114,7 @@ export default function SkinProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving || !skinType}
-          className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           {saving ? t("saving") : saved ? t("saved") : t("save")}
         </button>

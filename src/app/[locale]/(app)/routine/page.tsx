@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation";
 // (title/steps arrive already translated)
 function RoutineList({ title, steps }: { title: string; steps: string[] }) {
   return (
-    <div className="bg-card rounded-2xl border border-black/5 p-5">
+    <div className="bg-card rounded-card border border-border p-5">
       <h2 className="font-medium mb-3">{title}</h2>
       <ol className="flex flex-col gap-2">
         {steps.map((step, i) => (
@@ -47,7 +47,7 @@ export default function RoutinePage() {
         <p className="text-muted mb-6">{t("needSkinTypeHint")}</p>
         <Link
           href="/skin-profile"
-          className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90"
+          className="inline-block rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90"
         >
           {t("setUp")}
         </Link>
@@ -72,7 +72,7 @@ export default function RoutinePage() {
       </div>
 
       {routine.tips.length > 0 && (
-        <div className="bg-accent-soft text-accent rounded-2xl p-5">
+        <div className="bg-accent-soft text-accent rounded-card p-5">
           <h2 className="font-medium mb-2">{t("tips")}</h2>
           <ul className="flex flex-col gap-1.5 text-sm">
             {routine.tips.map((tip) => (

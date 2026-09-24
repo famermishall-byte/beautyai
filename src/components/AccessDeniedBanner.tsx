@@ -28,7 +28,7 @@ export function AccessDeniedBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium shadow-lg">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium shadow-float">
       🚫 {t("accessDenied")}
     </div>
   );

@@ -20,7 +20,7 @@ export function BottomNav() {
   if (isAdmin) return null;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 inset-x-0 z-nav bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="max-w-5xl mx-auto grid grid-cols-4" style={{ height: "var(--bottom-nav-h)" }}>
         {ITEMS.map(({ href, match, labelKey, icon: Icon }) => {
           const active = match === "/" ? pathname === "/" : pathname.startsWith(match);
@@ -34,7 +34,7 @@ export function BottomNav() {
               <span
                 className={[
                   "flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200",
-                  active ? "bg-accent-soft" : "group-hover:bg-black/[0.04]",
+                  active ? "bg-accent-soft" : "group-hover:bg-state-hover",
                 ].join(" ")}
               >
                 <Icon
@@ -45,7 +45,7 @@ export function BottomNav() {
                 />
               </span>
               <span
-                className={["text-[11px] font-medium leading-none transition-colors", active ? "text-accent" : "text-muted"].join(
+                className={["text-2xs font-medium leading-none transition-colors", active ? "text-accent" : "text-muted"].join(
                   " "
                 )}
               >

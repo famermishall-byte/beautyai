@@ -97,7 +97,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
       onClick={onClick}
       className={[
         "shrink-0 rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
-        active ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+        active ? "bg-accent text-on-accent" : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
       ].join(" ")}
     >
       {label}
@@ -159,7 +159,7 @@ function OrderRow({
   const draftTotal = orderTotal(order.items, draft);
 
   return (
-    <div className={["border rounded-xl p-4", issues.length > 0 ? "border-warning/50" : "border-black/5"].join(" ")}>
+    <div className={["border rounded-control p-4", issues.length > 0 ? "border-warning/50" : "border-border"].join(" ")}>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <label className="flex items-center gap-2 font-medium">
           {isOpen(order) && (
@@ -186,7 +186,7 @@ function OrderRow({
       </div>
 
       {issues.length > 0 && (
-        <div className="rounded-lg bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
+        <div className="rounded-control bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
           ⚠ {t("checkStock")}: {issues.map(({ item, left }) => t("stockIssue", { name: item.name, need: item.quantity, left: left === 0 ? t("noStock") : t("leftQty", { n: left }) })).join("; ")}
         </div>
       )}
@@ -240,7 +240,7 @@ function OrderRow({
         })}
       </div>
 
-      <div className="flex justify-between font-display text-lg pt-2 border-t border-black/10">
+      <div className="flex justify-between font-display text-lg pt-2 border-t border-border">
         <span>{t("total")}</span>
         <span>{money(editing ? draftTotal : order.totalPrice)}</span>
       </div>
@@ -262,7 +262,7 @@ function OrderRow({
             <button
               onClick={saveEdit}
               disabled={saving || draft.every((q, i) => q === order.items[i].quantity)}
-              className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+              className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
               {saving ? t("saving") : t("saveTotal", { total: money(draftTotal) })}
             </button>
@@ -282,7 +282,7 @@ function OrderRow({
               <button
                 onClick={() => changeStatus(next.status)}
                 disabled={saving}
-                className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {saving ? t("saving") : ts(`next.${next.labelKey}`)}
               </button>
@@ -356,7 +356,7 @@ function SalesSummary({
   const byBranch = [...rows.values()].sort((a, b) => b.sum - a.sum);
 
   return (
-    <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
+    <div className="bg-card rounded-card border border-border p-5 mb-6">
       <div className="flex items-start justify-between gap-3 mb-3">
         <h2 className="font-medium">
           {!allBranches ? t("salesOwn") : oneBranch ? t("salesOne", { name: oneBranch.name }) : t("salesAll")}
@@ -369,7 +369,7 @@ function SalesSummary({
           <select
             value={branchId}
             onChange={(e) => onBranch(e.target.value)}
-            className="w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+            className="w-full rounded-control border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="all">{t("allBranchesTotal")}</option>
             {branchOptions.map((b) => (
@@ -387,7 +387,7 @@ function SalesSummary({
         ))}
       </div>
 
-      <div className="rounded-xl bg-accent-soft px-4 py-4 mb-3">
+      <div className="rounded-control bg-accent-soft px-4 py-4 mb-3">
         <div className="text-xs text-accent-strong/80">{oneBranch ? t("soldOne", { name: oneBranch.name }) : allBranches ? t("soldAll") : t("soldTotal")}</div>
         <div className="font-display text-3xl tabular-nums">{money(total)}</div>
         <div className="text-sm text-accent-strong/80 mt-0.5">{t("paidOrders", { n: sales.length })}</div>
@@ -397,7 +397,7 @@ function SalesSummary({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-muted border-b border-black/10">
+              <tr className="text-left text-muted border-b border-border">
                 <th className="py-2 pr-3">{t("branch")}</th>
                 <th className="py-2 pr-3 text-right">{t("orders")}</th>
                 <th className="py-2 text-right">{t("sum")}</th>
@@ -405,7 +405,7 @@ function SalesSummary({
             </thead>
             <tbody>
               {byBranch.map((r) => (
-                <tr key={`${r.city}-${r.name}`} className="border-b border-black/5">
+                <tr key={`${r.city}-${r.name}`} className="border-b border-border">
                   <td className="py-2 pr-3">
                     {r.city ? `${r.city} — ` : ""}
                     {r.name}
@@ -609,7 +609,7 @@ export function OrderManager() {
         />
       )}
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6">
+      <div className="bg-card rounded-card border border-border p-6">
         <div className="flex items-start justify-between gap-3 mb-1">
           <h2 className="font-medium">{t("title")}</h2>
           <button
@@ -628,7 +628,7 @@ export function OrderManager() {
         </p>
 
         {alert && (
-          <button onClick={() => setAlert("")} className="w-full text-left rounded-xl bg-accent text-white px-4 py-3 text-sm font-semibold mb-3">
+          <button onClick={() => setAlert("")} className="w-full text-left rounded-control bg-accent text-on-accent px-4 py-3 text-sm font-semibold mb-3">
             🔔 {alert} <span className="font-normal opacity-80">— {t("tapToHide")}</span>
           </button>
         )}
@@ -667,7 +667,7 @@ export function OrderManager() {
               <select
                 value={newestFirst ? "new" : "old"}
                 onChange={(e) => setNewestFirst(e.target.value === "new")}
-                className="rounded-lg border border-black/10 bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+                className="rounded-control border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="new">{t("newestFirst")}</option>
                 <option value="old">{t("oldestFirst")}</option>
@@ -715,7 +715,7 @@ export function OrderManager() {
                     <button
                       onClick={markSelectedPaid}
                       disabled={bulkBusy}
-                      className="rounded-full bg-success text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                      className="rounded-full bg-success text-on-accent px-4 py-2 text-sm font-semibold disabled:opacity-50"
                     >
                       {bulkBusy ? t("marking") : t("paymentReceivedCount", { n: selectedIds.length })}
                     </button>

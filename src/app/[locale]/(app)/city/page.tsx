@@ -55,14 +55,14 @@ export default function CityPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("search")}
-          className="w-full rounded-[var(--radius-control)] border border-border bg-card pl-11 pr-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent shadow-[var(--shadow-card)]"
+          className="w-full rounded-control border border-border bg-card pl-11 pr-4 py-3.5 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent shadow-card"
         />
       </div>
 
       {loading ? (
         <div className="flex flex-col gap-2.5">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-16 rounded-[var(--radius-card)]" />
+            <Skeleton key={i} className="h-16 rounded-card" />
           ))}
         </div>
       ) : cities.length === 0 ? (
@@ -99,17 +99,17 @@ function CityRow({ city, active, onSelect }: { city: string; active: boolean; on
     <button
       onClick={() => onSelect(city)}
       className={[
-        "w-full flex items-center gap-3.5 rounded-[var(--radius-card)] px-5 py-4 text-left transition-all duration-150",
+        "w-full flex items-center gap-3.5 rounded-card px-5 py-4 text-left transition-all duration-150",
         "active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         active
-          ? "bg-accent text-white shadow-[var(--shadow-float)]"
-          : "bg-card border border-border hover:border-accent/40 hover:shadow-[var(--shadow-card)]",
+          ? "bg-accent text-on-accent shadow-float"
+          : "bg-card border border-border hover:border-accent/40 hover:shadow-card",
       ].join(" ")}
     >
       <span
         className={[
           "flex items-center justify-center w-9 h-9 rounded-full shrink-0",
-          active ? "bg-white/20" : "bg-accent-soft text-accent",
+          active ? "bg-card/20" : "bg-accent-soft text-accent",
         ].join(" ")}
       >
         <MapPin className="size-4.5" strokeWidth={2} aria-hidden />

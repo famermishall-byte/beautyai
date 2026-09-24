@@ -115,7 +115,7 @@ export default function AdminSettingsPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-black/10 bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+    "w-full rounded-control border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
@@ -134,18 +134,18 @@ export default function AdminSettingsPage() {
 
       <button
         onClick={() => signOut()}
-        className="mb-6 rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="mb-6 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {t("signOut")}
       </button>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
+      <div className="bg-card rounded-card border border-border p-6 mb-6">
         <h2 className="font-medium mb-3">Email</h2>
         {emailNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-3">{emailNotice}</p>
+          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{emailNotice}</p>
         )}
         {emailError && (
-          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{emailError}</p>
+          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{emailError}</p>
         )}
         <form onSubmit={handleChangeEmail} className="flex gap-2">
           <input
@@ -158,20 +158,20 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={emailSubmitting || !newEmail.trim()}
-            className="shrink-0 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className="shrink-0 rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
             {emailSubmitting ? t("sending") : t("changeEmail")}
           </button>
         </form>
       </div>
 
-      <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
+      <div className="bg-card rounded-card border border-border p-6 mb-6">
         <h2 className="font-medium mb-3">{t("password")}</h2>
         {passwordNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-lg px-4 py-3 mb-3">{passwordNotice}</p>
+          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{passwordNotice}</p>
         )}
         {passwordError && (
-          <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{passwordError}</p>
+          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{passwordError}</p>
         )}
         <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
           <input
@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={passwordSubmitting || !newPassword}
-            className="self-start rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+            className="self-start rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
           >
             {passwordSubmitting ? t("saving") : t("changePassword")}
           </button>
@@ -199,13 +199,13 @@ export default function AdminSettingsPage() {
       </div>
 
       {isOwner && (
-        <div className="bg-card rounded-2xl border border-black/5 p-6">
+        <div className="bg-card rounded-card border border-border p-6">
           <h2 className="font-medium mb-1">{t("transferTitle")}</h2>
           <p className="text-sm text-muted mb-4">
             {t("transferHint")}
           </p>
           {transferError && (
-            <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{transferError}</p>
+            <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{transferError}</p>
           )}
           <form onSubmit={handleTransferOwnership} className="flex gap-2">
             <input
@@ -218,7 +218,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={transferSubmitting || !transferEmail.trim()}
-              className="shrink-0 rounded-full bg-red-600 text-white px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
+              className="shrink-0 rounded-full bg-error text-on-accent px-5 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50"
             >
               {transferSubmitting ? t("transferring") : t("transfer")}
             </button>

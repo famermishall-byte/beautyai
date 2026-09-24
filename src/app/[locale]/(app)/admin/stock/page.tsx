@@ -155,7 +155,7 @@ export default function AdminStockPage() {
       </p>
 
       {isBranchManager ? (
-        <div className="mb-4 rounded-[var(--radius-control)] bg-accent-soft px-4 py-3 text-sm">
+        <div className="mb-4 rounded-control bg-accent-soft px-4 py-3 text-sm">
           {t.rich("yourBranch", { name: branches.find((b) => b.id === branchId)?.name ?? "…", b: (chunks) => <span className="font-semibold">{chunks}</span> })}
         </div>
       ) : (
@@ -164,7 +164,7 @@ export default function AdminStockPage() {
       <select
         value={branchId ?? ""}
         onChange={(e) => selectBranch(e.target.value)}
-        className="w-full rounded-[var(--radius-control)] border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-4"
+        className="w-full rounded-control border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-4"
       >
         {branches.length === 0 && <option value="">{t("noBranches")}</option>}
         {branches.map((b) => (
@@ -196,7 +196,7 @@ export default function AdminStockPage() {
             }}
             className={[
               "shrink-0 rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
-              status === f.key ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+              status === f.key ? "bg-accent text-on-accent" : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
             ].join(" ")}
           >
             {ts(`status.${f.key}`)}
@@ -215,7 +215,7 @@ export default function AdminStockPage() {
               setSort(e.target.value as "problems" | "name");
               setPage(1);
             }}
-            className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+            className="rounded-control border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="problems">{t("problemsFirst")}</option>
             <option value="name">{t("byName")}</option>
@@ -223,7 +223,7 @@ export default function AdminStockPage() {
         </label>
       </div>
 
-      {error && <div className="rounded-xl bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
+      {error && <div className="rounded-control bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
 
       {loading && items.length === 0 ? (
         <div className="text-sm text-muted py-8 text-center">{t("loading")}</div>
@@ -273,8 +273,8 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
   }
 
   return (
-    <li className="bg-card rounded-[var(--radius-card)] border border-border p-3 flex items-center gap-3">
-      <div className="w-14 h-14 shrink-0 rounded-xl bg-accent-soft overflow-hidden flex items-center justify-center">
+    <li className="bg-card rounded-card border border-border p-3 flex items-center gap-3">
+      <div className="w-14 h-14 shrink-0 rounded-control bg-accent-soft overflow-hidden flex items-center justify-center">
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -284,21 +284,21 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] uppercase tracking-wide text-muted truncate">
+        <div className="text-2xs uppercase tracking-wide text-muted truncate">
           {item.brand} · {item.sku}
         </div>
         <div className="text-sm font-medium leading-snug line-clamp-2">{item.name}</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className={["text-[11px] font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{ts(`status.${item.status}`)}</span>
+          <span className={["text-2xs font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{ts(`status.${item.status}`)}</span>
           {savedFlash ? (
-            <span className="text-[11px] font-semibold text-success">✓ {t("saved")}</span>
+            <span className="text-2xs font-semibold text-success">✓ {t("saved")}</span>
           ) : saving ? (
-            <span className="text-[11px] text-muted">{t("saving")}</span>
+            <span className="text-2xs text-muted">{t("saving")}</span>
           ) : (
-            <span className="text-[11px] text-muted truncate">{formatWhen(t, locale, item.updatedAt)}</span>
+            <span className="text-2xs text-muted truncate">{formatWhen(t, locale, item.updatedAt)}</span>
           )}
         </div>
-        {error && <div className="text-[11px] text-error mt-1">{error}</div>}
+        {error && <div className="text-2xs text-error mt-1">{error}</div>}
       </div>
 
       <div className="flex flex-col items-end gap-1.5 shrink-0">
@@ -315,7 +315,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
             if (e.key === "Enter") (e.target as HTMLInputElement).blur();
           }}
           aria-label={t("quantityOf", { name: item.name })}
-          className="w-20 rounded-lg border border-border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
+          className="w-20 rounded-control border border-border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
         />
         <button
           onClick={() => {
@@ -323,7 +323,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
             commit("0");
           }}
           disabled={saving || item.quantity === 0}
-          className="text-[11px] font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
+          className="text-2xs font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
         >
           {t("zeroOut")}
         </button>

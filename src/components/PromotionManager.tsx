@@ -63,7 +63,7 @@ function computePreview(basePrice: number | undefined, type: DiscountType, value
   return { oldPrice: basePrice, newPrice: n };
 }
 
-const inputClass = "w-full rounded-lg border border-black/10 bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+const inputClass = "w-full rounded-control border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 const STATE_LABEL_KEY: Record<EffectiveState, string> = {
   draft: "draft",
@@ -108,7 +108,7 @@ function PromotionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-black/5 p-5 flex flex-col gap-3.5 mb-5">
+    <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 flex flex-col gap-3.5 mb-5">
       <div>
         <div className="text-xs text-muted mb-1.5">{t("fields.product")}</div>
         <ProductPicker picked={form.product} onPick={(product) => setForm({ ...form, product })} />
@@ -136,7 +136,7 @@ function PromotionForm({
       </div>
 
       {preview && (
-        <div className="text-sm bg-accent-soft text-accent-strong rounded-lg px-3.5 py-2.5">
+        <div className="text-sm bg-accent-soft text-accent-strong rounded-control px-3.5 py-2.5">
           {t("previewLine", {
             old: price(preview.oldPrice),
             new: price(preview.newPrice),
@@ -294,8 +294,8 @@ export function PromotionManager() {
               onSaved={(form) => submitForm(promotion.id, form)}
             />
           ) : (
-            <div key={promotion.id} className="bg-card rounded-2xl border border-black/5 p-4 flex gap-3.5 items-center">
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-accent-soft shrink-0">
+            <div key={promotion.id} className="bg-card rounded-card border border-border p-4 flex gap-3.5 items-center">
+              <div className="w-16 h-16 rounded-control overflow-hidden bg-accent-soft shrink-0">
                 {promotion.product?.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={promotion.product.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -305,12 +305,12 @@ export function PromotionManager() {
                 <div className="font-medium truncate">{promotion.title}</div>
                 <div className="text-xs text-muted truncate">{promotion.product?.name ?? t("noProduct")}</div>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-[11px] rounded-full bg-accent-soft text-accent px-2 py-0.5">
+                  <span className="text-2xs rounded-full bg-accent-soft text-accent px-2 py-0.5">
                     {t(`status.${STATE_LABEL_KEY[effectiveState(promotion)]}`)}
                   </span>
-                  <span className="text-[11px] text-muted line-through">{price(promotion.oldPrice)}</span>
-                  <span className="text-[11px] font-medium text-accent">{price(promotion.newPrice)}</span>
-                  <span className="text-[11px] text-muted">
+                  <span className="text-2xs text-muted line-through">{price(promotion.oldPrice)}</span>
+                  <span className="text-2xs font-medium text-accent">{price(promotion.newPrice)}</span>
+                  <span className="text-2xs text-muted">
                     {new Date(promotion.startAt).toLocaleDateString(locale)} – {new Date(promotion.endAt).toLocaleDateString(locale)}
                   </span>
                 </div>
@@ -319,14 +319,14 @@ export function PromotionManager() {
                 <button
                   onClick={() => setEditingId(promotion.id)}
                   aria-label={t("edit")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
                 >
                   <Pencil className="size-4" strokeWidth={2} aria-hidden />
                 </button>
                 <button
                   onClick={() => toggleDisabled(promotion)}
                   aria-label={promotion.status === "disabled" ? t("enable") : t("disable")}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 hover:text-foreground"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover hover:text-foreground"
                 >
                   {promotion.status === "disabled" ? <Play className="size-4" strokeWidth={2} aria-hidden /> : <Pause className="size-4" strokeWidth={2} aria-hidden />}
                 </button>

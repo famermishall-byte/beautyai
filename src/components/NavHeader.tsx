@@ -31,13 +31,13 @@ export function NavHeader() {
   }, [pathname]);
 
   return (
-    <header className="w-full border-b border-border bg-card/85 backdrop-blur-xl sticky top-0 z-30">
+    <header className="w-full border-b border-border bg-card/85 backdrop-blur-xl sticky top-0 z-sticky">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         {showBack && (
           <button
             onClick={goBack}
             aria-label={tc("back")}
-            className="shrink-0 -ml-2 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="shrink-0 -ml-2 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-state-hover active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ArrowLeft className="size-5" strokeWidth={2} aria-hidden />
           </button>
@@ -52,7 +52,7 @@ export function NavHeader() {
           {!isAdmin && (
             <Link
               href="/city"
-              className="flex items-center gap-0.5 text-[11px] font-medium text-muted hover:text-accent transition w-fit rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center gap-0.5 text-2xs font-medium text-muted hover:text-accent transition w-fit rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <MapPin className="size-3" strokeWidth={2} aria-hidden />
               <span className="max-w-[10rem] truncate">{city ?? t("chooseCity")}</span>
@@ -63,7 +63,7 @@ export function NavHeader() {
         {!isAdmin && isManager && (
           <button
             onClick={() => switchViewMode("admin")}
-            className="shrink-0 flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="shrink-0 flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1.5 text-sm font-medium transition hover:bg-accent hover:text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <LayoutDashboard className="size-4" strokeWidth={2} aria-hidden />
             {t("adminShort")}
@@ -74,7 +74,7 @@ export function NavHeader() {
           <Link
             href="/catalog?tab=search"
             aria-label={t("search")}
-            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-foreground transition hover:bg-state-hover active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <Search className="size-5" strokeWidth={2} aria-hidden />
           </Link>
@@ -90,14 +90,14 @@ export function NavHeader() {
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 pathname.startsWith("/admin")
                   ? "bg-accent-soft text-accent"
-                  : "text-muted hover:text-foreground hover:bg-black/5",
+                  : "text-muted hover:text-foreground hover:bg-state-hover",
               ].join(" ")}
             >
               {t("admin")}
             </Link>
             <button
               onClick={() => switchViewMode("shop")}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted transition hover:text-foreground hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <ShoppingBag className="size-4" strokeWidth={1.85} aria-hidden />
               {t("toShop")}
@@ -105,7 +105,7 @@ export function NavHeader() {
             <button
               onClick={() => signOut()}
               aria-label={t("signOut")}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-muted transition hover:text-foreground hover:bg-state-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <LogOut className="size-4" strokeWidth={1.85} aria-hidden />
             </button>

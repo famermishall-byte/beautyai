@@ -260,7 +260,7 @@ function CatalogContent() {
           >
             <SlidersHorizontal className="size-4.5" strokeWidth={2} aria-hidden />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-on-accent text-2xs font-semibold flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -292,7 +292,7 @@ function CatalogContent() {
                 onClick={() => handleSelectBranch(b.id)}
                 className={[
                   "rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
-                  branchId === b.id ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+                  branchId === b.id ? "bg-accent text-on-accent" : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
                 ].join(" ")}
               >
                 {b.name}
@@ -314,11 +314,11 @@ function CatalogContent() {
             // Баннер может быть без привязанного товара (общая акция) — мы уже на «Акции»,
             // так что просто показываем карточку без ссылки, вместо перехода в никуда/на себя.
             const cardClass =
-              "tile-sheen relative overflow-hidden rounded-[22px] bg-card border border-border shadow-[var(--shadow-card)] flex items-center gap-4 p-3";
+              "tile-sheen relative overflow-hidden rounded-tile bg-card border border-border shadow-card flex items-center gap-4 p-3";
             const inner = (
               <>
                 {banner.imageUrl && (
-                  <div className="relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-accent-soft">
+                  <div className="relative w-20 h-20 shrink-0 rounded-card overflow-hidden bg-accent-soft">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
@@ -495,7 +495,7 @@ function CatalogContent() {
           <button
             onClick={() => setOnlyInStock((v) => !v)}
             className={[
-              "w-full flex items-center justify-between rounded-[var(--radius-control)] px-4 py-3.5 text-sm font-medium transition border",
+              "w-full flex items-center justify-between rounded-control px-4 py-3.5 text-sm font-medium transition border",
               onlyInStock ? "bg-accent-soft border-accent/30 text-accent-strong" : "bg-card border-border text-foreground",
             ].join(" ")}
           >
@@ -506,7 +506,7 @@ function CatalogContent() {
                 onlyInStock ? "bg-accent justify-end" : "bg-border-strong justify-start",
               ].join(" ")}
             >
-              <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
+              <span className="w-5 h-5 rounded-full bg-card shadow-control" />
             </span>
           </button>
         </FilterSection>
@@ -516,7 +516,7 @@ function CatalogContent() {
 }
 
 const TILE_BASE =
-  "tile-sheen relative h-28 overflow-hidden rounded-[22px] p-3.5 transition active:scale-[0.98] hover:shadow-[var(--shadow-float)]";
+  "tile-sheen relative h-28 overflow-hidden rounded-tile p-3.5 transition active:scale-[0.98] hover:shadow-float";
 
 function sheenDelay(i: number) {
   return { ["--sheen-delay" as string]: `${(i % 6) * 0.7}s` } as React.CSSProperties;
@@ -528,13 +528,13 @@ function CategoryTiles() {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/catalog?all=1" className={`${TILE_BASE} bg-accent text-white`} style={sheenDelay(0)}>
-          <span className="relative text-[15px] font-semibold leading-tight">{t("allProducts")}</span>
-          <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
+        <Link href="/catalog?all=1" className={`${TILE_BASE} bg-accent text-on-accent`} style={sheenDelay(0)}>
+          <span className="relative text-md font-semibold leading-tight">{t("allProducts")}</span>
+          <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-on-accent/25" strokeWidth={1.5} aria-hidden />
         </Link>
-        <Link href="/catalog?new=1" className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`} style={sheenDelay(1)}>
-          <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{t("newArrivals")}</span>
-          <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+        <Link href="/catalog?new=1" className={`${TILE_BASE} bg-card border border-border shadow-card`} style={sheenDelay(1)}>
+          <span className="relative block max-w-[60%] text-md font-semibold leading-tight">{t("newArrivals")}</span>
+          <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-card bg-accent-soft text-accent">
             <Sparkles className="size-8" strokeWidth={1.6} aria-hidden />
           </span>
         </Link>
@@ -544,11 +544,11 @@ function CategoryTiles() {
           <Link
             key={name}
             href={`/catalog?group=${encodeURIComponent(name)}`}
-            className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
+            className={`${TILE_BASE} bg-card border border-border shadow-card`}
             style={sheenDelay(i + 2)}
           >
-            <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{labels.groupTitle(group)}</span>
-            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+            <span className="relative block max-w-[60%] text-md font-semibold leading-tight">{labels.groupTitle(group)}</span>
+            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-card bg-accent-soft text-accent">
               <Icon className="size-8" strokeWidth={1.6} aria-hidden />
             </span>
           </Link>
@@ -557,13 +557,13 @@ function CategoryTiles() {
       </div>
       <Link
         href="/catalog?promo=1"
-        className="tile-sheen relative overflow-hidden rounded-[22px] bg-gradient-to-r from-accent to-accent-strong text-white px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
+        className="tile-sheen relative overflow-hidden rounded-tile bg-gradient-to-r from-accent to-accent-strong text-on-accent px-5 py-5 flex items-center justify-between transition active:scale-[0.99]"
       >
         <div className="relative">
           <div className="font-display text-2xl leading-none">{t("promo")}</div>
-          <div className="text-sm text-white/85 mt-1.5">{t("promoHint")}</div>
+          <div className="text-sm text-on-accent/85 mt-1.5">{t("promoHint")}</div>
         </div>
-        <Percent className="relative size-12 text-white/30 shrink-0" strokeWidth={1.75} aria-hidden />
+        <Percent className="relative size-12 text-on-accent/30 shrink-0" strokeWidth={1.75} aria-hidden />
       </Link>
     </div>
   );
@@ -591,7 +591,7 @@ function GroupMenu({ group }: { group: CategoryGroup }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-card rounded-[28px] px-5 py-1 shadow-[var(--shadow-card)]">
+      <div className="bg-card rounded-sheet px-5 py-1 shadow-card">
         {rows.map((r) => (
           <Link
             key={r.label}
@@ -634,7 +634,7 @@ function SubChip({ href, label, active }: { href: string; label: string; active:
       href={href}
       className={[
         "rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
-        active ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+        active ? "bg-accent text-on-accent" : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
       ].join(" ")}
     >
       {label}
@@ -648,7 +648,7 @@ function CategoryChip({ label, active, onClick }: { label: string; active: boole
       onClick={onClick}
       className={[
         "rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
-        active ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
+        active ? "bg-accent text-on-accent" : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
       ].join(" ")}
     >
       {label}

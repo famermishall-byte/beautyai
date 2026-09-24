@@ -48,7 +48,7 @@ export function HeroSlider({ products, isNew = false }: { products: Product[]; i
         onScroll={handleScroll}
         onPointerDown={() => (pausedRef.current = true)}
         onPointerUp={() => setTimeout(() => (pausedRef.current = false), 2500)}
-        className="flex overflow-x-auto snap-x snap-mandatory rounded-[var(--radius-card)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex overflow-x-auto snap-x snap-mandatory rounded-card [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {products.map((p) => (
           <Link
@@ -65,13 +65,13 @@ export function HeroSlider({ products, isNew = false }: { products: Product[]; i
               </div>
             )}
             {isNew && (
-              <span className="absolute top-3 left-3 bg-accent text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full">
+              <span className="absolute top-3 left-3 bg-accent text-on-accent text-2xs font-bold px-2.5 py-1.5 rounded-full">
                 {t("newBadge")}
               </span>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" aria-hidden />
-            <div className="absolute inset-x-0 bottom-0 p-4 pb-9 text-white">
-              <div className="text-[11px] uppercase tracking-wide text-white/80 font-medium mb-0.5">{p.brand}</div>
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/15 to-transparent" aria-hidden />
+            <div className="absolute inset-x-0 bottom-0 p-4 pb-9 text-on-accent">
+              <div className="text-2xs uppercase tracking-wide text-on-accent/80 font-medium mb-0.5">{p.brand}</div>
               <div className="font-display text-xl leading-snug line-clamp-2">{text(p).name}</div>
               <div className="mt-1 text-sm font-medium tabular-nums">{price(p.price)}</div>
             </div>
@@ -85,7 +85,7 @@ export function HeroSlider({ products, isNew = false }: { products: Product[]; i
             key={p.id}
             onClick={() => goTo(i)}
             aria-label={t("slide", { n: i + 1 })}
-            className={["h-1.5 rounded-full transition-all duration-300", i === index ? "w-5 bg-white" : "w-1.5 bg-white/55"].join(" ")}
+            className={["h-1.5 rounded-full transition-all duration-300", i === index ? "w-5 bg-card" : "w-1.5 bg-card/55"].join(" ")}
           />
         ))}
       </div>

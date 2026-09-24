@@ -17,7 +17,7 @@ export function FeedbackManager() {
   }, []);
 
   return (
-    <div className="bg-card rounded-2xl border border-black/5 p-6">
+    <div className="bg-card rounded-card border border-border p-6">
       <h2 className="font-medium mb-1">{t("title")}</h2>
       <p className="text-sm text-muted mb-4">{t("subtitle")}</p>
 
@@ -30,7 +30,7 @@ export function FeedbackManager() {
       {feedback && feedback.length > 0 && (
         <div className="flex flex-col gap-4">
           {feedback.map((item) => (
-            <div key={item.id} className="border border-black/5 rounded-xl p-4">
+            <div key={item.id} className="border border-border rounded-control p-4">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="font-medium text-sm">{item.authorName ?? t("noName")}</span>
                 <span className="text-xs text-muted">{new Date(item.createdAt).toLocaleString(locale)}</span>

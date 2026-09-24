@@ -97,7 +97,7 @@ export function NewArrivalsManager() {
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">{t("intro")}</p>
 
-      <div className="bg-card border border-border rounded-[var(--radius-card)] p-4">
+      <div className="bg-card border border-border rounded-card p-4">
         <div className="text-sm font-medium mb-2 flex items-center gap-1.5">
           <Plus className="size-4" strokeWidth={2} aria-hidden />
           {t("addLabel")}
@@ -118,18 +118,18 @@ export function NewArrivalsManager() {
                   <div className="flex-1 h-px bg-border" />
                 </div>
               )}
-              <div className="bg-card border border-border rounded-[var(--radius-card)] p-3 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-accent-soft shrink-0">
+              <div className="bg-card border border-border rounded-card p-3 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-control overflow-hidden bg-accent-soft shrink-0">
                   {item.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] uppercase tracking-wide text-muted font-medium truncate">{item.brand}</div>
+                  <div className="text-2xs uppercase tracking-wide text-muted font-medium truncate">{item.brand}</div>
                   <div className="text-sm font-medium truncate">{item.name}</div>
                   <div className="text-xs text-muted">{price(item.price)}</div>
-                  {i < NEW_ARRIVALS_HOME_COUNT && <div className="text-[11px] text-accent font-medium mt-0.5">{t("onHome")}</div>}
+                  {i < NEW_ARRIVALS_HOME_COUNT && <div className="text-2xs text-accent font-medium mt-0.5">{t("onHome")}</div>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
@@ -137,7 +137,7 @@ export function NewArrivalsManager() {
                     onClick={() => handleMove(i, -1)}
                     disabled={i === 0}
                     aria-label={t("moveUp")}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30"
                   >
                     <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
                   </button>
@@ -146,7 +146,7 @@ export function NewArrivalsManager() {
                     onClick={() => handleMove(i, 1)}
                     disabled={i === items.length - 1}
                     aria-label={t("moveDown")}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-state-hover disabled:opacity-30"
                   >
                     <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
                   </button>
@@ -160,7 +160,7 @@ export function NewArrivalsManager() {
         </div>
       )}
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
+      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
 
       <div className="flex items-center gap-3 sticky bottom-4">
         <Button size="lg" onClick={handleSave} disabled={!dirty || saving}>

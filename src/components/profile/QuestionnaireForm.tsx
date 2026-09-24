@@ -96,7 +96,7 @@ export function QuestionnaireForm({
   }
 
   const inputClass =
-    "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
+    "w-full rounded-control border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -157,7 +157,7 @@ export function QuestionnaireForm({
         </div>
       </div>
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
+      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
 
       <div className="flex gap-2">
         <Button type="submit" size="lg" fullWidth loading={saving}>

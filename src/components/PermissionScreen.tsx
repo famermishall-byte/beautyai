@@ -30,7 +30,7 @@ export function PermissionScreen({
   const t = useTranslations("common");
   return (
     <div
-      className="fixed inset-0 z-[70] bg-background flex flex-col items-center px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+      className="fixed inset-0 z-top bg-background flex flex-col items-center px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="permission-title"
@@ -38,7 +38,7 @@ export function PermissionScreen({
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center-safe text-center max-w-sm w-full animate-rise-in">
         <div className="relative mb-6 shrink-0">
           <div className="w-32 h-32 rounded-full bg-accent-soft flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-accent text-white flex items-center justify-center shadow-[var(--shadow-float)]">
+            <div className="w-20 h-20 rounded-full bg-accent text-on-accent flex items-center justify-center shadow-float">
               <Icon className="size-9" strokeWidth={1.75} aria-hidden />
             </div>
           </div>
@@ -52,7 +52,7 @@ export function PermissionScreen({
 
         <ul className="flex flex-col gap-3 w-full text-left">
           {perks.map(({ icon: PerkIcon, text }) => (
-            <li key={text} className="flex items-center gap-3.5 bg-card border border-border rounded-[var(--radius-card)] px-4 py-3.5">
+            <li key={text} className="flex items-center gap-3.5 bg-card border border-border rounded-card px-4 py-3.5">
               <span className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-soft text-accent shrink-0">
                 <PerkIcon className="size-4.5" strokeWidth={1.85} aria-hidden />
               </span>

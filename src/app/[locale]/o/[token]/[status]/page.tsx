@@ -13,7 +13,7 @@ function Result({ title, text, backLabel }: { title: string; text: string; backL
       <Link
         href="/"
         aria-label={backLabel}
-        className="fixed top-3 left-3 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center transition hover:bg-black/5 active:scale-90"
+        className="fixed top-3 left-3 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center transition hover:bg-state-hover active:scale-90"
       >
         <ArrowLeft className="size-5" strokeWidth={2} aria-hidden />
       </Link>

@@ -16,7 +16,7 @@ export function AuthBack() {
     <button
       onClick={goBack}
       aria-label={t("back")}
-      className="fixed top-3 left-3 z-10 w-10 h-10 rounded-full bg-card/90 backdrop-blur border border-border flex items-center justify-center transition hover:bg-black/5 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="fixed top-3 left-3 z-raised w-10 h-10 rounded-full bg-card/90 backdrop-blur border border-border flex items-center justify-center transition hover:bg-state-hover active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <ArrowLeft className="size-5" strokeWidth={2} aria-hidden />
     </button>

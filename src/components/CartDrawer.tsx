@@ -41,27 +41,27 @@ export function CartDrawer() {
         onClick={() => setOpen(true)}
         aria-label={t("open")}
         style={onProduct ? { bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 5.5rem)" } : undefined}
-        className={["fixed right-4 z-40", onProduct ? "" : "bottom-24"].join(" ") + " rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
+        className={["fixed right-4 z-nav", onProduct ? "" : "bottom-24"].join(" ") + " rounded-full bg-accent text-on-accent shadow-float pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
       >
         <ShoppingBag className="size-4.5" strokeWidth={2} aria-hidden />
         <span className="text-sm font-medium">{t("title")}</span>
         {totalCount > 0 && (
-          <span className="bg-white text-accent rounded-full text-xs font-semibold min-w-[20px] h-5 px-1 flex items-center justify-center">
+          <span className="bg-card text-accent rounded-full text-xs font-semibold min-w-[20px] h-5 px-1 flex items-center justify-center">
             {totalCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-sm bg-background h-full shadow-xl flex flex-col animate-sheet-in">
+        <div className="fixed inset-0 z-modal flex justify-end">
+          <div className="absolute inset-0 bg-scrim backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+          <div className="relative w-full max-w-sm bg-background h-full shadow-modal flex flex-col animate-sheet-in">
             <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-border">
               <h2 className="font-display text-2xl">{t("title")}</h2>
               <button
                 onClick={() => setOpen(false)}
                 aria-label={t("close")}
-                className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-black/5 active:scale-90"
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-state-hover active:scale-90"
               >
                 <X className="size-4.5" strokeWidth={2} aria-hidden />
               </button>
@@ -83,7 +83,7 @@ export function CartDrawer() {
                           <button
                             onClick={() => changeQuantity(item.product.id, -1)}
                             aria-label={t("decrease", { name: text(item.product).name })}
-                            className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
                           >
                             <Minus className="size-3" strokeWidth={2.5} aria-hidden />
                           </button>
@@ -91,7 +91,7 @@ export function CartDrawer() {
                           <button
                             onClick={() => changeQuantity(item.product.id, 1)}
                             aria-label={t("increase", { name: text(item.product).name })}
-                            className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
+                            className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
                           >
                             <Plus className="size-3" strokeWidth={2.5} aria-hidden />
                           </button>

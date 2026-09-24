@@ -22,7 +22,7 @@ type Item = {
   soldQty: number;
 };
 
-const MEDAL = ["bg-[#f5c542] text-[#5c4400]", "bg-[#c6c6d0] text-[#3a3a42]", "bg-[#d99a5b] text-[#4a2e10]"];
+const MEDAL = ["bg-rank-gold text-rank-gold-ink", "bg-rank-silver text-rank-silver-ink", "bg-rank-bronze text-rank-bronze-ink"];
 
 export default function AdminProductRatingPage() {
   const t = useTranslations("adminProductRating");
@@ -85,7 +85,7 @@ export default function AdminProductRatingPage() {
       <p className="text-sm text-muted mb-5">{t("intro")}</p>
 
       {isBranchManager ? (
-        <div className="mb-4 rounded-[var(--radius-control)] bg-accent-soft px-4 py-3 text-sm">
+        <div className="mb-4 rounded-control bg-accent-soft px-4 py-3 text-sm">
           {t.rich("yourBranch", { name: branches.find((b) => b.id === branchId)?.name ?? "…", b: (chunks) => <span className="font-semibold">{chunks}</span> })}
         </div>
       ) : (
@@ -94,7 +94,7 @@ export default function AdminProductRatingPage() {
           <select
             value={branchId ?? ""}
             onChange={(e) => selectBranch(e.target.value)}
-            className="w-full rounded-[var(--radius-control)] border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-5"
+            className="w-full rounded-control border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent mb-5"
           >
             {branches.length === 0 && <option value="">{t("noBranches")}</option>}
             {branches.map((b) => (
@@ -106,7 +106,7 @@ export default function AdminProductRatingPage() {
         </>
       )}
 
-      {error && <div className="rounded-xl bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
+      {error && <div className="rounded-control bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
 
       {loading ? (
         <Loader2 className="size-5 animate-spin text-muted mx-auto my-8" aria-hidden />
@@ -115,7 +115,7 @@ export default function AdminProductRatingPage() {
       ) : (
         <ol className="flex flex-col gap-2">
           {items.map((item, i) => (
-            <li key={item.id} className="bg-card rounded-[var(--radius-card)] border border-border p-3 flex items-center gap-3">
+            <li key={item.id} className="bg-card rounded-card border border-border p-3 flex items-center gap-3">
               <span
                 className={[
                   "shrink-0 size-8 rounded-full flex items-center justify-center text-sm font-bold",
@@ -125,7 +125,7 @@ export default function AdminProductRatingPage() {
                 {i + 1}
               </span>
 
-              <div className="w-12 h-12 shrink-0 rounded-xl bg-accent-soft overflow-hidden flex items-center justify-center">
+              <div className="w-12 h-12 shrink-0 rounded-control bg-accent-soft overflow-hidden flex items-center justify-center">
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -135,14 +135,14 @@ export default function AdminProductRatingPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase tracking-wide text-muted truncate">{item.brand}</div>
+                <div className="text-2xs uppercase tracking-wide text-muted truncate">{item.brand}</div>
                 <div className="text-sm font-medium leading-snug line-clamp-2">{item.name}</div>
                 <div className="text-xs text-muted mt-0.5">{price(item.price)}</div>
               </div>
 
               <div className="shrink-0 text-right">
                 <div className="text-lg font-display tabular-nums leading-none">{item.soldQty}</div>
-                <div className="text-[11px] text-muted mt-0.5">{t("sold")}</div>
+                <div className="text-2xs text-muted mt-0.5">{t("sold")}</div>
               </div>
             </li>
           ))}

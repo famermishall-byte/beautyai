@@ -46,7 +46,7 @@ export default function OrdersPage() {
           <p className="text-muted mb-6">{t("empty")}</p>
           <Link
             href="/"
-            className="inline-block rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
+            className="inline-block rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95"
           >
             {t("toCatalog")}
           </Link>
@@ -56,7 +56,7 @@ export default function OrdersPage() {
       {orders && orders.length > 0 && (
         <div className="flex flex-col gap-4">
           {orders.map((order) => (
-            <div key={order.id} className="bg-card rounded-xl border border-black/5 p-4">
+            <div key={order.id} className="bg-card rounded-control border border-border p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium">#{order.number}</span>
                 <span className="text-xs bg-accent-soft text-accent rounded-full px-2 py-1">
@@ -65,7 +65,7 @@ export default function OrdersPage() {
               </div>
               <div className="text-sm text-muted mb-2">{new Date(order.createdAt).toLocaleString(locale)}</div>
               {order.editedAt && order.originalTotal !== null && order.originalTotal !== order.totalPrice && (
-                <div className="rounded-lg bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
+                <div className="rounded-control bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
                   {t("editedBanner")}
                 </div>
               )}
@@ -84,7 +84,7 @@ export default function OrdersPage() {
                   );
                 })}
               </div>
-              <div className="flex justify-between font-display text-lg pt-2 border-t border-black/10">
+              <div className="flex justify-between font-display text-lg pt-2 border-t border-border">
                 <span>{t("total")}</span>
                 <span>{price(order.totalPrice)}</span>
               </div>

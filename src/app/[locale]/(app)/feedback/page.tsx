@@ -56,22 +56,22 @@ export default function FeedbackPage() {
       </div>
 
       {sent && (
-        <div className="flex items-center gap-2.5 text-sm bg-success-soft text-success rounded-[var(--radius-control)] px-4 py-3 mb-4 animate-rise-in">
+        <div className="flex items-center gap-2.5 text-sm bg-success-soft text-success rounded-control px-4 py-3 mb-4 animate-rise-in">
           <CheckCircle2 className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
           {t("thanks")}
         </div>
       )}
       {error && (
-        <div className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mb-4">{error}</div>
+        <div className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-card rounded-[var(--radius-card)] border border-border p-5 shadow-[var(--shadow-card)]">
+      <form onSubmit={handleSubmit} className="bg-card rounded-card border border-border p-5 shadow-card">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("placeholder")}
           rows={6}
-          className="w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none mb-4"
+          className="w-full rounded-control border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none mb-4"
         />
         <Button type="submit" size="lg" loading={submitting} disabled={!message.trim()} fullWidth>
           {t("send")}

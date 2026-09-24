@@ -41,7 +41,7 @@ type ReviewItem = {
 type CreateStep = "closed" | "choose-type" | "file" | "api-form" | "api-mapping" | "other";
 
 const inputClass =
-  "rounded-lg border border-black/10 bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
+  "rounded-control border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
 function SummaryLine({ summary }: { summary: SyncSummary }) {
   const t = useTranslations("sources");
@@ -382,7 +382,7 @@ export function SourceManager() {
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-black/5 p-6 mb-8">
+    <div className="bg-card rounded-card border border-border p-6 mb-8">
       <div className="flex items-center justify-between mb-1">
         <h2 className="font-medium">{t("title")}</h2>
       </div>
@@ -398,7 +398,7 @@ export function SourceManager() {
           {sources.map((source) => {
             const result = resultBySource[source.id];
             return (
-              <div key={source.id} className="border border-black/5 rounded-xl p-4">
+              <div key={source.id} className="border border-border rounded-control p-4">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{source.name}</span>
@@ -415,13 +415,13 @@ export function SourceManager() {
                 </p>
                 {source.lastSyncSummary && <SummaryLine summary={source.lastSyncSummary} />}
                 {result?.summary && <SummaryLine summary={result.summary} />}
-                {result?.error && <p className="text-xs text-red-600">{result.error}</p>}
+                {result?.error && <p className="text-xs text-error">{result.error}</p>}
                 <div className="mt-2">
                   {source.connectionType === "api" ? (
                     <button
                       onClick={() => handleSyncApiSource(source)}
                       disabled={syncingId === source.id}
-                      className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                      className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
                     >
                       {syncingId === source.id ? t("syncing") : t("syncNow")}
                     </button>
@@ -429,7 +429,7 @@ export function SourceManager() {
                     <button
                       onClick={() => triggerResyncFile(source.id)}
                       disabled={syncingId === source.id}
-                      className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                      className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50"
                     >
                       {syncingId === source.id ? t("syncing") : t("uploadNewFile")}
                     </button>
@@ -442,13 +442,13 @@ export function SourceManager() {
       )}
 
       {reviewItems.length > 0 && (
-        <div className="bg-red-50 rounded-xl p-4 mb-5">
-          <h3 className="font-medium text-red-700 mb-2">{t("needReview")} ({reviewItems.length})</h3>
+        <div className="bg-error-soft rounded-control p-4 mb-5">
+          <h3 className="font-medium text-error mb-2">{t("needReview")} ({reviewItems.length})</h3>
           <div className="flex flex-col gap-3">
             {reviewItems.map((item) => (
-              <div key={item.id} className="text-sm text-red-700 border-b border-red-100 pb-2">
+              <div key={item.id} className="text-sm text-error border-b border-error/20 pb-2">
                 <p className="mb-1">{item.reason}</p>
-                <p className="text-xs text-red-600/80 mb-2">
+                <p className="text-xs text-error/80 mb-2">
                   {Object.entries(item.rawRow)
                     .slice(0, 4)
                     .map(([k, v]) => `${k}: ${v}`)
@@ -468,28 +468,28 @@ export function SourceManager() {
         </div>
       )}
 
-      {createError && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4">{createError}</p>}
+      {createError && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{createError}</p>}
 
       {createStep === "closed" && (
         <button
           onClick={() => setCreateStep("choose-type")}
-          className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95"
+          className="rounded-full border border-border px-5 py-2.5 text-sm font-medium transition hover:bg-state-hover active:scale-95"
         >
           + {t("connect")}
         </button>
       )}
 
       {createStep === "choose-type" && (
-        <div className="border-t border-black/10 pt-4">
+        <div className="border-t border-border pt-4">
           <h3 className="text-sm font-medium mb-3">{t("howTracked")}</h3>
           <div className="flex flex-wrap gap-2 mb-3">
-            <button onClick={() => fileInputRef.current?.click()} className="rounded-full bg-accent text-white px-4 py-2 text-sm font-medium hover:opacity-90">
+            <button onClick={() => fileInputRef.current?.click()} className="rounded-full bg-accent text-on-accent px-4 py-2 text-sm font-medium hover:opacity-90">
               {t("importFile")}
             </button>
-            <button onClick={() => setCreateStep("api-form")} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
+            <button onClick={() => setCreateStep("api-form")} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
               {t("connectApi")}
             </button>
-            <button onClick={() => setCreateStep("other")} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
+            <button onClick={() => setCreateStep("other")} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
               {t("otherSource")}
             </button>
           </div>
@@ -500,18 +500,18 @@ export function SourceManager() {
       )}
 
       {createStep === "other" && (
-        <div className="border-t border-black/10 pt-4">
+        <div className="border-t border-border pt-4">
           <p className="text-sm text-muted mb-3">
             {t("otherText")}
           </p>
-          <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5">
+          <button onClick={resetCreateFlow} className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-state-hover">
             {t("gotIt")}
           </button>
         </div>
       )}
 
       {createStep === "file" && fileTable && (
-        <div className="border-t border-black/10 pt-4">
+        <div className="border-t border-border pt-4">
           <h3 className="text-sm font-medium mb-3">{t("mapColumns")}</h3>
           <div className="flex items-center gap-3 mb-4">
             <label className="w-48 shrink-0 text-sm">{t("sourceName")}</label>
@@ -530,13 +530,13 @@ export function SourceManager() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
+            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
               {t("cancel")}
             </button>
             <button
               onClick={handleCreateFileSource}
               disabled={saving}
-              className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
               {saving ? t("saving") : t("saveAndSync")}
             </button>
@@ -545,7 +545,7 @@ export function SourceManager() {
       )}
 
       {createStep === "api-form" && (
-        <div className="border-t border-black/10 pt-4">
+        <div className="border-t border-border pt-4">
           <h3 className="text-sm font-medium mb-3">{t("apiTitle")}</h3>
           <p className="text-xs text-muted mb-3">
             {t("apiHint")}
@@ -582,13 +582,13 @@ export function SourceManager() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
+            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
               {t("cancel")}
             </button>
             <button
               onClick={handleCreateApiSource}
               disabled={saving}
-              className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
               {saving ? t("connecting") : t("connectAndFetch")}
             </button>
@@ -597,17 +597,17 @@ export function SourceManager() {
       )}
 
       {createStep === "api-mapping" && (
-        <div className="border-t border-black/10 pt-4">
+        <div className="border-t border-border pt-4">
           <h3 className="text-sm font-medium mb-3">{t("mapResponse")}</h3>
           <MappingEditor headers={apiPreviewHeaders} mapping={apiMapping} onChange={handleApiMappingChange} />
           <div className="flex gap-2">
-            <button onClick={resetCreateFlow} className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium hover:bg-black/5">
+            <button onClick={resetCreateFlow} className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-state-hover">
               {t("cancel")}
             </button>
             <button
               onClick={handleConfirmApiMapping}
               disabled={saving}
-              className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              className="rounded-full bg-accent text-on-accent px-5 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
               {saving ? t("syncing") : t("saveMappingAndSync")}
             </button>

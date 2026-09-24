@@ -22,10 +22,10 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
   const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
+    <div className="fixed inset-0 z-overlay flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-scrim backdrop-blur-[2px]" onClick={onClose} />
       <Link href={`/product/${product.id}`} onClick={onClose} className="contents">
-        <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
+        <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-sheet bg-card border border-border shadow-modal animate-rise-in">
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -33,13 +33,13 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
               onClose();
             }}
             aria-label={t("close")}
-            className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
+            className="absolute top-3 right-3 z-raised w-8 h-8 rounded-full bg-card/90 flex items-center justify-center shadow-control transition hover:scale-105 active:scale-90"
           >
             <X className="size-4" strokeWidth={2} aria-hidden />
           </button>
 
           {discount > 0 && (
-            <div className="absolute top-3 left-3 z-10 bg-[#f470b4] text-white text-sm font-bold px-3 py-1.5 rounded-full">
+            <div className="absolute top-3 left-3 z-raised bg-promo-sale text-on-accent text-sm font-bold px-3 py-1.5 rounded-full">
               -{discount}%
             </div>
           )}
@@ -60,7 +60,7 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
                 <span className="text-sm text-muted line-through">{price(oldPrice)}</span>
               )}
             </div>
-            <div className="rounded-full bg-accent text-white px-4 py-3 text-sm font-medium text-center">
+            <div className="rounded-full bg-accent text-on-accent px-4 py-3 text-sm font-medium text-center">
               {t("defaultCta")}
             </div>
           </div>
