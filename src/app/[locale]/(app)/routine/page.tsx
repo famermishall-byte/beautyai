@@ -4,23 +4,31 @@ import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
 import { buildRoutine, skinTypeLabel, skinConcernLabel, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { Link } from "@/i18n/navigation";
+import { Sun, Moon, Lightbulb, Droplets, ChevronRight, type LucideIcon } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { buttonClasses } from "@/components/ui/Button";
 
 // (title/steps arrive already translated)
-function RoutineList({ title, steps }: { title: string; steps: string[] }) {
+function RoutineList({ title, steps, icon: Icon }: { title: string; steps: string[]; icon: LucideIcon }) {
   return (
-    <div className="bg-card rounded-card border border-border p-5">
-      <h2 className="font-medium mb-3">{title}</h2>
-      <ol className="flex flex-col gap-2">
+    <section className="surface-card p-5">
+      <h2 className="font-display text-lg flex items-center gap-2 mb-3.5">
+        <Icon className="size-5 text-accent" strokeWidth={1.85} aria-hidden />
+        {title}
+      </h2>
+      <ol className="flex flex-col gap-2.5">
         {steps.map((step, i) => (
           <li key={step} className="flex items-center gap-3 text-sm">
-            <span className="w-6 h-6 shrink-0 rounded-full bg-accent-soft text-accent flex items-center justify-center text-xs font-medium">
+            <span className="w-7 h-7 shrink-0 rounded-full bg-accent-soft text-accent-strong flex items-center justify-center text-xs font-semibold tabular-nums">
               {i + 1}
             </span>
             {step}
           </li>
         ))}
       </ol>
-    </div>
+    </section>
   );
 }
 
@@ -31,8 +39,11 @@ export default function RoutinePage() {
 
   if (loading) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">{t("loading")}</p>
+      <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full" aria-busy="true" aria-label={t("loading")}>
+        <Skeleton className="h-8 w-1/2 mb-2" />
+        <Skeleton className="h-4 w-2/3 mb-6" />
+        <Skeleton className="h-48 w-full rounded-card mb-4" />
+        <Skeleton className="h-40 w-full rounded-card" />
       </main>
     );
   }
@@ -41,16 +52,17 @@ export default function RoutinePage() {
 
   if (!skinType) {
     return (
-      <main className="flex-1 px-4 py-16 max-w-2xl mx-auto w-full text-center">
-        <div className="text-4xl mb-3">🧴</div>
-        <h1 className="font-display text-2xl mb-2">{t("needSkinType")}</h1>
-        <p className="text-muted mb-6">{t("needSkinTypeHint")}</p>
-        <Link
-          href="/skin-profile"
-          className="inline-block rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90"
-        >
-          {t("setUp")}
-        </Link>
+      <main className="flex-1 px-4 max-w-2xl mx-auto w-full">
+        <EmptyState
+          icon={Droplets}
+          title={t("needSkinType")}
+          description={t("needSkinTypeHint")}
+          action={
+            <Link href="/skin-profile" className={buttonClasses({ size: "lg" })}>
+              {t("setUp")}
+            </Link>
+          }
+        />
       </main>
     );
   }
@@ -59,31 +71,43 @@ export default function RoutinePage() {
   const routine = buildRoutine(tSkin, skinType, concerns);
 
   return (
-    <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
-      <p className="text-muted mb-6">
-        {t("forSkinType", { type: skinTypeLabel(tSkin, skinType) ?? "" })}
-        {concerns.length > 0 && <> · {concerns.map((c) => skinConcernLabel(tSkin, c)).join(", ")}</>}
-      </p>
+    <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
+      <PageHeader
+        icon={Droplets}
+        title={t("title")}
+        subtitle={
+          <>
+            {t("forSkinType", { type: skinTypeLabel(tSkin, skinType) ?? "" })}
+            {concerns.length > 0 && <> · {concerns.map((c) => skinConcernLabel(tSkin, c)).join(", ")}</>}
+          </>
+        }
+      />
 
-      <div className="flex flex-col gap-4 mb-6">
-        <RoutineList title={t("morning")} steps={routine.morning} />
-        <RoutineList title={t("evening")} steps={routine.evening} />
+      <div className="flex flex-col gap-4 mb-4">
+        <RoutineList icon={Sun} title={t("morning")} steps={routine.morning} />
+        <RoutineList icon={Moon} title={t("evening")} steps={routine.evening} />
       </div>
 
       {routine.tips.length > 0 && (
-        <div className="bg-accent-soft text-accent rounded-card p-5">
-          <h2 className="font-medium mb-2">{t("tips")}</h2>
-          <ul className="flex flex-col gap-1.5 text-sm">
+        <section className="bg-accent-soft text-accent-strong rounded-card p-5">
+          <h2 className="font-display text-lg flex items-center gap-2 mb-2">
+            <Lightbulb className="size-5" strokeWidth={1.85} aria-hidden />
+            {t("tips")}
+          </h2>
+          <ul className="flex flex-col gap-1.5 text-sm list-disc pl-5 marker:text-accent">
             {routine.tips.map((tip) => (
-              <li key={tip}>• {tip}</li>
+              <li key={tip}>{tip}</li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
 
-      <Link href="/skin-profile" className="inline-block mt-6 text-sm text-accent underline">
+      <Link
+        href="/skin-profile"
+        className="mt-4 flex items-center justify-between gap-3 surface-card px-4 py-3.5 text-sm font-medium transition hover:border-accent/30 active:scale-[0.99] focus-ring"
+      >
         {t("changeSkin")}
+        <ChevronRight className="size-4.5 text-muted shrink-0" strokeWidth={2} aria-hidden />
       </Link>
     </main>
   );

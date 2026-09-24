@@ -5,6 +5,11 @@ import { useTranslations } from "next-intl";
 import { useSession, type Session } from "@/lib/session-context";
 import { SKIN_TYPES, SKIN_CONCERNS, type SkinType, type SkinConcern } from "@/lib/skincare";
 import { useRouter } from "@/i18n/navigation";
+import { ChevronRight, Droplets } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Chip } from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function SkinProfilePage() {
   const t = useTranslations("skinProfile");
@@ -52,78 +57,58 @@ export default function SkinProfilePage() {
 
   if (loading) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">{t("loading")}</p>
+      <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full" aria-busy="true" aria-label={t("loading")}>
+        <Skeleton className="h-8 w-1/2 mb-2" />
+        <Skeleton className="h-4 w-3/4 mb-6" />
+        <Skeleton className="h-36 w-full rounded-card mb-4" />
+        <Skeleton className="h-52 w-full rounded-card" />
       </main>
     );
   }
 
   return (
-    <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-2">{t("title")}</h1>
-      <p className="text-muted mb-8">{t("subtitle")}</p>
+    <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
+      <PageHeader icon={Droplets} title={t("title")} subtitle={t("subtitle")} />
 
-      <section className="mb-8">
-        <h2 className="font-medium mb-3">{t("skinType")}</h2>
+      <section className="surface-card p-5 mb-4">
+        <h2 className="font-display text-lg mb-3">{t("skinType")}</h2>
         <div className="flex flex-wrap gap-2">
           {SKIN_TYPES.map((s) => (
-            <button
+            <Chip
               key={s.value}
+              label={tSkin(`types.${s.value}`)}
+              active={skinType === s.value}
               onClick={() => {
                 setSkinType(s.value);
                 setSaved(false);
               }}
-              className={[
-                "rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                skinType === s.value
-                  ? "bg-accent text-on-accent"
-                  : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
-              ].join(" ")}
-            >
-              {tSkin(`types.${s.value}`)}
-            </button>
+            />
           ))}
         </div>
       </section>
 
-      <section className="mb-8">
-        <h2 className="font-medium mb-3">{t("concerns")}</h2>
+      <section className="surface-card p-5 mb-6">
+        <h2 className="font-display text-lg mb-3">{t("concerns")}</h2>
         <div className="flex flex-wrap gap-2">
-          {SKIN_CONCERNS.map((c) => {
-            const active = concerns.includes(c.value);
-            return (
-              <button
-                key={c.value}
-                onClick={() => toggleConcern(c.value)}
-                aria-pressed={active}
-                className={[
-                  "rounded-full px-4 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                  active
-                    ? "bg-accent text-on-accent"
-                    : "bg-accent-soft text-accent hover:bg-accent hover:text-on-accent",
-                ].join(" ")}
-              >
-                {tSkin(`concerns.${c.value}`)}
-              </button>
-            );
-          })}
+          {SKIN_CONCERNS.map((c) => (
+            <Chip
+              key={c.value}
+              label={tSkin(`concerns.${c.value}`)}
+              active={concerns.includes(c.value)}
+              onClick={() => toggleConcern(c.value)}
+            />
+          ))}
         </div>
       </section>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleSave}
-          disabled={saving || !skinType}
-          className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button size="lg" onClick={handleSave} loading={saving} disabled={!skinType} className="sm:flex-1">
           {saving ? t("saving") : saved ? t("saved") : t("save")}
-        </button>
-        <button
-          onClick={() => router.push("/routine")}
-          className="text-sm text-accent underline"
-        >
+        </Button>
+        <Button size="lg" variant="ghost" onClick={() => router.push("/routine")} className="sm:flex-1">
           {t("viewRoutine")}
-        </button>
+          <ChevronRight className="size-4.5" strokeWidth={2} aria-hidden />
+        </Button>
       </div>
     </main>
   );

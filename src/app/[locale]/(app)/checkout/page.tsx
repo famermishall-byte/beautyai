@@ -5,7 +5,12 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
-import { Minus, Plus, Trash2, MessageCircle, TriangleAlert } from "lucide-react";
+import { Minus, Plus, Trash2, MessageCircle, Check, CircleCheck, Store, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
+import { Field } from "@/components/ui/Field";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { unmarkAdded } from "@/lib/session-flags";
 import { BannerGate } from "@/components/BannerInterstitial";
 import type { Branch } from "@/types";
@@ -87,13 +92,12 @@ export default function CheckoutPage() {
     }
   }
 
-  const inputClass =
-    "w-full rounded-control border border-border bg-card px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
-
   if (step === "success" && successInfo) {
     return (
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 text-center">
-        <div className="text-5xl mb-4">💚</div>
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 text-center animate-rise-in">
+        <span className="flex items-center justify-center w-16 h-16 rounded-full bg-success-soft text-success mb-5">
+          <CircleCheck className="size-8" strokeWidth={1.75} aria-hidden />
+        </span>
         <h1 className="font-display text-3xl mb-3">{t("sentTitle")}</h1>
         <p className="text-muted max-w-md mb-2">
           {t.rich("sentText", { number: successInfo.orderNumber, b: (chunks) => <span className="font-medium text-foreground">{chunks}</span> })}
@@ -102,33 +106,30 @@ export default function CheckoutPage() {
           {t("sentHint")}
         </p>
 
-        <div className="w-full max-w-md rounded-card bg-warning-soft text-warning px-4 py-3.5 mb-4 text-left flex gap-3">
-          <TriangleAlert className="size-5 shrink-0 mt-0.5" strokeWidth={2} aria-hidden />
-          <p className="text-sm font-medium leading-snug">{t("sentWhatsappWarning")}</p>
+        <Notice tone="warning" className="w-full max-w-md mb-4">
+          {t("sentWhatsappWarning")}
+        </Notice>
+
+        <div className="w-full max-w-md flex flex-col gap-3">
+          <Button variant="whatsapp" size="lg" fullWidth onClick={() => window.open(successInfo.whatsappUrl, "_blank")?.focus()}>
+            <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
+            {t("reopenWhatsapp")}
+          </Button>
+          <Button variant="ghost" size="lg" fullWidth onClick={() => router.push("/")}>
+            {t("backToCatalog")}
+          </Button>
         </div>
-
-        <button
-          onClick={() => window.open(successInfo.whatsappUrl, "_blank")?.focus()}
-          className="w-full max-w-md rounded-full bg-whatsapp text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2 mb-3"
-        >
-          <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
-          {t("reopenWhatsapp")}
-        </button>
-
-        <button
-          onClick={() => router.push("/")}
-          className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
-          {t("backToCatalog")}
-        </button>
       </main>
     );
   }
 
   if (!hydrated) {
     return (
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <p className="text-muted animate-pulse">{t("loadingCart")}</p>
+      <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full" aria-busy="true" aria-label={t("loadingCart")}>
+        <Skeleton className="h-8 w-1/2 mb-6" />
+        <Skeleton className="h-8 w-full mb-8" />
+        <Skeleton className="h-24 w-full rounded-card mb-3" />
+        <Skeleton className="h-24 w-full rounded-card" />
       </main>
     );
   }
@@ -138,104 +139,123 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
+    <main className="flex-1 px-4 pt-8 pb-10 max-w-2xl mx-auto w-full">
       <BannerGate page="checkout" />
-      <h1 className="font-display text-3xl mb-6">{t("title")}</h1>
+      <h1 className="font-display text-3xl mb-5">{t("title")}</h1>
 
-      <div className="flex items-center gap-2 mb-8">
+      <ol className="flex items-center gap-2 mb-8">
         {stepLabels.map((s, i) => {
           const isActive = s.key === step;
           const isDone = stepLabels.findIndex((x) => x.key === step) > i;
           return (
-            <div key={s.key} className="flex items-center gap-2">
+            <li key={s.key} className="flex items-center gap-2 min-w-0" aria-current={isActive ? "step" : undefined}>
               <span
                 className={[
-                  "w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium",
-                  isActive ? "bg-accent text-on-accent" : isDone ? "bg-accent-soft text-accent" : "bg-state-hover text-muted",
+                  "w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold transition-colors",
+                  isActive ? "bg-accent text-on-accent" : isDone ? "bg-accent-soft text-accent-strong" : "bg-state-pressed text-muted",
                 ].join(" ")}
               >
-                {i + 1}
+                {isDone ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : i + 1}
               </span>
-              <span className={isActive ? "text-sm font-medium" : "text-sm text-muted"}>{s.label}</span>
-              {i < stepLabels.length - 1 && <span className="w-6 h-px bg-state-pressed mx-1" />}
-            </div>
+              <span className={["text-sm truncate", isActive ? "font-semibold" : "text-muted"].join(" ")}>{s.label}</span>
+              {i < stepLabels.length - 1 && <span className="w-4 sm:w-6 h-px bg-border-strong shrink-0" aria-hidden />}
+            </li>
           );
         })}
-      </div>
+      </ol>
 
       {step === "branch" && (
         <div>
-          <h2 className="font-medium mb-4">{t("chooseBranch")}</h2>
+          <h2 className="font-display text-xl mb-4">{t("chooseBranch")}</h2>
           {branches.length === 0 ? (
-            <p className="text-muted text-sm">{t("noBranches")}</p>
+            <EmptyState icon={Store} title={t("noBranches")} />
           ) : (
-            <div className="flex flex-col gap-3 mb-6">
-              {branches.map((branch) => (
-                <button
-                  key={branch.id}
-                  onClick={() => setBranchId(branch.id)}
-                  className={[
-                    "text-left rounded-control border p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                    branchId === branch.id ? "border-accent bg-accent-soft" : "border-border bg-card hover:border-accent/50",
-                  ].join(" ")}
-                >
-                  <div className="font-medium">{branch.name}</div>
-                  <div className="text-sm text-muted">{branch.address}</div>
-                  <div className="text-xs text-muted mt-1">{branch.hours}</div>
-                </button>
-              ))}
+            <div className="flex flex-col gap-3 mb-6" role="radiogroup" aria-label={t("chooseBranch")}>
+              {branches.map((branch) => {
+                const selected = branchId === branch.id;
+                return (
+                  <button
+                    key={branch.id}
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setBranchId(branch.id)}
+                    className={[
+                      "text-left rounded-card border p-4 flex items-start gap-3 transition focus-ring",
+                      selected ? "border-accent bg-accent-soft shadow-card" : "border-border bg-card hover:border-accent/40",
+                    ].join(" ")}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold">{branch.name}</div>
+                      <div className="text-sm text-muted">{branch.address}</div>
+                      <div className="text-xs text-muted mt-1">{branch.hours}</div>
+                    </div>
+                    <span
+                      className={[
+                        "w-6 h-6 shrink-0 rounded-full flex items-center justify-center transition-colors",
+                        selected ? "bg-accent text-on-accent" : "border border-border-strong",
+                      ].join(" ")}
+                      aria-hidden
+                    >
+                      {selected && <Check className="size-3.5" strokeWidth={3} />}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
-          <button
-            onClick={() => setStep("contact")}
-            disabled={!branchId}
-            className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
+          <Button size="lg" fullWidth onClick={() => setStep("contact")} disabled={!branchId}>
             {t("next")}
-          </button>
+          </Button>
         </div>
       )}
 
       {step === "contact" && (
         <div>
-          <h2 className="font-medium mb-4">{t("yourContacts")}</h2>
-          <div className="flex flex-col gap-3 mb-6">
-            <input
-              className={inputClass}
-              placeholder={t("namePlaceholder")}
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-            />
-            <input
-              className={inputClass}
-              placeholder={t("phonePlaceholder")}
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-            />
+          <h2 className="font-display text-xl mb-4">{t("yourContacts")}</h2>
+          <div className="surface-card p-5 flex flex-col gap-4 mb-6">
+            <Field id="checkout-name" label={t("namePlaceholder")}>
+              <input
+                id="checkout-name"
+                className="field"
+                autoComplete="name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
+            </Field>
+            <Field id="checkout-phone" label={t("phonePlaceholder")}>
+              <input
+                id="checkout-phone"
+                className="field"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+              />
+            </Field>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStep("branch")}
-              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
+          <div className="flex gap-3">
+            <Button variant="ghost" size="lg" onClick={() => setStep("branch")}>
+              <ChevronLeft className="size-4.5" strokeWidth={2} aria-hidden />
               {t("back")}
-            </button>
-            <button
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1"
               onClick={() => setStep("review")}
               disabled={!customerName.trim() || !customerPhone.trim()}
-              className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               {t("next")}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {step === "review" && selectedBranch && (
         <div>
-          <h2 className="font-medium mb-4">{t("reviewTitle")}</h2>
+          <h2 className="font-display text-xl mb-4">{t("reviewTitle")}</h2>
 
-          <div className="bg-card rounded-control border border-border p-4 mb-4">
+          <div className="surface-card p-4 mb-4">
             <div className="text-sm text-muted mb-2">{t("products")}</div>
             <div className="flex flex-col gap-3">
               {items.map((item) => (
@@ -248,7 +268,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, -1)}
                           aria-label={tCart("decrease", { name: text(item.product).name })}
-                          className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+                          className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                         >
                           <Minus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>
@@ -257,7 +277,7 @@ export default function CheckoutPage() {
                           type="button"
                           onClick={() => changeQuantity(item.product.id, 1)}
                           aria-label={tCart("increase", { name: text(item.product).name })}
-                          className="w-6 h-6 rounded-full bg-card flex items-center justify-center transition active:scale-90"
+                          className="w-8 h-8 rounded-full bg-card flex items-center justify-center transition active:scale-90 focus-ring"
                         >
                           <Plus className="size-3" strokeWidth={2.5} aria-hidden />
                         </button>
@@ -269,7 +289,7 @@ export default function CheckoutPage() {
                           unmarkAdded(item.product.id);
                         }}
                         aria-label={tCart("remove", { name: text(item.product).name })}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft focus-ring"
                       >
                         <Trash2 className="size-3.5" strokeWidth={1.85} aria-hidden />
                       </button>
@@ -283,14 +303,14 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between font-display text-lg mt-3 pt-3 border-t border-border">
               <span>{t("total")}</span>
-              <span>{price(totalPrice)}</span>
+              <span className="tabular-nums">{price(totalPrice)}</span>
             </div>
           </div>
 
-          <div className="bg-card rounded-control border border-border p-4 mb-4">
+          <div className="surface-card p-4 mb-4">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-muted">{t("branch")}</div>
-              <button onClick={() => setStep("branch")} className="text-xs text-accent underline">
+              <div className="eyebrow">{t("branch")}</div>
+              <button onClick={() => setStep("branch")} className="text-sm font-medium text-accent px-2 py-1 -mr-2 rounded-full hover:bg-accent-soft transition focus-ring">
                 {t("change")}
               </button>
             </div>
@@ -298,10 +318,10 @@ export default function CheckoutPage() {
             <div className="text-sm text-muted">{selectedBranch.address}</div>
           </div>
 
-          <div className="bg-card rounded-control border border-border p-4 mb-6">
+          <div className="surface-card p-4 mb-6">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-sm text-muted">{t("contacts")}</div>
-              <button onClick={() => setStep("contact")} className="text-xs text-accent underline">
+              <div className="eyebrow">{t("contacts")}</div>
+              <button onClick={() => setStep("contact")} className="text-sm font-medium text-accent px-2 py-1 -mr-2 rounded-full hover:bg-accent-soft transition focus-ring">
                 {t("change")}
               </button>
             </div>
@@ -309,22 +329,21 @@ export default function CheckoutPage() {
             <div className="text-sm text-muted">{customerPhone}</div>
           </div>
 
-          {error && <p className="text-sm text-error mb-4">{error}</p>}
+          {error && (
+            <Notice tone="error" className="mb-4">
+              {error}
+            </Notice>
+          )}
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStep("contact")}
-              className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
+          <div className="flex gap-3">
+            <Button variant="ghost" size="lg" onClick={() => setStep("contact")}>
+              <ChevronLeft className="size-4.5" strokeWidth={2} aria-hidden />
               {t("back")}
-            </button>
-            <button
-              onClick={handleSubmitOrder}
-              disabled={submitting}
-              className="rounded-full bg-whatsapp text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-            >
+            </Button>
+            <Button variant="whatsapp" size="lg" className="flex-1" onClick={handleSubmitOrder} loading={submitting}>
+              {!submitting && <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />}
               {submitting ? t("sending") : t("sendWhatsApp")}
-            </button>
+            </Button>
           </div>
         </div>
       )}
