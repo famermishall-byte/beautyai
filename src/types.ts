@@ -136,6 +136,14 @@ export type Promotion = {
   product: Pick<Product, "id" | "name" | "brand" | "imageUrl" | "price"> | null;
 };
 
+export type NewArrival = {
+  id: string;
+  productId: string;
+  priority: number;
+  createdAt: string;
+  product: Pick<Product, "id" | "name" | "brand" | "imageUrl" | "price"> | null;
+};
+
 export type ProductReview = {
   id: string;
   productId: string;

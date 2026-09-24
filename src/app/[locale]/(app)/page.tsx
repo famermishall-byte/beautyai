@@ -54,6 +54,7 @@ export default function Home() {
   const skinType = session?.skinType as SkinType | null | undefined;
 
   const [showcase, setShowcase] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [forYou, setForYou] = useState<Product[]>([]);
   const [promoProducts, setPromoProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +95,17 @@ export default function Home() {
       .catch(() => setPromoProducts([]));
   }, []);
 
-  const slides = showcase.slice(0, SLIDES);
+  useEffect(() => {
+    fetch("/api/new-arrivals")
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setNewArrivals(data.products ?? []))
+      .catch(() => setNewArrivals([]));
+  }, []);
+
+  // Верхний слайдер — «Новинки», которые owner/admin сам выбрал в /admin/promo (по просьбе
+  // владельца, 24.09); пока список пуст (магазин ещё ничего не выбрал), едет старая заглушка,
+  // чтобы главная не осталась без слайдера вовсе.
+  const slides = newArrivals.length > 0 ? newArrivals.slice(0, SLIDES) : showcase.slice(0, SLIDES);
   const popular = showcase.slice(0, POPULAR);
 
   return (

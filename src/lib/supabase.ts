@@ -79,6 +79,27 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
   };
 }
 
+export function mapNewArrival(
+  row: Record<string, unknown> & { products?: Record<string, unknown> | null }
+) {
+  const product = row.products as Record<string, unknown> | null | undefined;
+  return {
+    id: row.id as string,
+    productId: row.product_id as string,
+    priority: row.priority as number,
+    createdAt: row.created_at as string,
+    product: product
+      ? {
+          id: product.id as string,
+          name: product.name as string,
+          brand: product.brand as string,
+          imageUrl: (product.image_url as string | null) ?? null,
+          price: product.price as number,
+        }
+      : null,
+  };
+}
+
 export function mapBanner(
   row: Record<string, unknown> & { products?: Record<string, unknown> | null }
 ) {

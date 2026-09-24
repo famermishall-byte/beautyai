@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
@@ -51,7 +51,8 @@ function CatalogContent() {
   const groupParam = searchParams.get("group");
   const itemParam = searchParams.get("item");
   const promo = searchParams.get("promo") === "1";
-  const showAll = searchParams.get("all") === "1" || promo;
+  const isNew = searchParams.get("new") === "1";
+  const showAll = searchParams.get("all") === "1" || promo || isNew;
   const activeGroup = CATEGORY_GROUPS.find((g) => g.name === groupParam) ?? null;
   const activeItem = activeGroup?.subs.find((i) => i.label === itemParam) ?? null;
   const groupFilter = activeGroup ? groupCategoryFilter(activeGroup) : null;
@@ -75,6 +76,7 @@ function CatalogContent() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchId, setBranchId] = useState<string | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [newArrivalIds, setNewArrivalIds] = useState<Set<string> | null>(null);
 
   // Preselect "любой бюджет" when arriving via the "По бюджету" home-screen
   // shortcut. Adjusting state during render (guarded by a "did the source
@@ -133,6 +135,16 @@ function CatalogContent() {
       .catch(() => setBanners([]));
   }, [promo]);
 
+  useEffect(() => {
+    // Плитка «Новинки» — тот же список, что и верхний слайдер на главной (владелец выбирает
+    // в /admin/promo). Запрашиваем только на этой странице, не на каждом входе в каталог.
+    if (!isNew) return;
+    fetch("/api/new-arrivals")
+      .then((res) => (res.ok ? res.json() : { products: [] }))
+      .then((data: { products: Product[] }) => setNewArrivalIds(new Set((data.products ?? []).map((p) => p.id))))
+      .catch(() => setNewArrivalIds(new Set()));
+  }, [isNew]);
+
   function handleSelectBranch(id: string) {
     setBranchId(id);
     try {
@@ -175,6 +187,9 @@ function CatalogContent() {
   if (itemTag) scoped = scoped.filter((p) => p.attributes?.tags?.includes(itemTag));
   // «Акции»: товары со скидкой (акция) и товары с меткой «Хит» — одним списком, баннеры сверху отдельно.
   if (promo) scoped = scoped.filter((p) => (p.attributes?.oldPrice ?? 0) > p.price || Boolean(p.attributes?.hit));
+  // «Новинки»: список, который выбрал owner/admin (/admin/promo) — пока не загрузился, показываем
+  // пусто, а не весь каталог (иначе на миг мелькнёт «не то»).
+  if (isNew) scoped = newArrivalIds ? scoped.filter((p) => newArrivalIds.has(p.id)) : [];
 
   const distinct = (values: (string | undefined)[]) => [...new Set(values.filter(Boolean) as string[])].sort();
   const brands = distinct(scoped.map((p) => p.brand));
@@ -258,7 +273,7 @@ function CatalogContent() {
           {tc("allCatalog")}
         </Link>
       )}
-      <h1 className="font-display text-3xl mb-4">{promo ? t("promo") : activeItem && activeGroup ? labels.subLabel(activeGroup, activeItem) : activeGroup && !browsing ? labels.groupTitle(activeGroup) : t("title")}</h1>
+      <h1 className="font-display text-3xl mb-4">{promo ? t("promo") : isNew ? t("newArrivals") : activeItem && activeGroup ? labels.subLabel(activeGroup, activeItem) : activeGroup && !browsing ? labels.groupTitle(activeGroup) : t("title")}</h1>
 
       {branches.length > 1 && (
         <div className="mb-4 -mx-4 px-4 overflow-x-auto">
@@ -513,6 +528,12 @@ function CategoryTiles() {
           <span className="relative text-[15px] font-semibold leading-tight">{t("allProducts")}</span>
           <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
         </Link>
+        <Link href="/catalog?new=1" className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`} style={sheenDelay(1)}>
+          <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{t("newArrivals")}</span>
+          <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+            <Sparkles className="size-8" strokeWidth={1.6} aria-hidden />
+          </span>
+        </Link>
         {CATEGORY_GROUPS.map((group, i) => {
           const { name, icon: Icon } = group;
           return (
@@ -520,7 +541,7 @@ function CategoryTiles() {
             key={name}
             href={`/catalog?group=${encodeURIComponent(name)}`}
             className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
-            style={sheenDelay(i + 1)}
+            style={sheenDelay(i + 2)}
           >
             <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{labels.groupTitle(group)}</span>
             <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
