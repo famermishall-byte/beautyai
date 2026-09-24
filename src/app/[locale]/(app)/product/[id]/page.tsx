@@ -215,7 +215,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         {related.length > 0 && (
           <div className="mb-6">
             <h2 className="font-display text-lg mb-3">{t("related")}</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 auto-rows-fr gap-3">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

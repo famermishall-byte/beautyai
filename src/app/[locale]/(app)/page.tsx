@@ -6,7 +6,7 @@ import { Sparkles, ChevronRight, Wand2, Flame } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { skinTypeLabel, type SkinType } from "@/lib/skincare";
 import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
@@ -124,7 +124,7 @@ export default function Home() {
           {forYou.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {forYou.map((product) => (
-                <div key={product.id} className="w-40 shrink-0 snap-start">
+                <div key={product.id} className={PRODUCT_RAIL_ITEM}>
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -152,7 +152,7 @@ export default function Home() {
           <Section title={t("promoTitle")} icon={Flame}>
             <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {promoProducts.map((product) => (
-                <div key={product.id} className="w-40 shrink-0 snap-start">
+                <div key={product.id} className={PRODUCT_RAIL_ITEM}>
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -164,7 +164,7 @@ export default function Home() {
           {loading ? (
             <ProductGridSkeleton count={4} />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
               {popular.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
