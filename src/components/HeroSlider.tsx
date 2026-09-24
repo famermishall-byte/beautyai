@@ -10,7 +10,7 @@ import { Link } from "@/i18n/navigation";
 
 const AUTO_MS = 4500;
 
-export function HeroSlider({ products }: { products: Product[] }) {
+export function HeroSlider({ products, isNew = false }: { products: Product[]; isNew?: boolean }) {
   const t = useTranslations("home");
   const price = usePrice();
   const text = useProductText();
@@ -63,6 +63,11 @@ export function HeroSlider({ products }: { products: Product[] }) {
               <div className="absolute inset-0 flex items-center justify-center">
                 <Sparkle className="size-14 text-accent/35" strokeWidth={1.2} aria-hidden />
               </div>
+            )}
+            {isNew && (
+              <span className="absolute top-3 left-3 bg-[#3b82f6] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full">
+                {t("newBadge")}
+              </span>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" aria-hidden />
             <div className="absolute inset-x-0 bottom-0 p-4 pb-9 text-white">

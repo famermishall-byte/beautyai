@@ -2,95 +2,92 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Plus, Trash2, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown, Loader2, Check } from "lucide-react";
 import { ProductPicker } from "@/components/ProductPicker";
 import { Button } from "@/components/ui/Button";
 import { usePrice } from "@/lib/use-price";
+import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
 import type { NewArrival } from "@/types";
+
+type Item = { productId: string; name: string; brand: string; imageUrl: string | null; price: number };
+
+function toItem(a: NewArrival): Item | null {
+  if (!a.product) return null;
+  return { productId: a.productId, name: a.product.name, brand: a.product.brand, imageUrl: a.product.imageUrl, price: a.product.price };
+}
 
 /**
  * Список товаров для верхнего слайдера на главной и плитки «Новинки» в каталоге — owner/admin
- * сам выбирает, что туда попадёт, и в каком порядке (стрелки вверх/вниз меняют priority местами
- * с соседом). Один и тот же список кормит оба места, см. /api/new-arrivals.
+ * сам выбирает состав и порядок. Добавление/удаление/перестановка меняют только то, что видно
+ * на экране — на сервер уходит целиком по кнопке «Сохранить» (по просьбе владельца, 24.09: было
+ * непонятно, применились ли изменения, раз ничего явно не подтверждало сохранение).
  */
 export function NewArrivalsManager() {
   const t = useTranslations("newArrivalsManager");
   const price = usePrice();
-  const [items, setItems] = useState<NewArrival[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  function load() {
-    fetch("/api/admin/new-arrivals")
-      .then((res) => (res.ok ? res.json() : { items: [] }))
-      .then((data: { items: NewArrival[] }) => setItems(data.items ?? []))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }
 
   useEffect(() => {
-    load();
+    fetch("/api/admin/new-arrivals")
+      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then((data: { items: NewArrival[] }) => {
+        const loaded = (data.items ?? []).map(toItem).filter((i): i is Item => i !== null);
+        setItems(loaded);
+        setSavedIds(loaded.map((i) => i.productId));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  async function handlePick(product: { id: string } | null) {
+  const dirty = items.length !== savedIds.length || items.some((it, i) => it.productId !== savedIds[i]);
+
+  function handlePick(product: { id: string; name: string; brand: string; imageUrl: string | null; price: number } | null) {
     if (!product) return;
-    setAdding(true);
+    setJustSaved(false);
+    setItems((prev) => (prev.some((i) => i.productId === product.id) ? prev : [...prev, { productId: product.id, name: product.name, brand: product.brand, imageUrl: product.imageUrl, price: product.price }]));
+  }
+
+  function handleRemove(productId: string) {
+    setJustSaved(false);
+    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  }
+
+  function handleMove(index: number, direction: -1 | 1) {
+    const other = index + direction;
+    if (other < 0 || other >= items.length) return;
+    setJustSaved(false);
+    setItems((prev) => {
+      const next = [...prev];
+      [next[index], next[other]] = [next[other], next[index]];
+      return next;
+    });
+  }
+
+  async function handleSave() {
+    setSaving(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/new-arrivals", {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
+        body: JSON.stringify({ productIds: items.map((i) => i.productId) }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? t("addFailed"));
+        setError(data.error ?? t("saveFailed"));
         return;
       }
-      load();
+      setSavedIds(items.map((i) => i.productId));
+      setJustSaved(true);
+    } catch {
+      setError(t("saveFailed"));
     } finally {
-      setAdding(false);
-    }
-  }
-
-  async function handleRemove(id: string) {
-    setBusyId(id);
-    try {
-      const res = await fetch(`/api/admin/new-arrivals/${id}`, { method: "DELETE" });
-      if (res.ok) setItems((prev) => prev.filter((i) => i.id !== id));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function handleMove(index: number, direction: -1 | 1) {
-    const other = index + direction;
-    if (other < 0 || other >= items.length) return;
-    const a = items[index];
-    const b = items[other];
-    setBusyId(a.id);
-    try {
-      await Promise.all([
-        fetch(`/api/admin/new-arrivals/${a.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priority: b.priority }),
-        }),
-        fetch(`/api/admin/new-arrivals/${b.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ priority: a.priority }),
-        }),
-      ]);
-      const next = [...items];
-      next[index] = { ...b, priority: a.priority };
-      next[other] = { ...a, priority: b.priority };
-      next.sort((x, y) => x.priority - y.priority);
-      setItems(next);
-    } finally {
-      setBusyId(null);
+      setSaving(false);
     }
   }
 
@@ -106,8 +103,6 @@ export function NewArrivalsManager() {
           {t("addLabel")}
         </div>
         <ProductPicker picked={null} onPick={handlePick} />
-        {adding && <p className="text-xs text-muted mt-2">{t("adding")}</p>}
-        {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3 mt-2">{error}</p>}
       </div>
 
       {items.length === 0 ? (
@@ -115,45 +110,71 @@ export function NewArrivalsManager() {
       ) : (
         <div className="flex flex-col gap-2">
           {items.map((item, i) => (
-            <div key={item.id} className="bg-card border border-border rounded-[var(--radius-card)] p-3 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-accent-soft shrink-0">
-                {item.product?.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.product.imageUrl} alt="" className="w-full h-full object-cover" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[11px] uppercase tracking-wide text-muted font-medium truncate">{item.product?.brand}</div>
-                <div className="text-sm font-medium truncate">{item.product?.name ?? t("deletedProduct")}</div>
-                {item.product && <div className="text-xs text-muted">{price(item.product.price)}</div>}
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleMove(i, -1)}
-                  disabled={i === 0 || busyId === item.id}
-                  aria-label={t("moveUp")}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
-                >
-                  <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMove(i, 1)}
-                  disabled={i === items.length - 1 || busyId === item.id}
-                  aria-label={t("moveDown")}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
-                >
-                  <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
-                </button>
-                <Button variant="ghost" size="sm" onClick={() => handleRemove(item.id)} disabled={busyId === item.id}>
-                  <Trash2 className="size-4" strokeWidth={1.85} aria-hidden />
-                </Button>
+            <div key={item.productId}>
+              {i === NEW_ARRIVALS_HOME_COUNT && (
+                <div className="flex items-center gap-2 my-1 text-xs text-muted">
+                  <div className="flex-1 h-px bg-border" />
+                  {t("belowCutoff", { count: NEW_ARRIVALS_HOME_COUNT })}
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              )}
+              <div className="bg-card border border-border rounded-[var(--radius-card)] p-3 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-accent-soft shrink-0">
+                  {item.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] uppercase tracking-wide text-muted font-medium truncate">{item.brand}</div>
+                  <div className="text-sm font-medium truncate">{item.name}</div>
+                  <div className="text-xs text-muted">{price(item.price)}</div>
+                  {i < NEW_ARRIVALS_HOME_COUNT && <div className="text-[11px] text-accent font-medium mt-0.5">{t("onHome")}</div>}
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleMove(i, -1)}
+                    disabled={i === 0}
+                    aria-label={t("moveUp")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
+                  >
+                    <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMove(i, 1)}
+                    disabled={i === items.length - 1}
+                    aria-label={t("moveDown")}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-muted transition hover:bg-black/5 disabled:opacity-30"
+                  >
+                    <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
+                  </button>
+                  <Button variant="ghost" size="sm" onClick={() => handleRemove(item.productId)}>
+                    <Trash2 className="size-4" strokeWidth={1.85} aria-hidden />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
+
+      <div className="flex items-center gap-3 sticky bottom-4">
+        <Button size="lg" onClick={handleSave} disabled={!dirty || saving}>
+          {saving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+          {saving ? t("saving") : t("save")}
+        </Button>
+        {justSaved && !dirty && (
+          <span className="text-sm text-success flex items-center gap-1">
+            <Check className="size-4" strokeWidth={2.5} aria-hidden />
+            {t("saved")}
+          </span>
+        )}
+        {dirty && !saving && <span className="text-xs text-muted">{t("unsavedHint")}</span>}
+      </div>
     </div>
   );
 }

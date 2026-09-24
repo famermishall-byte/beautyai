@@ -15,6 +15,8 @@ export type ProductAttributes = {
   /** Price before the discount; a card shows a badge and a struck-through price when it is above `price`. */
   oldPrice?: number;
   hit?: boolean;
+  /** Client-side only — set when a product is shown inside the "Новинки" list (never stored). */
+  isNewArrival?: boolean;
 };
 
 export type Product = {

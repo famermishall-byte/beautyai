@@ -189,7 +189,11 @@ function CatalogContent() {
   if (promo) scoped = scoped.filter((p) => (p.attributes?.oldPrice ?? 0) > p.price || Boolean(p.attributes?.hit));
   // «Новинки»: список, который выбрал owner/admin (/admin/promo) — пока не загрузился, показываем
   // пусто, а не весь каталог (иначе на миг мелькнёт «не то»).
-  if (isNew) scoped = newArrivalIds ? scoped.filter((p) => newArrivalIds.has(p.id)) : [];
+  if (isNew) {
+    scoped = newArrivalIds
+      ? scoped.filter((p) => newArrivalIds.has(p.id)).map((p) => ({ ...p, attributes: { ...p.attributes, isNewArrival: true } }))
+      : [];
+  }
 
   const distinct = (values: (string | undefined)[]) => [...new Set(values.filter(Boolean) as string[])].sort();
   const brands = distinct(scoped.map((p) => p.brand));

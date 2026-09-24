@@ -32,6 +32,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
   const oldPrice = product.attributes?.oldPrice;
   const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
   const isHit = Boolean(product.attributes?.hit);
+  const isNewArrival = Boolean(product.attributes?.isNewArrival);
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
@@ -66,10 +67,11 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           </div>
         )}
 
-        {(discount > 0 || isHit) && (
+        {(discount > 0 || isHit || isNewArrival) && (
           <div className="absolute top-0 left-0 flex flex-col text-[11px] font-bold text-white leading-none">
             {discount > 0 && <span className="bg-[#f470b4] px-2 py-1.5 rounded-br-md">-{discount}%</span>}
             {isHit && <span className="bg-[#7fcf50] px-2 py-1.5 rounded-br-md">{t("hit")}</span>}
+            {isNewArrival && <span className="bg-[#3b82f6] px-2 py-1.5 rounded-br-md">{t("newBadge")}</span>}
           </div>
         )}
 

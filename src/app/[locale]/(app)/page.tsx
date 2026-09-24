@@ -11,6 +11,7 @@ import { HeroSlider } from "@/components/HeroSlider";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
+import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
@@ -105,7 +106,7 @@ export default function Home() {
   // Верхний слайдер — «Новинки», которые owner/admin сам выбрал в /admin/promo (по просьбе
   // владельца, 24.09); пока список пуст (магазин ещё ничего не выбрал), едет старая заглушка,
   // чтобы главная не осталась без слайдера вовсе.
-  const slides = newArrivals.length > 0 ? newArrivals.slice(0, SLIDES) : showcase.slice(0, SLIDES);
+  const slides = newArrivals.length > 0 ? newArrivals.slice(0, NEW_ARRIVALS_HOME_COUNT) : showcase.slice(0, SLIDES);
   const popular = showcase.slice(0, POPULAR);
 
   return (
@@ -116,7 +117,7 @@ export default function Home() {
         {loading ? (
           <Skeleton className="aspect-[16/11] rounded-[var(--radius-card)]" />
         ) : slides.length > 0 ? (
-          <HeroSlider products={slides} />
+          <HeroSlider products={slides} isNew={newArrivals.length > 0} />
         ) : null}
 
         <Section title={t("forYou")} icon={Sparkles} hint={skinLabel ? t("skinHint", { type: skinLabel.toLowerCase() }) : undefined}>
