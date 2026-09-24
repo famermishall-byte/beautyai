@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Building2, ClipboardList, FileSpreadsheet, LayoutList, Megaphone, MessageSquare, Package, Store, UserCog, Users, type LucideIcon } from "lucide-react";
+import { Building2, ClipboardList, FileSpreadsheet, LayoutList, Megaphone, MessageSquare, Package, Store, Trophy, UserCog, Users, type LucideIcon } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { Link } from "@/i18n/navigation";
 
@@ -45,6 +45,7 @@ export default function AdminHome() {
       icon: ClipboardList,
       badge: newOrders ?? 0,
     },
+    { href: "/admin/product-rating", label: t("rating"), hint: branchManager ? t("onlyYourBranch") : t("ratingHint"), icon: Trophy, roles: ["owner", "admin", "branch_manager"] },
     { href: "/admin/staff", label: t("staff"), hint: t("staffHint"), icon: Users, roles: ["owner"] },
     { href: "/admin/branches", label: t("branches"), hint: branchCount !== null ? t("totalCount", { n: branchCount }) : t("branchesHint"), icon: Store, roles: ["owner", "admin"] },
     { href: "/admin/products", label: t("upload"), hint: t("uploadHint"), icon: FileSpreadsheet, roles: ["owner", "admin"] },
