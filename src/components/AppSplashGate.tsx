@@ -4,16 +4,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
-import { wasSplashShown, markSplashShown } from "@/lib/session-flags";
+import { wasSplashShown, markSplashShown, isReloadNavigation } from "@/lib/session-flags";
 
 // Раньше здесь была статичная заставка (иконка в квадратике + название) — владелец
 // попросил 24.09 сделать её такой же красивой, как анимация после первой регистрации
 // (кольца + лого + текст, ранее жила только в LogoIntro.tsx/FirstRunFlow.tsx, показывалась
-// один раз за аккаунт). Теперь этот же стиль — здесь, при каждом РЕАЛЬНОМ открытии приложения
-// (не на каждом внутреннем переходе между страницами — см. wasSplashShown()/markSplashShown()
-// в session-flags.ts, там же почему это не простой sessionStorage-флаг), поэтому отдельный
-// одноразовый LogoIntro.tsx убран, чтобы не показывать одну и ту же анимацию дважды подряд
-// сразу после регистрации.
+// один раз за аккаунт). Теперь этот же стиль — здесь, при каждом РЕАЛЬНОМ открытии приложения —
+// НЕ на внутренних переходах между страницами и НЕ на обновлении страницы (F5/pull-to-refresh,
+// см. isReloadNavigation() в session-flags.ts) — поэтому отдельный одноразовый LogoIntro.tsx
+// убран, чтобы не показывать одну и ту же анимацию дважды подряд сразу после регистрации.
 const MIN_SPLASH_MS = 1200;
 
 export function AppSplashGate({ children }: { children: ReactNode }) {
@@ -27,7 +26,9 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
   const [alreadyShown, setAlreadyShown] = useState(false);
 
   useEffect(() => {
-    if (wasSplashShown()) {
+    // Обновление страницы (F5, pull-to-refresh) — не «открытие приложения», должно пройти
+    // максимум лёгким миганием, без заставки, сколько бы времени ни прошло с прошлого раза.
+    if (isReloadNavigation() || wasSplashShown()) {
       Promise.resolve().then(() => setAlreadyShown(true));
       return;
     }
