@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, MessageCircle, TriangleAlert } from "lucide-react";
 import { unmarkAdded } from "@/lib/session-flags";
 import { BannerGate } from "@/components/BannerInterstitial";
 import type { Branch } from "@/types";
@@ -31,7 +31,7 @@ export default function CheckoutPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successInfo, setSuccessInfo] = useState<{ orderNumber: string } | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{ orderNumber: string; whatsappUrl: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/branches")
@@ -68,9 +68,17 @@ export default function CheckoutPage() {
         return;
       }
 
-      window.open(data.whatsappUrl, "_blank");
+      // wa.me только ОТКРЫВАЕТ чат с готовым текстом — сам WhatsApp принципиально не даёт
+      // отправлять сообщение по ссылке без участия человека (защита от спама), отправить
+      // должен сам клиент нажатием «Отправить» внутри WhatsApp. .focus() — лучшее, что можно
+      // сделать программно, чтобы обратить на это внимание; предупреждение на экране ниже
+      // и кнопка «Открыть WhatsApp снова» — основная подстраховка (жалоба владельца, 24.09:
+      // заказ уходил, а продавец в WhatsApp ничего не получал, потому что клиент не нажимал
+      // «Отправить», не понимая, что это нужно).
+      const waWindow = window.open(data.whatsappUrl, "_blank");
+      waWindow?.focus();
       clearCart();
-      setSuccessInfo({ orderNumber: data.orderNumber });
+      setSuccessInfo({ orderNumber: data.orderNumber, whatsappUrl: data.whatsappUrl });
       setStep("success");
     } catch {
       setError(t("somethingWrong"));
@@ -90,9 +98,23 @@ export default function CheckoutPage() {
         <p className="text-muted max-w-md mb-2">
           {t.rich("sentText", { number: successInfo.orderNumber, b: (chunks) => <span className="font-medium text-foreground">{chunks}</span> })}
         </p>
-        <p className="text-muted max-w-md mb-8">
+        <p className="text-muted max-w-md mb-6">
           {t("sentHint")}
         </p>
+
+        <div className="w-full max-w-md rounded-[var(--radius-card)] bg-warning-soft text-warning px-4 py-3.5 mb-4 text-left flex gap-3">
+          <TriangleAlert className="size-5 shrink-0 mt-0.5" strokeWidth={2} aria-hidden />
+          <p className="text-sm font-medium leading-snug">{t("sentWhatsappWarning")}</p>
+        </div>
+
+        <button
+          onClick={() => window.open(successInfo.whatsappUrl, "_blank")?.focus()}
+          className="w-full max-w-md rounded-full bg-[#25D366] text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2 mb-3"
+        >
+          <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
+          {t("reopenWhatsapp")}
+        </button>
+
         <button
           onClick={() => router.push("/")}
           className="rounded-full bg-accent text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
