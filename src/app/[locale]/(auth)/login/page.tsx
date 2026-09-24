@@ -8,6 +8,8 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "@/i18n/navigation";
+import { Button } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -205,28 +207,30 @@ export default function LoginPage() {
   }
 
   const inputClass =
-    "w-full rounded-control border border-border bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
+    "field";
 
   return (
-    <div className="bg-card rounded-sheet shadow-modal border border-border p-8">
+    <div className="bg-card rounded-sheet shadow-float border border-border p-6 sm:p-8">
       <div className="flex justify-end -mt-3 -mr-3 mb-1">
         <LanguageSwitcher />
       </div>
       <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-card bg-accent text-on-accent">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-card bg-accent text-on-accent shadow-button">
           <BrandMark size={26} />
         </div>
         <h1 className="font-display text-2xl">{tMeta("title")}</h1>
         <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
       </div>
 
-      <div className="flex bg-accent-soft/60 rounded-full p-1 mb-6">
+      <div className="flex bg-accent-soft rounded-full p-1 mb-6">
         {TABS.map((tab) => (
           <button
             key={tab}
+            type="button"
             onClick={() => switchMode(tab)}
+            aria-pressed={mode === tab}
             className={[
-              "flex-1 rounded-full py-2 text-sm font-medium transition",
+              "flex-1 min-h-10 rounded-full px-2 text-sm font-medium transition focus-ring",
               mode === tab ? "bg-card shadow-control text-foreground" : "text-muted hover:text-foreground",
             ].join(" ")}
           >
@@ -236,10 +240,10 @@ export default function LoginPage() {
       </div>
 
       {notice && (
-        <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-4">{notice}</p>
+        <Notice tone="accent" className="mb-4">{notice}</Notice>
       )}
       {error && (
-        <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</p>
+        <Notice tone="error" className="mb-4">{error}</Notice>
       )}
 
       {mode === "login" && (
@@ -260,39 +264,30 @@ export default function LoginPage() {
             onChange={setPassword}
             autoComplete="current-password"
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
+          <Button type="submit" size="lg" fullWidth loading={submitting} className="mt-2">
             {submitting ? t("signingIn") : t("signIn")}
-          </button>
+          </Button>
         </form>
       )}
 
       {mode === "register" && registerResult?.kind === "check-email" && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3">
+          <Notice tone="accent">
             {t.rich("accountCreated", { email: registerResult.email, b: (chunks) => <span className="font-medium">{chunks}</span> })}
-          </p>
+          </Notice>
           {resendNotice && (
-            <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3">{resendNotice}</p>
+            <Notice tone="accent">{resendNotice}</Notice>
           )}
           {resendError && (
-            <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{resendError}</p>
+            <Notice tone="error">{resendError}</Notice>
           )}
-          <button
-            type="button"
-            onClick={handleResendConfirmation}
-            disabled={resending}
-            className="rounded-full border border-border px-6 py-3 font-medium transition hover:bg-state-hover active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
+          <Button type="button" variant="ghost" size="lg" fullWidth onClick={handleResendConfirmation} loading={resending}>
             {resending ? t("sending") : t("resend")}
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => switchMode("login")}
-            className="text-sm text-accent underline"
+            className="text-sm font-medium text-accent py-2 rounded-full hover:underline focus-ring"
           >
             {t("haveAccount")}
           </button>
@@ -301,20 +296,16 @@ export default function LoginPage() {
 
       {mode === "register" && registerResult?.kind === "already-registered" && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">
+          <Notice tone="error">
             {t("errors.alreadyRegistered")}
-          </p>
-          <button
-            type="button"
-            onClick={() => switchMode("login")}
-            className="rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
+          </Notice>
+          <Button type="button" size="lg" fullWidth onClick={() => switchMode("login")}>
             {t("signIn")}
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => switchMode("forgot")}
-            className="text-sm text-accent underline"
+            className="text-sm font-medium text-accent py-2 rounded-full hover:underline focus-ring"
           >
             {t("forgotQuestion")}
           </button>
@@ -347,13 +338,9 @@ export default function LoginPage() {
             onChange={setConfirmPassword}
             autoComplete="new-password"
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
+          <Button type="submit" size="lg" fullWidth loading={submitting} className="mt-2">
             {submitting ? t("creating") : t("register")}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -367,13 +354,9 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-          >
+          <Button type="submit" size="lg" fullWidth loading={submitting} className="mt-2">
             {submitting ? t("sending") : t("sendReset")}
-          </button>
+          </Button>
         </form>
       )}
     </div>

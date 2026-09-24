@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { CircleCheck, Link as LinkIcon, Loader2 } from "lucide-react";
+import { Button, buttonClasses } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
 import { useTranslations } from "next-intl";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -60,26 +63,32 @@ export default function ResetPasswordPage() {
   }
 
   const inputClass =
-    "w-full rounded-control border border-border bg-background px-4 py-3 outline-none transition focus:ring-2 focus:ring-accent";
+    "field";
 
   if (!ready) {
     return (
-      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
-        <p className="text-muted animate-pulse">{t("checking")}</p>
+      <div className="bg-card rounded-sheet shadow-float border border-border p-6 sm:p-8 text-center">
+        <p className="text-muted inline-flex items-center gap-2" role="status">
+          <Loader2 className="size-4 animate-spin text-accent" strokeWidth={2.25} aria-hidden />
+          {t("checking")}
+        </p>
       </div>
     );
   }
 
   if (!hasValidSession) {
     return (
-      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
+      <div className="bg-card rounded-sheet shadow-float border border-border p-6 sm:p-8 text-center">
+        <span className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-full bg-error-soft text-error">
+          <LinkIcon className="size-7" strokeWidth={1.75} aria-hidden />
+        </span>
         <h1 className="font-display text-2xl mb-3">{t("invalidTitle")}</h1>
         <p className="text-muted mb-6">
           {t("invalidText")}
         </p>
         <Link
           href="/login"
-          className="inline-block rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90"
+          className={buttonClasses({ size: "lg" })}
         >
           {t("backToLogin")}
         </Link>
@@ -89,8 +98,10 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="bg-card rounded-sheet shadow-modal border border-border p-8 text-center">
-        <div className="text-4xl mb-3">💚</div>
+      <div className="bg-card rounded-sheet shadow-float border border-border p-6 sm:p-8 text-center">
+        <span className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-full bg-success-soft text-success">
+          <CircleCheck className="size-8" strokeWidth={1.75} aria-hidden />
+        </span>
         <h1 className="font-display text-2xl mb-2">{t("updatedTitle")}</h1>
         <p className="text-muted">{t("redirecting")}</p>
       </div>
@@ -98,13 +109,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="bg-card rounded-sheet shadow-modal border border-border p-8">
+    <div className="bg-card rounded-sheet shadow-float border border-border p-6 sm:p-8">
       <div className="text-center mb-6">
         <h1 className="font-display text-2xl">{t("title")}</h1>
         <p className="text-muted text-sm mt-1">{t("subtitle")}</p>
       </div>
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{error}</p>}
+      {error && <Notice tone="error" className="mb-4">{error}</Notice>}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <PasswordInput
@@ -123,13 +134,9 @@ export default function ResetPasswordPage() {
           onChange={setConfirmPassword}
           autoComplete="new-password"
         />
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-2 rounded-full bg-accent text-on-accent px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-        >
-          {submitting ? t("saving") : t("save")}
-        </button>
+        <Button type="submit" size="lg" fullWidth loading={submitting} className="mt-2">
+            {submitting ? t("saving") : t("save")}
+          </Button>
       </form>
     </div>
   );
