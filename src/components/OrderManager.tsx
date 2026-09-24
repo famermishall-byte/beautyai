@@ -15,6 +15,12 @@ import {
   isOrderStatus,
 } from "@/lib/orderStatus";
 
+// Тот же ключ, что и в admin/stock и admin/product-rating — выбор филиала общий между инструментами
+// админки. Раньше жил только в React-состоянии: обновление страницы (F5, pull-to-refresh) сбрасывало
+// фильтр обратно на «Все филиалы» — владелец выбирал филиал, видел его сумму, тянул вниз, чтобы
+// обновить данные, а сумма вместо этого сама переключалась на общую (жалоба владельца, 24.09).
+const BRANCH_FILTER_KEY = "beautyai-admin-branch";
+
 const PILL: Record<string, string> = {
   sent: "bg-accent-soft text-accent",
   confirmed: "bg-warning-soft text-warning",
@@ -501,6 +507,27 @@ export function OrderManager() {
       .catch(() => {});
   }, [allBranches]);
 
+  useEffect(() => {
+    // localStorage недоступен при SSR — читаем только после монтирования, как и везде в админке.
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(BRANCH_FILTER_KEY);
+    } catch {
+      // недоступно — просто останется «Все филиалы»
+    }
+    if (stored) Promise.resolve().then(() => setBranchFilter(stored));
+  }, []);
+
+  function selectBranchFilter(id: string) {
+    setBranchFilter(id);
+    setShown(PAGE);
+    try {
+      localStorage.setItem(BRANCH_FILTER_KEY, id);
+    } catch {
+      // недоступно — выбор просто не запомнится
+    }
+  }
+
   function toggleSound() {
     const on = !soundOn;
     setSoundOn(on);
@@ -578,10 +605,7 @@ export function OrderManager() {
           allBranches={allBranches}
           branchOptions={branchOptions}
           branchId={branchFilter}
-          onBranch={(id) => {
-            setBranchFilter(id);
-            setShown(PAGE);
-          }}
+          onBranch={selectBranchFilter}
         />
       )}
 
