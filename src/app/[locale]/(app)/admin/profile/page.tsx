@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 
 import { buttonClasses } from "@/components/ui/Button";
+import { Check } from "lucide-react";
 export default function AdminProfilePage() {
   const t = useTranslations("adminProfile");
   const [storeName, setStoreName] = useState("");
@@ -67,7 +68,7 @@ export default function AdminProfilePage() {
             {saving ? t("saving") : t("save")}
           </button>
           <span aria-live="polite" className="text-sm">
-            {saved && <span className="text-success font-medium">✓ {t("saved")}</span>}
+            {saved && <span className="inline-flex items-center gap-1 text-success font-medium"><Check className="size-4" strokeWidth={2.5} aria-hidden />{t("saved")}</span>}
             {error && <span className="text-error font-medium">{error}</span>}
           </span>
         </form>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, Sparkle } from "lucide-react";
+import { Search, Sparkle, Check } from "lucide-react";
 import type { StockStatus } from "@/lib/stock";
 import { useSession } from "@/lib/session-context";
 import type { Branch } from "@/types";
@@ -289,7 +289,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
         <div className="flex items-center gap-2 mt-1">
           <span className={["text-2xs font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{ts(`status.${item.status}`)}</span>
           {savedFlash ? (
-            <span className="text-2xs font-semibold text-success">✓ {t("saved")}</span>
+            <span className="inline-flex items-center gap-0.5 text-2xs font-semibold text-success"><Check className="size-3" strokeWidth={2.75} aria-hidden />{t("saved")}</span>
           ) : saving ? (
             <span className="text-2xs text-muted">{t("saving")}</span>
           ) : (

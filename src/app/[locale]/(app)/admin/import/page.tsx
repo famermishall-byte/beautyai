@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { buttonClasses } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Notice } from "@/components/ui/Notice";
+import { Check, Save, CircleCheck } from "lucide-react";
 import {
   IMPORT_FIELDS,
   detectFormat,
@@ -301,9 +302,10 @@ export default function ImportPage() {
           {!showSaveTemplate ? (
             <button
               onClick={() => setShowSaveTemplate(true)}
-              className="text-sm text-accent underline mb-5 focus-ring"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-accent mb-5 py-1 rounded-full hover:underline focus-ring"
             >
-              💾 {ti("saveAsTemplate")}
+              <Save className="size-4" strokeWidth={2} aria-hidden />
+              {ti("saveAsTemplate")}
             </button>
           ) : (
             <div className="flex gap-2 mb-5">
@@ -373,7 +375,7 @@ export default function ImportPage() {
                           <td className="py-2 pr-4">{r.product.name}</td>
                           <td className="py-2 pr-4">{price(r.product.price)}</td>
                           <td className="py-2 pr-4">{r.product.sku}</td>
-                          <td className="py-2 pr-4">{r.product.inStock ? "✅" : "—"}</td>
+                          <td className="py-2 pr-4">{r.product.inStock ? <Check className="size-4 text-success" strokeWidth={2.5} aria-hidden /> : "—"}</td>
                           <td className="py-2 pr-4">{r.product.brand}</td>
                         </tr>
                       ) : null
@@ -423,7 +425,9 @@ export default function ImportPage() {
 
       {step === "done" && importResult && (
         <div className="surface-card p-6 text-center">
-          <div className="text-4xl mb-3">💚</div>
+          <span className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-full bg-success-soft text-success">
+            <CircleCheck className="size-8" strokeWidth={1.75} aria-hidden />
+          </span>
           <h2 className="font-display text-2xl mb-2">{ti("done")}</h2>
           <p className="text-muted mb-1">{ti("added", { n: importResult.imported })}</p>
           {importResult.skippedDuplicates.length > 0 && (

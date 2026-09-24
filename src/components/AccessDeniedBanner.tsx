@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 
+import { Ban } from "lucide-react";
 export function AccessDeniedBanner() {
   const t = useTranslations("common");
   const router = useRouter();
@@ -28,8 +29,9 @@ export function AccessDeniedBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium shadow-float">
-      🚫 {t("accessDenied")}
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-medium shadow-float inline-flex items-center gap-2" role="alert">
+      <Ban className="size-4" strokeWidth={2} aria-hidden />
+      {t("accessDenied")}
     </div>
   );
 }

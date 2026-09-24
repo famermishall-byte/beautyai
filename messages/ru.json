@@ -805,7 +805,7 @@
     "linkFailed": "Ссылка не сработала",
     "orderNotFound": "Заказ не найден — возможно, ссылка устарела или введена неверно.",
     "orderTitle": "Заказ #{number}",
-    "statusUpdated": "Статус обновлён: «{status}» ✅"
+    "statusUpdated": "Статус обновлён: «{status}»"
   },
   "productPicker": {
     "placeholder": "Найти товар: название, бренд или артикул",
@@ -974,7 +974,7 @@
     "marking": "Отмечаем…",
     "paymentReceivedCount": "Оплата получена ({n})",
     "nothingFor": "По запросу «{query}» ничего не найдено.",
-    "allHandled": "Все заказы обработаны 🎉",
+    "allHandled": "Все заказы обработаны",
     "emptyGroup": "Нет заказов в этой группе.",
     "showMore": "Показать ещё {n}"
   },

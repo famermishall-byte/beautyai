@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
-import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
+import { Minus, Plus, Search, Volume2, VolumeX, TriangleAlert, BellRing } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
@@ -177,8 +177,9 @@ function OrderRow({
       </div>
 
       {issues.length > 0 && (
-        <div className="rounded-control bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
-          ⚠ {t("checkStock")}: {issues.map(({ item, left }) => t("stockIssue", { name: item.name, need: item.quantity, left: left === 0 ? t("noStock") : t("leftQty", { n: left }) })).join("; ")}
+        <div className="flex gap-2 rounded-control bg-warning-soft text-warning text-sm font-medium px-3 py-2 mb-2">
+          <TriangleAlert className="size-4 shrink-0 mt-0.5" strokeWidth={2} aria-hidden />
+          <span>{t("checkStock")}: {issues.map(({ item, left }) => t("stockIssue", { name: item.name, need: item.quantity, left: left === 0 ? t("noStock") : t("leftQty", { n: left }) })).join("; ")}</span>
         </div>
       )}
 
@@ -619,8 +620,9 @@ export function OrderManager() {
         </p>
 
         {alert && (
-          <button onClick={() => setAlert("")} className="w-full text-left rounded-control bg-accent text-on-accent px-4 py-3 text-sm font-semibold mb-3 focus-ring">
-            🔔 {alert} <span className="font-normal opacity-80">— {t("tapToHide")}</span>
+          <button onClick={() => setAlert("")} className="w-full flex items-center gap-2 text-left rounded-control bg-accent text-on-accent px-4 py-3 text-sm font-semibold mb-3 focus-ring">
+            <BellRing className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+            {alert} <span className="font-normal opacity-80">— {t("tapToHide")}</span>
           </button>
         )}
 

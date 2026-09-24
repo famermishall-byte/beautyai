@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, Check } from "lucide-react";
 import type { Branch } from "@/types";
 
 import { buttonClasses } from "@/components/ui/Button";
@@ -178,7 +178,7 @@ function BranchCard({
               {t("deleteBranch")}
             </button>
             <span aria-live="polite" className="text-sm">
-              {state === "saved" && !dirty && <span className="text-success font-medium">✓ {message}</span>}
+              {state === "saved" && !dirty && <span className="inline-flex items-center gap-1 text-success font-medium"><Check className="size-4" strokeWidth={2.5} aria-hidden />{message}</span>}
               {state === "error" && <span className="text-error font-medium">{message}</span>}
               {state === "idle" && !dirty && <span className="text-muted">{t("noChanges")}</span>}
             </span>

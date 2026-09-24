@@ -596,7 +596,7 @@ function GroupMenu({ group }: { group: CategoryGroup }) {
           <Link
             key={r.label}
             href={r.href}
-            className="flex items-center justify-between gap-3 py-4 text-[17px] border-b border-border last:border-b-0 transition active:opacity-60"
+            className="flex items-center justify-between gap-3 py-4 text-lg border-b border-border last:border-b-0 transition active:opacity-60"
           >
             {r.label}
             <ChevronRight className="size-5 text-foreground shrink-0" strokeWidth={2} aria-hidden />

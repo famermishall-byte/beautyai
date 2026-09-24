@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Banknote } from "lucide-react";
 import type { OrderItem } from "@/types";
 import { describeChanges, isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
@@ -170,9 +170,10 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
           <button
             onClick={() => call({ action: "status", status: "paid" }, t("paidOk"))}
             disabled={busy || changed}
-            className="rounded-full bg-success text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40 focus-ring"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-success text-on-accent py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40 focus-ring"
           >
-            💰 {t("paymentReceived")}
+            <Banknote className="size-5" strokeWidth={2} aria-hidden />
+            {t("paymentReceived")}
           </button>
         )}
         {editable && changed && <p className="text-xs text-muted text-center">{t("saveFirst")}</p>}

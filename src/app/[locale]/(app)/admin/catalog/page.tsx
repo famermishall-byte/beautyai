@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
-import { Search } from "lucide-react";
+import { Search, Check } from "lucide-react";
 import { AdminPage } from "@/components/admin/AdminPage";
 import type { Product } from "@/types";
 
@@ -73,7 +73,7 @@ export default function AdminCatalogPage() {
                     <td className="py-2 pr-4 whitespace-nowrap">{p.attributes?.volume ?? "—"}</td>
                     <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">{p.barcode ?? "—"}</td>
                     <td className="py-2 pr-4 whitespace-nowrap">{price(p.price)}</td>
-                    <td className="py-2 pr-4">{p.inStock ? "✅" : "—"}</td>
+                    <td className="py-2 pr-4">{p.inStock ? <Check className="size-4 text-success" strokeWidth={2.5} aria-hidden /> : "—"}</td>
                   </tr>
                 ))}
               </tbody>
