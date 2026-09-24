@@ -210,6 +210,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
+        <ProductReviews productId={product.id} />
+
         {related.length > 0 && (
           <div className="mb-6">
             <h2 className="font-display text-lg mb-3">{t("related")}</h2>
@@ -220,8 +222,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         )}
-
-        <ProductReviews productId={product.id} />
       </div>
 
       <div
