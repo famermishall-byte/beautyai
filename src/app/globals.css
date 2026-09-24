@@ -96,20 +96,6 @@ body {
   background: transparent;
 }
 
-@keyframes splash-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.animate-splash-in {
-  animation: splash-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -201,7 +187,6 @@ body {
     animation: none !important;
     opacity: 0;
   }
-  .animate-splash-in,
   .animate-rise-in,
   .animate-sheet-in,
   .animate-pop,
@@ -210,7 +195,7 @@ body {
   }
 }
 
-/* Logo intro (first run): mark scales in, two rings ripple out, name fades up. */
+/* App splash (every open): mark scales in, two rings ripple out, name/tagline fade up. */
 @keyframes intro-logo {
   from {
     opacity: 0;

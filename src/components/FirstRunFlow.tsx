@@ -6,8 +6,6 @@ import { Bell, Tag, Package, Sparkles, MapPin, Store, Navigation } from "lucide-
 import { useSession } from "@/lib/session-context";
 import { consumeJustRegistered } from "@/lib/session-flags";
 import {
-  readPermissionFlag as read,
-  writePermissionFlag as write,
   notifDecided,
   geoDecided,
   requestNotifPermission,
@@ -16,23 +14,11 @@ import {
   dismissGeo,
 } from "@/lib/permissions";
 import { PermissionScreen } from "@/components/PermissionScreen";
-import { LogoIntro } from "@/components/LogoIntro";
 
-const INTRO_KEY = "beautyai-intro-seen";
-
-type Step = "notif" | "geo" | "intro" | null;
-
-function introSeen(): boolean {
-  return read(INTRO_KEY) !== null;
-}
-
-function stepAfterGeo(): Step {
-  return introSeen() ? null : "intro";
-}
+type Step = "notif" | "geo" | null;
 
 export function FirstRunFlow() {
   const t = useTranslations("firstRun");
-  const tMeta = useTranslations("meta");
   const { session, loading, isAdmin } = useSession();
   const [step, setStep] = useState<Step>(null);
   const [busy, setBusy] = useState(false);
@@ -49,12 +35,12 @@ export function FirstRunFlow() {
       // раз, сразу после регистрации (флаг ставит login/page.tsx). Повторно включить/выключить
       // уведомления и геолокацию позже можно в /profile — NotificationGeoSettings.tsx.
       if (!consumeJustRegistered()) return;
-      setStep(!notifDecided() ? "notif" : !geoDecided() ? "geo" : stepAfterGeo());
+      setStep(!notifDecided() ? "notif" : !geoDecided() ? "geo" : null);
     });
   }, [loading, session, isAdmin]);
 
   function nextAfterNotif() {
-    setStep(geoDecided() ? stepAfterGeo() : "geo");
+    setStep(geoDecided() ? null : "geo");
   }
 
   async function allowNotifications() {
@@ -78,13 +64,13 @@ export function FirstRunFlow() {
       await requestGeoPermission();
     } finally {
       setBusy(false);
-      setStep(stepAfterGeo());
+      setStep(null);
     }
   }
 
   function skipGeolocation() {
     dismissGeo();
-    setStep(stepAfterGeo());
+    setStep(null);
   }
 
   if (step === "notif") {
@@ -120,18 +106,6 @@ export function FirstRunFlow() {
         busy={busy}
         onAllow={allowGeolocation}
         onSkip={skipGeolocation}
-      />
-    );
-  }
-
-  if (step === "intro") {
-    return (
-      <LogoIntro
-        storeName={session?.storeName || tMeta("title")}
-        onDone={() => {
-          write(INTRO_KEY, "1");
-          setStep(null);
-        }}
       />
     );
   }
