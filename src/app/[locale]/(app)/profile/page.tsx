@@ -35,6 +35,7 @@ import { PromotionGate } from "@/components/PromotionInterstitial";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
+import { Notice } from "@/components/ui/Notice";
 export default function ProfilePage() {
   const t = useTranslations("profile");
   const tKit = useTranslations("kit");
@@ -287,10 +288,10 @@ export default function ProfilePage() {
             <form onSubmit={handleChangeEmail} className="flex flex-col gap-3 pt-4">
               <h3 className="text-sm font-medium">Email</h3>
               {emailNotice && (
-                <p className="text-sm bg-accent-soft text-accent-strong rounded-control px-4 py-3">{emailNotice}</p>
+                <Notice tone="accent">{emailNotice}</Notice>
               )}
               {emailError && (
-                <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{emailError}</p>
+                <Notice tone="error">{emailError}</Notice>
               )}
               <div className="flex gap-2">
                 <input
@@ -309,10 +310,10 @@ export default function ProfilePage() {
             <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">{t("password")}</h3>
               {passwordNotice && (
-                <p className="text-sm bg-accent-soft text-accent-strong rounded-control px-4 py-3">{passwordNotice}</p>
+                <Notice tone="accent">{passwordNotice}</Notice>
               )}
               {passwordError && (
-                <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{passwordError}</p>
+                <Notice tone="error">{passwordError}</Notice>
               )}
               <PasswordInput
                 placeholder={t("newPassword")}

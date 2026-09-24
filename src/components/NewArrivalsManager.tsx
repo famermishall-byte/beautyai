@@ -9,6 +9,7 @@ import { usePrice } from "@/lib/use-price";
 import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
 import type { NewArrival } from "@/types";
 
+import { Notice } from "@/components/ui/Notice";
 type Item = { productId: string; name: string; brand: string; imageUrl: string | null; price: number };
 
 function toItem(a: NewArrival): Item | null {
@@ -160,7 +161,7 @@ export function NewArrivalsManager() {
         </div>
       )}
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
+      {error && <Notice tone="error">{error}</Notice>}
 
       <div className="flex items-center gap-3 sticky bottom-4">
         <Button size="lg" onClick={handleSave} disabled={!dirty || saving}>

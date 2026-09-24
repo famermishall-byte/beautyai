@@ -8,6 +8,7 @@ import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import { buttonClasses } from "@/components/ui/Button";
+import { OrderStatusBadge } from "@/components/ui/OrderStatusBadge";
 import {
   NEXT_ORDER_STEP,
   ORDER_STATUSES,
@@ -21,15 +22,6 @@ import {
 // фильтр обратно на «Все филиалы» — владелец выбирал филиал, видел его сумму, тянул вниз, чтобы
 // обновить данные, а сумма вместо этого сама переключалась на общую (жалоба владельца, 24.09).
 const BRANCH_FILTER_KEY = "beautyai-admin-branch";
-
-const PILL: Record<string, string> = {
-  sent: "bg-accent-soft text-accent",
-  confirmed: "bg-warning-soft text-warning",
-  paid: "bg-success-soft text-success",
-  shipped: "bg-success-soft text-success",
-  completed: "bg-border text-foreground",
-  cancelled: "bg-error-soft text-error",
-};
 
 const PERIODS = [{ key: "today" }, { key: "7" }, { key: "30" }, { key: "all" }] as const;
 type Period = (typeof PERIODS)[number]["key"];
@@ -164,13 +156,11 @@ function OrderRow({
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <label className="flex items-center gap-2 font-medium">
           {isOpen(order) && (
-            <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={t("selectOrder", { number: order.number })} className="size-4 accent-[var(--accent)]" />
+            <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={t("selectOrder", { number: order.number })} className="size-4 accent-accent" />
           )}
           #{order.number}
         </label>
-        <span className={["text-xs font-medium rounded-full px-2.5 py-1", PILL[order.status] ?? "bg-border text-muted"].join(" ")}>
-          {getOrderStatusAdminLabel(ts, order.status)}
-        </span>
+        <OrderStatusBadge status={order.status} label={getOrderStatusAdminLabel(ts, order.status)} />
       </div>
       <div className="text-sm text-muted mb-2">
         {new Date(order.createdAt).toLocaleString(locale)}

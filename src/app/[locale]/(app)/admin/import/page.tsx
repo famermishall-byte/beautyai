@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
 import { buttonClasses } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Notice } from "@/components/ui/Notice";
 import {
   IMPORT_FIELDS,
   detectFormat,
@@ -204,14 +206,13 @@ export default function ImportPage() {
     "w-full rounded-control border border-border bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
   return (
-    <main className="flex-1 px-4 py-10 max-w-3xl mx-auto w-full">
+    <main className="flex-1 px-4 pt-6 pb-24 max-w-3xl mx-auto w-full">
       <Link href="/admin" className="text-sm text-accent underline mb-4 inline-block">
         ← {ti("backToPanel")}
       </Link>
-      <h1 className="font-display text-3xl mb-2">{ti("title")}</h1>
-      <p className="text-muted mb-6">{ti("subtitle")}</p>
+      <PageHeader title={ti("title")} subtitle={ti("subtitle")} />
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-6">{error}</p>}
+      {error && <Notice tone="error" className="mb-6">{error}</Notice>}
 
       {step === "file" && (
         <>

@@ -9,6 +9,7 @@ import { HAIR_TYPES, HAIR_CONCERNS, type HairType, type HairConcern } from "@/li
 import { formatBirthDate } from "@/lib/birthdate";
 import type { Session } from "@/lib/session-context";
 
+import { Notice } from "@/components/ui/Notice";
 const GENDERS = ["female", "male"] as const;
 
 function toggle<T>(list: T[], value: T): T[] {
@@ -157,7 +158,7 @@ export function QuestionnaireForm({
         </div>
       </div>
 
-      {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
+      {error && <Notice tone="error">{error}</Notice>}
 
       <div className="flex gap-2">
         <Button type="submit" size="lg" fullWidth loading={saving}>

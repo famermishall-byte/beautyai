@@ -7,6 +7,7 @@ import { useSession } from "@/lib/session-context";
 import { Button } from "@/components/ui/Button";
 import type { ProductReview } from "@/types";
 
+import { Notice } from "@/components/ui/Notice";
 function Stars({ value, size = "size-4" }: { value: number; size?: string }) {
   return (
     <div className="flex items-center gap-0.5" aria-hidden>
@@ -158,7 +159,7 @@ export function ProductReviews({ productId }: { productId: string }) {
             rows={3}
             className="field resize-none"
           />
-          {error && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3">{error}</p>}
+          {error && <Notice tone="error">{error}</Notice>}
           <div className="flex gap-2">
             <Button type="submit" size="sm" disabled={rating < 1 || submitting}>
               {submitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}

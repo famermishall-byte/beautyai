@@ -6,6 +6,7 @@ import { Building2, ClipboardList, FileSpreadsheet, LayoutList, Megaphone, Messa
 import { useSession } from "@/lib/session-context";
 import { Link } from "@/i18n/navigation";
 
+import { PageHeader } from "@/components/ui/PageHeader";
 // The admin home is a menu of icon tiles; each section opens on its own page (with the back arrow in the header).
 type Tile = { href: string; label: string; hint: string; icon: LucideIcon; accent?: boolean; badge?: number; roles?: string[] };
 
@@ -64,8 +65,7 @@ export default function AdminHome() {
 
   return (
     <main className="flex-1 px-4 pt-6 pb-24 max-w-3xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
-      <p className="text-sm text-muted mb-6">{t("chooseSection")}</p>
+      <PageHeader title={t("title")} subtitle={t("chooseSection")} />
 
       <div className="grid grid-cols-2 gap-3">
         {tiles.filter((t) => !t.roles || t.roles.includes(role)).map(({ href, label, hint, icon: Icon, accent, badge }, i) => (

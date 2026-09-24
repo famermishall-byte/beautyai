@@ -7,6 +7,7 @@ import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
 
 import { buttonClasses } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
 // Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
 const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
 
@@ -119,12 +120,12 @@ export default function AdminSettingsPage() {
     "w-full rounded-control border border-border bg-background px-4 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-accent";
 
   return (
-    <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
+    <main className="flex-1 px-4 pt-6 pb-24 max-w-2xl mx-auto w-full">
       <Link href="/admin" className="text-sm text-accent underline mb-4 inline-block">
         ← {t("backToPanel")}
       </Link>
-      <h1 className="font-display text-3xl mb-2">{t("title")}</h1>
-      <p className="text-muted mb-8">
+      <h1 className="font-display text-3xl leading-tight">{t("title")}</h1>
+      <p className="text-muted text-sm mt-1.5 mb-6">
         {t.rich("signedInAs", {
           email: session?.email ?? "",
           role: isOwner ? t("roleOwner") : session?.role === "branch_manager" ? t("roleBranchManager") : t("roleAdmin"),
@@ -143,10 +144,10 @@ export default function AdminSettingsPage() {
       <div className="surface-card p-6 mb-6">
         <h2 className="font-medium mb-3">Email</h2>
         {emailNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{emailNotice}</p>
+          <Notice tone="accent" className="mb-3">{emailNotice}</Notice>
         )}
         {emailError && (
-          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{emailError}</p>
+          <Notice tone="error" className="mb-3">{emailError}</Notice>
         )}
         <form onSubmit={handleChangeEmail} className="flex gap-2">
           <input
@@ -169,10 +170,10 @@ export default function AdminSettingsPage() {
       <div className="surface-card p-6 mb-6">
         <h2 className="font-medium mb-3">{t("password")}</h2>
         {passwordNotice && (
-          <p className="text-sm bg-accent-soft text-accent rounded-control px-4 py-3 mb-3">{passwordNotice}</p>
+          <Notice tone="accent" className="mb-3">{passwordNotice}</Notice>
         )}
         {passwordError && (
-          <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{passwordError}</p>
+          <Notice tone="error" className="mb-3">{passwordError}</Notice>
         )}
         <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
           <input
@@ -206,7 +207,7 @@ export default function AdminSettingsPage() {
             {t("transferHint")}
           </p>
           {transferError && (
-            <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-3">{transferError}</p>
+            <Notice tone="error" className="mb-3">{transferError}</Notice>
           )}
           <form onSubmit={handleTransferOwnership} className="flex gap-2">
             <input

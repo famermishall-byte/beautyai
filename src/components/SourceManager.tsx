@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { buttonClasses } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
 import {
   SYNC_IMPORT_FIELDS,
   detectFormat,
@@ -469,7 +470,7 @@ export function SourceManager() {
         </div>
       )}
 
-      {createError && <p className="text-sm bg-error-soft text-error rounded-control px-4 py-3 mb-4">{createError}</p>}
+      {createError && <Notice tone="error" className="mb-4">{createError}</Notice>}
 
       {createStep === "closed" && (
         <button

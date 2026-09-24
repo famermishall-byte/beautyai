@@ -7,6 +7,7 @@ import type { StockStatus } from "@/lib/stock";
 import { useSession } from "@/lib/session-context";
 import type { Branch } from "@/types";
 
+import { PageHeader } from "@/components/ui/PageHeader";
 const BRANCH_KEY = "beautyai-admin-branch";
 const PAGE_SIZE = 50;
 
@@ -149,10 +150,7 @@ export default function AdminStockPage() {
 
   return (
     <main className="flex-1 px-4 pt-6 pb-24 max-w-3xl mx-auto w-full">
-      <h1 className="font-display text-3xl mb-1">{t("title")}</h1>
-      <p className="text-sm text-muted mb-5">
-        {t("intro")}
-      </p>
+      <PageHeader title={t("title")} subtitle={t("intro")} />
 
       {isBranchManager ? (
         <div className="mb-4 rounded-control bg-accent-soft px-4 py-3 text-sm">

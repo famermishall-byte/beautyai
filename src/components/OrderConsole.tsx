@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { getOrderStatusAdminLabel } from "@/lib/orderStatus";
 
+import { OrderStatusBadge } from "@/components/ui/OrderStatusBadge";
 export type ConsoleOrder = {
   number: string;
   customerName: string;
@@ -87,7 +88,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
         {order.customerName} · {order.customerPhone}
       </p>
       <p className="text-sm mb-5">
-        {t("status")}: <span className="font-medium">{getOrderStatusAdminLabel(ts, order.status)}</span>
+        {t("status")}: <OrderStatusBadge status={order.status} label={getOrderStatusAdminLabel(ts, order.status)} size="xs" />
         {order.branchName ? <span className="text-muted"> · {order.branchName}</span> : null}
       </p>
 

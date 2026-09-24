@@ -1,11 +1,12 @@
 import { Badge, type Tone } from "@/components/ui/Badge";
 
 // One status → one tone, everywhere an order status is shown (customer "Мои покупки", admin orders).
+// Mapping inherited from the admin order list, where it was established first.
 const STATUS_TONE: Record<string, Tone> = {
-  sent: "info", // new / sent — waiting for the branch
-  confirmed: "accent",
+  sent: "accent", // new — waiting for the branch
+  confirmed: "warning", // confirmed, not paid yet
   paid: "success",
-  shipped: "accent",
+  shipped: "success",
   completed: "neutral",
   cancelled: "error",
 };
