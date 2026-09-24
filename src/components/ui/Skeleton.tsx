@@ -1,10 +1,10 @@
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`skeleton rounded-[var(--radius-control)] ${className}`} aria-hidden />;
+  return <div className={`skeleton rounded-control ${className}`} aria-hidden />;
 }
 
 function ProductCardSkeleton() {
   return (
-    <div className="rounded-[var(--radius-card)] bg-card border border-border overflow-hidden flex flex-col">
+    <div className="rounded-card bg-card border border-border overflow-hidden flex flex-col">
       <Skeleton className="aspect-[4/5] rounded-none" />
       <div className="p-3.5 flex flex-col gap-2">
         <Skeleton className="h-3 w-1/3" />

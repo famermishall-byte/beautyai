@@ -21,18 +21,21 @@ export function BottomSheet({
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
+    <div className="fixed inset-0 z-modal flex items-end justify-center">
+      <div className="absolute inset-0 bg-scrim backdrop-blur-[2px]" onClick={onClose} />
       <div
-        className="relative w-full max-w-lg bg-background rounded-t-[28px] shadow-[var(--shadow-sheet)] max-h-[85vh] flex flex-col animate-sheet-in pb-[env(safe-area-inset-bottom)]"
+        className="relative w-full max-w-lg bg-background rounded-t-sheet shadow-sheet max-h-[85vh] flex flex-col animate-sheet-in pb-[env(safe-area-inset-bottom)]"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -43,7 +46,7 @@ export function BottomSheet({
           <button
             onClick={onClose}
             aria-label={t("close")}
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-black/5 active:scale-90"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-card border border-border transition hover:bg-state-hover active:scale-90 focus-ring"
           >
             <X className="size-4.5" strokeWidth={2} aria-hidden />
           </button>

@@ -1,32 +1,72 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Design tokens — single source: DESIGN.md → "Tokens". Three layers:
+   1. :root         — primitive + semantic values (the only place a raw hex/rgba
+                      may appear in the app, besides brand-asset/manifest files).
+   2. @theme inline — exposes the semantic colors to Tailwind (bg-accent, …).
+   3. @theme        — radius / shadow / z-index / type / easing scales, which
+                      Tailwind turns into utilities (rounded-card, shadow-card,
+                      z-modal, text-2xs, ease-out-expo) AND emits as CSS vars.
+   Components use utilities/vars only — never a raw color or an off-scale value.
+   ========================================================================== */
+
 :root {
+  /* Light-only by decision (DESIGN.md → "Theme"). Keeps native form controls,
+     scrollbars and date pickers light even when the OS is in dark mode. */
+  color-scheme: light;
+
   /* Brand — sourced from the client's real logo/Instagram identity; keep. */
   --background: #fbe3ec;
   --foreground: #241f1d;
   --accent: #c8135f;
   --accent-strong: #970e49;
   --accent-soft: #f8dbe9;
+  --on-accent: #ffffff; /* text/icons on any saturated fill: accent, success, error, photo scrim */
   --card: #ffffff;
   --muted: #6b5c62;
   --border: rgba(36, 31, 29, 0.09);
   --border-strong: rgba(36, 31, 29, 0.16);
 
-  /* Semantic status colors — one family each, tuned to sit next to the brand pink. */
+  /* Interaction tints and scrims — derived from --foreground, never pure black. */
+  --state-hover: rgba(36, 31, 29, 0.05);
+  --state-pressed: rgba(36, 31, 29, 0.09);
+  --scrim: rgba(36, 31, 29, 0.4);
+  --scrim-strong: rgba(36, 31, 29, 0.75); /* text strips over photos */
+
+  /* Semantic status colors — one family each, tuned to sit next to the brand pink.
+     Every pair (color on its -soft surface) is ≥ 4.5:1. */
   --success: #1a7f4e;
   --success-soft: #e3f5ec;
   --warning: #b6560f;
   --warning-soft: #fdead4;
   --error: #c81f3d;
   --error-soft: #fbe4e8;
+  --info: #2f5fb3;
+  --info-soft: #e3ebf8;
 
-  /* Elevation: tight contact shadow + a soft, brand-tinted ambient glow. */
-  --shadow-card: 0 1px 2px rgba(36, 15, 20, 0.05), 0 12px 28px -18px rgba(151, 14, 73, 0.35);
-  --shadow-float: 0 6px 16px -4px rgba(151, 14, 73, 0.32), 0 2px 6px rgba(36, 15, 20, 0.12);
-  --shadow-sheet: 0 -16px 40px -16px rgba(36, 15, 20, 0.28);
+  /* Merchandising badges on product photos (catalog / promo). Kept at the
+     client's existing values — see DESIGN.md "Open questions" on contrast. */
+  --promo-sale: #f470b4;
+  --promo-hit: #7fcf50;
 
-  --radius-card: 18px;
-  --radius-control: 13px;
+  /* Admin "Рейтинг товаров" podium: gold / silver / bronze, each with its own ink. */
+  --rank-gold: #f5c542;
+  --rank-gold-ink: #5c4400;
+  --rank-silver: #c6c6d0;
+  --rank-silver-ink: #3a3a42;
+  --rank-bronze: #d99a5b;
+  --rank-bronze-ink: #4a2e10;
+
+  /* Third-party brand: the WhatsApp hand-off button (order submit / contact). */
+  --whatsapp: #25d366;
+  --whatsapp-strong: #128c7e;
+
+  /* Motion durations (easing lives in @theme as --ease-out-expo). */
+  --duration-fast: 150ms; /* press/hover feedback, color changes */
+  --duration-base: 220ms; /* toggles, small reveals */
+  --duration-sheet: 320ms; /* sheets, drawers */
+  --duration-enter: 450ms; /* content entrance (rise-in) */
 
   /* The bottom nav's own content height (excludes the safe-area inset it
      also pads for) — anything else pinned above it (a PDP's sticky action
@@ -40,19 +80,150 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-card: var(--card);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-state-hover: var(--state-hover);
+  --color-state-pressed: var(--state-pressed);
+  --color-scrim: var(--scrim);
+  --color-scrim-strong: var(--scrim-strong);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-error: var(--error);
   --color-error-soft: var(--error-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-promo-sale: var(--promo-sale);
+  --color-promo-hit: var(--promo-hit);
+  --color-rank-gold: var(--rank-gold);
+  --color-rank-gold-ink: var(--rank-gold-ink);
+  --color-rank-silver: var(--rank-silver);
+  --color-rank-silver-ink: var(--rank-silver-ink);
+  --color-rank-bronze: var(--rank-bronze);
+  --color-rank-bronze-ink: var(--rank-bronze-ink);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-strong: var(--whatsapp-strong);
   --font-sans: var(--font-manrope);
   --font-display: var(--font-manrope);
   --font-title: var(--font-manrope);
+}
+
+@theme static {
+  /* Radius — rounded-control / rounded-card / rounded-tile / rounded-sheet;
+     pills and avatars stay rounded-full. */
+  --radius-control: 13px; /* inputs, selects, inline notices, small tiles */
+  --radius-card: 18px; /* cards, list groups, dialogs */
+  --radius-tile: 22px; /* catalog & admin-menu category tiles, promo banner */
+  --radius-sheet: 28px; /* bottom sheets, interstitials, big grouped menus */
+
+  /* Elevation — every shadow has an offset + blur, tinted toward the brand. */
+  --shadow-control: 0 1px 3px rgba(36, 15, 20, 0.12); /* white chips over photos, switch knob */
+  --shadow-card: 0 1px 2px rgba(36, 15, 20, 0.05), 0 12px 28px -18px rgba(151, 14, 73, 0.35);
+  --shadow-button: 0 4px 14px -4px rgba(151, 14, 73, 0.55); /* primary button only */
+  --shadow-float: 0 6px 16px -4px rgba(151, 14, 73, 0.32), 0 2px 6px rgba(36, 15, 20, 0.12);
+  --shadow-modal: 0 24px 48px -16px rgba(36, 15, 20, 0.35), 0 2px 8px rgba(36, 15, 20, 0.08);
+  --shadow-sheet: 0 -16px 40px -16px rgba(36, 15, 20, 0.28);
+
+  /* Stacking — z-raised / z-sticky / z-nav / z-modal / z-overlay / z-top. */
+  --z-index-raised: 10; /* badges, buttons over a photo, dropdowns in flow */
+  --z-index-sticky: 30; /* top header, sticky action bars */
+  --z-index-nav: 40; /* bottom nav, floating cart button, toast banner */
+  --z-index-modal: 50; /* bottom sheets, drawers, confirm dialogs, splash */
+  --z-index-overlay: 60; /* marketing interstitials that may open over a sheet */
+  --z-index-top: 70; /* first-run permission screen — above everything */
+
+  /* Type — additions to Tailwind's scale (xs 12 · sm 14 · base 16 · lg 18 · xl 20 · 2xl 24 · 3xl 30). */
+  --text-2xs: 0.6875rem; /* 11px — eyebrow/brand line, badges, captions; never body */
+  --text-2xs--line-height: 1.35;
+  --text-md: 0.9375rem; /* 15px — product name in cards and pickers */
+  --text-md--line-height: 1.4;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- Component-level utilities (DESIGN.md → "Components") ---------------- */
+
+/* The one focus treatment for custom controls. Native inputs use `field`. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--accent);
+  }
+}
+
+/* White surface card: cards, list groups, form panels. */
+@utility surface-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Text inputs, selects and textareas. 16px text so iOS never zooms on focus;
+   44px min height for thumb reach; states: hover, focus, invalid, disabled. */
+@utility field {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 0.625rem 0.875rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  outline: none;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+  &::placeholder {
+    color: var(--muted);
+    opacity: 0.8;
+  }
+  &:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border-strong));
+  }
+  &:focus,
+  &:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  &[aria-invalid="true"] {
+    border-color: var(--error);
+  }
+  &[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 20%, transparent);
+  }
+  &:disabled {
+    background: var(--background);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+}
+
+/* Label above a field — always visible, never placeholder-only. */
+@utility field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.375rem;
+}
+
+/* Small uppercase section eyebrow (profile menu groups, admin sections). */
+@utility eyebrow {
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 * {
@@ -68,6 +239,13 @@
     font-weight: 700;
     letter-spacing: -0.015em;
   }
+
+  /* A visible, on-brand focus ring for keyboard users, everywhere at once —
+     the fallback under per-component focus-visible:ring-accent / focus-ring. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 body {
@@ -78,12 +256,9 @@ body {
 
 ::selection {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
-/* A visible, on-brand focus ring for keyboard users, everywhere at once —
-   layered on top of the per-component focus-visible:ring-accent utilities
-   already in use, not a replacement for them. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -107,7 +282,7 @@ body {
   }
 }
 .animate-rise-in {
-  animation: rise-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rise-in var(--duration-enter) var(--ease-out-expo) both;
 }
 
 @keyframes sheet-in {
@@ -119,7 +294,7 @@ body {
   }
 }
 .animate-sheet-in {
-  animation: sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: sheet-in var(--duration-sheet) var(--ease-out-expo) both;
 }
 
 @keyframes pop {
@@ -134,7 +309,7 @@ body {
   }
 }
 .animate-pop {
-  animation: pop 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pop 0.38s var(--ease-out-expo) both;
 }
 
 @keyframes shimmer {
@@ -146,13 +321,14 @@ body {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--accent-soft) 25%, #ffffff 37%, var(--accent-soft) 63%);
+  background: linear-gradient(90deg, var(--accent-soft) 25%, var(--card) 37%, var(--accent-soft) 63%);
   background-size: 600px 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
 /* Pearly tile: a soft diagonal light sweep that glides across, plus a faint
-   iridescent tint. Apply to any catalog tile (position: relative + overflow-hidden). */
+   iridescent tint. Apply to any catalog tile (position: relative + overflow-hidden).
+   The pearl tints are decorative, local to this effect — not palette colors. */
 @keyframes tile-sheen {
   0% {
     transform: translateX(-140%) skewX(-20deg);
@@ -193,6 +369,12 @@ body {
   .skeleton {
     animation: none !important;
   }
+  /* Press-scale and hover transitions collapse to instant for these users. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* App splash (every open): mark scales in, two rings ripple out, name/tagline fade up. */
@@ -227,13 +409,13 @@ body {
   }
 }
 .intro-logo {
-  animation: intro-logo 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: intro-logo 0.9s var(--ease-out-expo) both;
 }
 .intro-ring {
-  animation: intro-ring 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: intro-ring 2.2s var(--ease-out-expo) infinite;
 }
 .intro-text {
-  animation: intro-text 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: intro-text 0.8s var(--ease-out-expo) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
