@@ -109,7 +109,9 @@ export function ProductReviews({ productId }: { productId: string }) {
     setDeletingId(id);
     try {
       const res = await fetch(`/api/reviews/${id}`, { method: "DELETE" });
-      if (res.ok) setReviews((prev) => prev.filter((r) => r.id !== id));
+      // Полная перезагрузка, не точечное удаление из списка — так canReview/average/reason
+      // (напр. можно снова оставить отзыв на ту же покупку) тоже пересчитываются.
+      if (res.ok) load();
     } finally {
       setDeletingId(null);
     }
