@@ -9,10 +9,11 @@ import { wasSplashShown, markSplashShown } from "@/lib/session-flags";
 // Раньше здесь была статичная заставка (иконка в квадратике + название) — владелец
 // попросил 24.09 сделать её такой же красивой, как анимация после первой регистрации
 // (кольца + лого + текст, ранее жила только в LogoIntro.tsx/FirstRunFlow.tsx, показывалась
-// один раз за аккаунт). Теперь этот же стиль — здесь, при КАЖДОМ открытии приложения
-// (заставка и так уже держится один раз за вкладку/заход, см. session-flags.ts), поэтому
-// отдельный одноразовый LogoIntro.tsx убран, чтобы не показывать одну и ту же анимацию
-// дважды подряд сразу после регистрации.
+// один раз за аккаунт). Теперь этот же стиль — здесь, при каждом РЕАЛЬНОМ открытии приложения
+// (не на каждом внутреннем переходе между страницами — см. wasSplashShown()/markSplashShown()
+// в session-flags.ts, там же почему это не простой sessionStorage-флаг), поэтому отдельный
+// одноразовый LogoIntro.tsx убран, чтобы не показывать одну и ту же анимацию дважды подряд
+// сразу после регистрации.
 const MIN_SPLASH_MS = 1200;
 
 export function AppSplashGate({ children }: { children: ReactNode }) {
@@ -20,9 +21,7 @@ export function AppSplashGate({ children }: { children: ReactNode }) {
   const tMeta = useTranslations("meta");
   const { session, loading } = useSession();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  // Раньше это была ЕДИНСТВЕННАЯ причина, по которой заставка держалась минимум 900 мс всегда,
-  // даже когда сессия уже загрузилась мгновенно — на каждом обновлении любой страницы.
-  // sessionStorage недоступен при рендере/SSR — читаем только в эффекте (тот же приём, что и
+  // localStorage недоступен при рендере/SSR — читаем только в эффекте (тот же приём, что и
   // везде в session-flags.ts), поэтому alreadyShown стартует false и корректируется сразу после
   // монтирования, до того как истечёт MIN_SPLASH_MS.
   const [alreadyShown, setAlreadyShown] = useState(false);

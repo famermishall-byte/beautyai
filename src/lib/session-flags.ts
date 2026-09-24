@@ -106,12 +106,35 @@ export type AdPage = keyof typeof AD_KEYS;
 export const wasAdShown = (page: AdPage) => readFlag(AD_KEYS[page]);
 export const markAdShown = (page: AdPage) => writeFlag(AD_KEYS[page]);
 
-// Фирменная заставка (лого + «Добро пожаловать!») — раньше показывалась заново при каждом
-// обновлении КАЖДОЙ страницы (минимум 900 мс держалась искусственно + ещё ждала /api/me),
-// поэтому мигала на глазах у владельца при любом рефреше. Теперь — один раз за вкладку/заход.
-const SPLASH_KEY = "beautyai-splash-shown";
-export const wasSplashShown = () => readFlag(SPLASH_KEY);
-export const markSplashShown = () => writeFlag(SPLASH_KEY);
+// Фирменная анимированная заставка (кольца + лого + слоган) — должна выходить только при
+// РЕАЛЬНОМ открытии приложения (как видео-заставка при запуске обычного мобильного приложения),
+// а не на каждом внутреннем переходе между страницами. На вебе с этим справлялся бы один
+// sessionStorage-флаг на вкладку, но в Capacitor-обёртке на телефоне WebView периодически
+// перезапускает страницу при обычной навигации/сворачивании — с обычным sessionStorage-флагом
+// это выглядело так, будто заставка выскакивает при каждом переходе (жалоба владельца, 24.09).
+// Решение: localStorage (переживает такие перезапуски WebView, в отличие от sessionStorage) +
+// метка времени — заставка показывается снова только если с прошлого раза прошло достаточно
+// времени, то есть это действительно новый заход, а не быстрый технический перезапуск WebView
+// посреди работы с приложением.
+const SPLASH_LAST_SHOWN_KEY = "beautyai-splash-last-shown";
+const SPLASH_REOPEN_GAP_MS = 20 * 60 * 1000;
+
+export function wasSplashShown(): boolean {
+  try {
+    const last = Number(localStorage.getItem(SPLASH_LAST_SHOWN_KEY) ?? 0);
+    return Date.now() - last < SPLASH_REOPEN_GAP_MS;
+  } catch {
+    return false;
+  }
+}
+
+export function markSplashShown() {
+  try {
+    localStorage.setItem(SPLASH_LAST_SHOWN_KEY, String(Date.now()));
+  } catch {
+    // недоступно — заставка может показаться повторно при следующем заходе, не критично
+  }
+}
 
 // Сигнал «только что зарегистрировался» — ставит login/page.tsx в момент успешной регистрации,
 // FirstRunFlow.tsx читает и сразу стирает (consume): анкета «Включить уведомления?/геолокацию?»
