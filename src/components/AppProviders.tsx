@@ -12,13 +12,19 @@ import { BottomNav } from "@/components/BottomNav";
 import { CartDrawer } from "@/components/CartDrawer";
 import { FirstRunFlow } from "@/components/FirstRunFlow";
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({
+  children,
+  splashAlreadyShown,
+}: {
+  children: ReactNode;
+  splashAlreadyShown: boolean;
+}) {
   return (
     <SessionProvider>
       <CartProvider>
         <MyBagProvider>
           <PurchaseHistoryProvider>
-            <AppSplashGate>
+            <AppSplashGate initialAlreadyShown={splashAlreadyShown}>
               <Suspense fallback={null}>
                 <AccessDeniedBanner />
               </Suspense>

@@ -4,41 +4,47 @@ import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useSession } from "@/lib/session-context";
-import { wasSplashShown, markSplashShown, isReloadNavigation } from "@/lib/session-flags";
+import { SPLASH_COOKIE } from "@/lib/splash-cookie";
 
-// Раньше здесь была статичная заставка (иконка в квадратике + название) — владелец
-// попросил 24.09 сделать её такой же красивой, как анимация после первой регистрации
-// (кольца + лого + текст, ранее жила только в LogoIntro.tsx/FirstRunFlow.tsx, показывалась
-// один раз за аккаунт). Теперь этот же стиль — здесь, при каждом РЕАЛЬНОМ открытии приложения —
-// НЕ на внутренних переходах между страницами и НЕ на обновлении страницы (F5/pull-to-refresh,
-// см. isReloadNavigation() в session-flags.ts) — поэтому отдельный одноразовый LogoIntro.tsx
-// убран, чтобы не показывать одну и ту же анимацию дважды подряд сразу после регистрации.
+// Раньше здесь была статичная заставка (иконка в квадратике + название) — владелец попросил
+// 24.09 сделать её такой же красивой, как анимация после первой регистрации (кольца + лого +
+// текст, ранее жила только в LogoIntro.tsx/FirstRunFlow.tsx, показывалась один раз за аккаунт).
+// Теперь этот же стиль — здесь, при каждом РЕАЛЬНОМ открытии приложения — не на внутренних
+// переходах между страницами и не на обновлении (F5/pull-to-refresh). Решение «показывать или
+// нет» принимает СЕРВЕР — читает cookie в layout.tsx (см. splash-cookie.ts) и передаёт готовый
+// initialAlreadyShown сюда. Раньше это решалось на клиенте (localStorage + Navigation Timing
+// API) уже ПОСЛЕ первой отрисовки — на телефоне, где JS гидратируется заметно медленнее, чем на
+// компьютере, заставка успевала мелькнуть даже на обычном обновлении, пока клиентский эффект её
+// не спрятал (жалоба владельца, 24.09: «раньше не выходил, а сейчас выходит»). Раз решение готово
+// уже в SSR-разметке, скрывать нечего — её просто не рисует ни один рендер.
 const MIN_SPLASH_MS = 1200;
 
-export function AppSplashGate({ children }: { children: ReactNode }) {
+export function AppSplashGate({
+  children,
+  initialAlreadyShown,
+}: {
+  children: ReactNode;
+  initialAlreadyShown: boolean;
+}) {
   const t = useTranslations("intro");
   const tMeta = useTranslations("meta");
   const { session, loading } = useSession();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  // localStorage недоступен при рендере/SSR — читаем только в эффекте (тот же приём, что и
-  // везде в session-flags.ts), поэтому alreadyShown стартует false и корректируется сразу после
-  // монтирования, до того как истечёт MIN_SPLASH_MS.
-  const [alreadyShown, setAlreadyShown] = useState(false);
+  const [alreadyShown, setAlreadyShown] = useState(initialAlreadyShown);
 
   useEffect(() => {
-    // Обновление страницы (F5, pull-to-refresh) — не «открытие приложения», должно пройти
-    // максимум лёгким миганием, без заставки, сколько бы времени ни прошло с прошлого раза.
-    if (isReloadNavigation() || wasSplashShown()) {
-      Promise.resolve().then(() => setAlreadyShown(true));
-      return;
-    }
+    if (alreadyShown) return;
     const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!loading && minTimeElapsed) markSplashShown();
-  }, [loading, minTimeElapsed]);
+    if (alreadyShown || loading || !minTimeElapsed) return;
+    const maxAgeSeconds = 60 * 60 * 24 * 365;
+    document.cookie = `${SPLASH_COOKIE}=${Date.now()};path=/;max-age=${maxAgeSeconds};samesite=lax`;
+    Promise.resolve().then(() => setAlreadyShown(true));
+  }, [alreadyShown, loading, minTimeElapsed]);
 
   const showSplash = !alreadyShown && (loading || !minTimeElapsed);
 
