@@ -65,7 +65,7 @@ export function HeroSlider({ products, isNew = false }: { products: Product[]; i
               </div>
             )}
             {isNew && (
-              <span className="absolute top-3 left-3 bg-[#3b82f6] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full">
+              <span className="absolute top-3 left-3 bg-accent text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full">
                 {t("newBadge")}
               </span>
             )}
