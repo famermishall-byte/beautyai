@@ -36,9 +36,9 @@
 
   /* Semantic status colors — one family each, tuned to sit next to the brand pink.
      Every pair (color on its -soft surface) is ≥ 4.5:1. */
-  --success: #1a7f4e;
+  --success: #17774a; /* 4.9:1 on success-soft (was #1a7f4e, 4.4:1) */
   --success-soft: #e3f5ec;
-  --warning: #b6560f;
+  --warning: #a84f0e; /* 4.7:1 on warning-soft (was #b6560f, 4.1:1) */
   --warning-soft: #fdead4;
   --error: #c81f3d;
   --error-soft: #fbe4e8;
