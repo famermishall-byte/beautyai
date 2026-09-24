@@ -1153,7 +1153,8 @@
     "wholeNumber": "0дөн баштап бүтүн сан",
     "saved": "Сакталды",
     "saving": "Сакталууда…",
-    "quantityOf": "Калдык: {name}"
+    "quantityOf": "Калдык: {name}",
+    "zeroOut": "Нөлгө түшүрүү"
   },
   "adminProductRating": {
     "title": "Товарлардын рейтинги",

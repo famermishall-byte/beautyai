@@ -325,7 +325,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
           disabled={saving || item.quantity === 0}
           className="text-[11px] font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
         >
-          {ts("status.out")}
+          {t("zeroOut")}
         </button>
       </div>
     </li>

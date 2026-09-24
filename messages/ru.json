@@ -1153,7 +1153,8 @@
     "wholeNumber": "Целое число от 0",
     "saved": "Сохранено",
     "saving": "Сохраняем…",
-    "quantityOf": "Остаток: {name}"
+    "quantityOf": "Остаток: {name}",
+    "zeroOut": "Обнулить"
   },
   "adminProductRating": {
     "title": "Рейтинг товаров",
