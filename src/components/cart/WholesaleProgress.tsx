@@ -12,6 +12,8 @@ export function WholesaleProgress({ summary }: { summary: WholesaleSummary }) {
   if (summary.threshold === null) return null;
 
   if (summary.qualifies) {
+    // Порог набран, но у отмеченных товаров нет оптовой цены (или акция дешевле) — «экономите 0 сом» не показываем.
+    if (summary.savings <= 0) return null;
     return (
       <div className="rounded-xl bg-success-soft text-success text-sm font-medium px-4 py-3 flex items-center gap-2">
         <BadgePercent className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
