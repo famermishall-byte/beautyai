@@ -49,8 +49,11 @@ PK `(user_id, product_id)`. RLS включён; четыре политики `c
 
 - `GET /api/cart` → `{ items: CartItem[] }` — строки `cart_items` пользователя, join с `products`
   (только товары своего `store_id`), маппинг через `mapProduct`, сортировка по `created_at`.
-- `POST /api/cart` `{ productId, delta }` — добавить/изменить количество (upsert; итог ≤ 0 → удалить строку).
-  Новый товар приходит с `selected = true`.
+- `PUT /api/cart` `{ productId, quantity }` — задать количество (абсолютное, не «+1»: быстрые повторные
+  нажатия идемпотентны, побеждает последнее). upsert по `(user_id, product_id)`; `quantity ≤ 0` → удалить
+  строку. Новый товар приходит с `selected = true`, у существующего галочка не трогается.
+- Цены в корзине и в заказе считаются одной функцией (`loadCart` в `src/lib/cart-server.ts`), с учётом
+  активных акций (`applyActivePromotion`) — иначе заказ посчитался бы без скидки, которую клиент видел.
 - `PATCH /api/cart` `{ productIds: string[] | "all", selected: boolean }` — галочки (одна или «выбрать все»).
 - `DELETE /api/cart?productId=…` — удалить товар из корзины.
 - `POST /api/cart/merge` `{ items: { productId, quantity }[] }` — одноразовый перенос старой
