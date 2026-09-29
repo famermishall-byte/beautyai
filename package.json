@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/cart-logic.test.ts src/lib/cart-store.test.ts src/lib/whatsapp.test.ts src/lib/safe-next.test.ts src/lib/wholesale.test.ts src/lib/feedback.test.ts src/lib/category-filter.test.ts src/lib/date-range.test.ts src/lib/delivery.test.ts src/lib/add-ons.test.ts src/lib/home-slides.test.ts supabase/functions/send-push/messages.test.ts src/lib/import/autoMap.test.ts",
+    "test": "tsx --test src/lib/cart-logic.test.ts src/lib/cart-store.test.ts src/lib/whatsapp.test.ts src/lib/safe-next.test.ts src/lib/wholesale.test.ts src/lib/feedback.test.ts src/lib/category-filter.test.ts src/lib/date-range.test.ts src/lib/delivery.test.ts src/lib/add-ons.test.ts src/lib/home-slides.test.ts src/lib/video-convert-plan.test.ts supabase/functions/send-push/messages.test.ts src/lib/import/autoMap.test.ts",
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios"
@@ -18,6 +18,8 @@
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/ios": "^8.5.2",
+    "@ffmpeg/ffmpeg": "0.12.15",
+    "@ffmpeg/util": "0.12.2",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
     "leaflet": "^1.9.4",
