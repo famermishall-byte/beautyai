@@ -78,7 +78,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   );
 }
 
-/** Монтируется на /, /catalog и /checkout — сам решает, показывать ли баннер (раз за посещение). */
+/** Монтируется на /, /catalog и при открытии корзины — сам решает, показывать ли баннер (раз за посещение). */
 export function BannerGate({ page }: { page: AdPage }) {
   const [banner, setBanner] = useState<Banner | null>(null);
 
