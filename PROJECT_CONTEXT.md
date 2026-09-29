@@ -1478,6 +1478,6 @@ X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWho
 форме `/feedback` обязательное поле «Телефон для связи» (подставляется из последнего заказа, `GET /api/feedback`;
 проверка `normalizeContactPhone` в `lib/feedback.ts`, тест). При отправке в сообщение копируются `author_name`,
 `author_email`, `contact_phone`; в админке (`FeedbackManager`) — телефон, почта и кнопки «WhatsApp» / «Позвонить».
-Миграция `supabase/feedback_contact.sql` (только добавляет колонки). Пока она не применена, `POST /api/feedback`
+Миграция `supabase/feedback_contact.sql` (только добавляет колонки) применена владельцем вручную в SQL Editor 29.09. Пока она не применена, `POST /api/feedback`
 сохраняет сообщение без контактов (запасная вставка на ошибку PGRST204/42703), так что ничего не ломается. Старые
 сообщения остаются без контактов.
