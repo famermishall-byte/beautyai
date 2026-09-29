@@ -1347,5 +1347,9 @@
     "connectAndFetch": "Туташтыруу жана маалыматтарды алуу",
     "mapResponse": "Жооптун талааларын дал келтириңиз",
     "saveMappingAndSync": "Дал келтирүүнү сактоо жана синхрондоо"
+  },
+  "sellerExit": {
+    "backToWhatsapp": "WhatsApp'ка кайтуу",
+    "openAdmin": "Админ панелди ачуу"
   }
 }

@@ -1347,5 +1347,9 @@
     "connectAndFetch": "Подключить и получить данные",
     "mapResponse": "Сопоставьте поля ответа",
     "saveMappingAndSync": "Сохранить сопоставление и синхронизировать"
+  },
+  "sellerExit": {
+    "backToWhatsapp": "Вернуться в WhatsApp",
+    "openAdmin": "Открыть админку"
   }
 }

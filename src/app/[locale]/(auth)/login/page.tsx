@@ -8,6 +8,7 @@ import { PasswordInput } from "@/components/PasswordInput";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "@/i18n/navigation";
+import { safeNextPath } from "@/lib/safe-next";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -38,6 +39,11 @@ type RegisterResult = { kind: "check-email"; email: string } | { kind: "already-
 // brand-new registration on a browser that previously had someone else
 // logged in (or an unfinished registration) would otherwise inherit
 // whatever was left in that cart.
+// Куда вернуть после входа — proxy.ts кладёт исходный адрес в ?next= (например, «Открыть админку» → заказы).
+function afterLoginPath(): string {
+  return safeNextPath(new URLSearchParams(window.location.search).get("next"));
+}
+
 function clearStaleCart() {
   try {
     localStorage.removeItem("beautyai-cart");
@@ -76,7 +82,7 @@ export default function LoginPage() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         clearStaleCart();
-        router.replace("/");
+        router.replace(afterLoginPath());
         router.refresh();
       }
     });
@@ -103,7 +109,7 @@ export default function LoginPage() {
         setError(translateAuthError(t, signInError.message, "login"));
         return;
       }
-      router.push("/");
+      router.push(afterLoginPath());
       router.refresh();
     } finally {
       setSubmitting(false);

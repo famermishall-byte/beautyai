@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import type { OrderItem } from "@/types";
 import { describeChanges, isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { buildWhatsAppUrl, whatsappDigits } from "@/lib/whatsapp";
+import { SellerExitLinks } from "@/components/SellerExitLinks";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { getOrderStatusAdminLabel } from "@/lib/orderStatus";
@@ -21,14 +22,6 @@ export type ConsoleOrder = {
   editedAt: string | null;
 };
 
-
-// Kyrgyz numbers are often typed as 0700123456 or 700123456 — wa.me needs the country code.
-function whatsappDigits(phone: string): string {
-  const d = phone.replace(/\D/g, "");
-  if (d.length === 9) return `996${d}`;
-  if (d.length === 10 && d.startsWith("0")) return `996${d.slice(1)}`;
-  return d;
-}
 
 // The page a seller opens from the link in WhatsApp: fix the order (reduce / remove what is not there),
 // mark the payment, or cancel — no login. Everything shows up at once in the app for the admin, the branch
@@ -196,6 +189,10 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             {t("cancelOrder")}
           </button>
         )}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-border">
+        <SellerExitLinks customerPhone={order.customerPhone} />
       </div>
     </main>
   );
