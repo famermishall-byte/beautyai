@@ -26,7 +26,7 @@ export function WholesaleBanner() {
 
   if (!info) return null;
   return (
-    <div className="rounded-[var(--radius-card)] bg-accent-soft px-4 py-3 text-sm font-medium flex items-center gap-2.5">
+    <div className="promo-sheen rounded-[var(--radius-card)] bg-accent-soft px-4 py-3 text-sm font-medium flex items-center gap-2.5">
       <BadgePercent className="size-5 shrink-0 text-accent" strokeWidth={2} aria-hidden />
       {t("homeBanner", { usd: info.usd.toLocaleString("ru-RU"), som: price(info.som) })}
     </div>

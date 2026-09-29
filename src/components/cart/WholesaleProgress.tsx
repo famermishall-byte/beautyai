@@ -15,7 +15,7 @@ export function WholesaleProgress({ summary }: { summary: WholesaleSummary }) {
     // Порог набран, но у отмеченных товаров нет оптовой цены (или акция дешевле) — «экономите 0 сом» не показываем.
     if (!summary.applied) return null;
     return (
-      <div className="rounded-xl bg-success-soft text-success text-sm font-medium px-4 py-3 flex items-center gap-2">
+      <div className="promo-sheen rounded-xl bg-success-soft text-success text-sm font-medium px-4 py-3 flex items-center gap-2">
         <BadgePercent className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
         {t("applied", { amount: price(summary.savings) })}
       </div>
@@ -24,7 +24,7 @@ export function WholesaleProgress({ summary }: { summary: WholesaleSummary }) {
 
   const share = Math.min(100, Math.round((summary.retailTotal / summary.threshold) * 100));
   return (
-    <div className="rounded-xl bg-accent-soft px-4 py-3">
+    <div className="promo-sheen rounded-xl bg-accent-soft px-4 py-3">
       <div className="text-sm mb-2">{t("progress", { amount: price(summary.remaining) })}</div>
       <div
         className="h-2 rounded-full bg-white overflow-hidden"

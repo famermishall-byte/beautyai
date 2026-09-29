@@ -36,7 +36,9 @@ via `@theme inline`.
 - **Motion:** `rise-in` (content entrance, staggered in grids via inline
   `animationDelay`), `sheet-in` (bottom sheets/drawers), `pop`
   (favorite-heart toggle — exponential ease-out, not spring/bounce),
-  `shimmer`/`.skeleton` (loading placeholders). All respect
+  `shimmer`/`.skeleton` (loading placeholders), `.promo-sheen` (wholesale
+  banner on home + wholesale block in the cart: the `tile-sheen` sweep, faster —
+  2.5s — and brand-pink with a white core, to draw attention). All respect
   `prefers-reduced-motion`.
 - **Type scale:** display sizes are set ad hoc per context with Tailwind
   utilities (`text-2xl`…`text-[28px]`) rather than a named scale — every
