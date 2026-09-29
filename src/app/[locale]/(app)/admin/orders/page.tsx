@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 import { OrderManager } from "@/components/OrderManager";
+import { StaffPushCard } from "@/components/admin/StaffPushCard";
 import { useSession } from "@/lib/session-context";
 
 // Owner / admin see the orders of ALL branches; a branch manager sees only their own branch (the server enforces it —
@@ -21,6 +22,7 @@ export default function AdminOrdersPage() {
           : t("subtitleAll")
       }
     >
+      <StaffPushCard />
       <OrderManager />
     </AdminPage>
   );
