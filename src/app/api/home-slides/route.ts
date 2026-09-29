@@ -1,15 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapHomeSlide, mapProduct, mapPromotion } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
 import { applyActivePromotion, indexPromotionsByProduct } from "@/lib/apply-promotion";
 import { visibleSlides } from "@/lib/home-slides";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 import type { Product } from "@/types";
 
-/** Промо-слайды для верхнего слайдера на главной: активные, по порядку, с товаром (цена с учётом акции). */
-export async function GET() {
+/** Слайды главной: ?placement=inline — встроенный баннер, иначе верхний слайдер. Активные, по порядку, с товаром (цена с учётом акции). */
+export async function GET(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
+
+  const placement = request.nextUrl.searchParams.get("placement") === "inline" ? "inline" : "hero";
 
   try {
     const supabase = await createServerSupabaseClient();
@@ -17,6 +20,7 @@ export async function GET() {
       .from("home_slides")
       .select("*")
       .eq("store_id", profile.storeId)
+      .eq("placement", placement)
       .eq("active", true)
       .order("priority", { ascending: true });
     if (error) throw error;
@@ -39,7 +43,7 @@ export async function GET() {
     }
 
     const slides = rows.map((r) => mapHomeSlide(r, r.product_id ? (productsById.get(r.product_id as string) ?? null) : null));
-    return NextResponse.json({ slides: visibleSlides(slides) });
+    return NextResponse.json({ slides: visibleSlides(slides, CATEGORY_GROUPS.map((g) => g.name)) });
   } catch {
     return NextResponse.json({ slides: [], error: "База данных недоступна." });
   }

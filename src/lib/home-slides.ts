@@ -1,4 +1,4 @@
-import type { HomeSlide } from "../types";
+import type { HomeSlide, SlideAction, SlidePlacement } from "../types";
 
 // Видео: до 30 МБ, mp4/webm/mov (лимит бакета banners тот же).
 export const VIDEO_MAX_BYTES = 31457280;
@@ -10,19 +10,34 @@ export function checkVideoFile(f: { type: string; size: number }): "ok" | "type"
   return "ok";
 }
 
-export type SlideInput = { mediaType: string; imageUrl: string | null; videoUrl: string | null; action: string; productId: string | null };
+// Действия по месту показа: верхний слайдер — как раньше, встроенный баннер — свои.
+export const HERO_ACTIONS: SlideAction[] = ["cart", "promo"];
+export const INLINE_ACTIONS: SlideAction[] = ["product", "category", "promo", "new", "catalog"];
 
-export function validateSlideInput(i: SlideInput): "ok" | "media" | "product" | "action" {
+export type SlideInput = {
+  placement: string;
+  mediaType: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  action: string;
+  productId: string | null;
+  category: string | null;
+};
+
+export function validateSlideInput(i: SlideInput): "ok" | "media" | "product" | "action" | "category" {
   if (i.mediaType === "video" ? !i.videoUrl : !i.imageUrl) return "media";
-  if (i.action !== "cart" && i.action !== "promo") return "action";
-  if (i.action === "cart" && !i.productId) return "product";
+  const allowed: string[] = i.placement === "inline" ? INLINE_ACTIONS : HERO_ACTIONS;
+  if (!allowed.includes(i.action)) return "action";
+  if ((i.action === "cart" || i.action === "product") && !i.productId) return "product";
+  if (i.action === "category" && !i.category) return "category";
   return "ok";
 }
 
-export const SLIDE_INPUT_ERRORS: Record<"media" | "product" | "action", string> = {
+export const SLIDE_INPUT_ERRORS: Record<"media" | "product" | "action" | "category", string> = {
   media: "Загрузите фото или видео для слайда.",
   product: "Выберите товар для кнопки «Купить товар».",
   action: "Выберите действие слайда.",
+  category: "Выберите категорию.",
 };
 
 export type SlideRow = {
@@ -31,25 +46,29 @@ export type SlideRow = {
   video_url: string | null;
   title: string | null;
   subtitle: string | null;
-  action: "cart" | "promo";
+  action: SlideAction;
   product_id: string | null;
+  placement: SlidePlacement;
+  link_category: string | null;
 };
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
 
 // Полная форма слайда из JSON → строка для home_slides (или код ошибки).
-export function slideRowFromBody(body: unknown): { ok: true; row: SlideRow } | { ok: false; error: "media" | "product" | "action" } {
+export function slideRowFromBody(body: unknown): { ok: true; row: SlideRow } | { ok: false; error: "media" | "product" | "action" | "category" } {
   const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
   const input: SlideInput = {
+    placement: b.placement === "inline" ? "inline" : "hero",
     mediaType: b.mediaType === "video" ? "video" : "image",
     imageUrl: str(b.imageUrl),
     videoUrl: str(b.videoUrl),
     action: typeof b.action === "string" ? b.action : "",
     productId: str(b.productId),
+    category: str(b.category),
   };
   const check = validateSlideInput(input);
   if (check !== "ok") return { ok: false, error: check };
-  const action = input.action as "cart" | "promo";
+  const action = input.action as SlideAction;
   return {
     ok: true,
     row: {
@@ -59,16 +78,42 @@ export function slideRowFromBody(body: unknown): { ok: true; row: SlideRow } | {
       title: str(b.title),
       subtitle: str(b.subtitle),
       action,
-      product_id: action === "cart" ? input.productId : null,
+      product_id: action === "cart" || action === "product" ? input.productId : null,
+      placement: input.placement as SlidePlacement,
+      link_category: action === "category" ? input.category : null,
     },
   };
 }
 
-// Показываем активные слайды; «в корзину» — только если товар есть в наличии.
-export function visibleSlides(slides: HomeSlide[]): HomeSlide[] {
+// Показываем активные слайды; «в корзину» — только если товар в наличии, «товар» — если он есть,
+// «категория» — если она задана и (когда передан список групп каталога) существует.
+export function visibleSlides(slides: HomeSlide[], groupNames?: string[]): HomeSlide[] {
   return slides
-    .filter((s) => s.active && (s.action !== "cart" || (s.product !== null && s.product.inStock)))
+    .filter((s) => {
+      if (!s.active) return false;
+      if (s.action === "cart") return s.product !== null && s.product.inStock;
+      if (s.action === "product") return s.product !== null;
+      if (s.action === "category") return !!s.category && (!groupNames || groupNames.includes(s.category));
+      return true;
+    })
     .sort((a, b) => a.priority - b.priority);
+}
+
+// Куда ведёт нажатие на слайд/баннер.
+export function slideHref(s: Pick<HomeSlide, "action" | "productId" | "category">): string {
+  switch (s.action) {
+    case "cart":
+    case "product":
+      return s.productId ? `/product/${s.productId}` : "/catalog";
+    case "category":
+      return s.category ? `/catalog?group=${encodeURIComponent(s.category)}` : "/catalog";
+    case "new":
+      return "/catalog?new=1";
+    case "catalog":
+      return "/catalog?all=1";
+    default:
+      return "/catalog?promo=1";
+  }
 }
 
 // Сдвиг элемента на соседнюю позицию, без мутации исходного массива.

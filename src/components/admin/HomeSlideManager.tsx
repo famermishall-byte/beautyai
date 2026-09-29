@@ -7,12 +7,12 @@ import { ProductPicker, type PickedProduct } from "@/components/ProductPicker";
 import { Button } from "@/components/ui/Button";
 import { MediaPicker, type MediaValue } from "@/components/admin/MediaPicker";
 import { moveSlide } from "@/lib/home-slides";
-import type { HomeSlide } from "@/types";
+import type { HomeSlide, SlideAction } from "@/types";
 
 type FormState = MediaValue & {
   title: string;
   subtitle: string;
-  action: "cart" | "promo";
+  action: SlideAction;
   product: PickedProduct | null;
 };
 

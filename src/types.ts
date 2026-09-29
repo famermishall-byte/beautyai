@@ -117,6 +117,9 @@ export type Order = {
   deliveredAt: string | null;
 };
 
+export type SlidePlacement = "hero" | "inline";
+export type SlideAction = "cart" | "promo" | "product" | "category" | "new" | "catalog";
+
 export type HomeSlide = {
   id: string;
   mediaType: "image" | "video";
@@ -124,8 +127,10 @@ export type HomeSlide = {
   videoUrl: string | null;
   title: string | null;
   subtitle: string | null;
-  action: "cart" | "promo";
+  action: SlideAction;
   productId: string | null;
+  placement: SlidePlacement;
+  category: string | null;
   priority: number;
   active: boolean;
   product: Product | null;

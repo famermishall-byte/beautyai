@@ -5,10 +5,12 @@ import { getSessionProfile, isStoreManager } from "@/lib/auth";
 import { slideRowFromBody, SLIDE_INPUT_ERRORS } from "@/lib/home-slides";
 import type { Product } from "@/types";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
+
+  const placement = request.nextUrl.searchParams.get("placement") === "inline" ? "inline" : "hero";
 
   try {
     const supabase = await createServerSupabaseClient();
@@ -16,6 +18,7 @@ export async function GET() {
       .from("home_slides")
       .select("*")
       .eq("store_id", profile.storeId)
+      .eq("placement", placement)
       .order("priority", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) throw error;
@@ -45,11 +48,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = await createServerSupabaseClient();
-    // Новый слайд — в конец списка.
+    const active = body?.active === false ? false : true;
+    // Встроенный баннер — один активный: сначала выключаем остальные (иначе сработает уникальный индекс).
+    if (parsed.row.placement === "inline" && active) {
+      const { error: offError } = await supabase
+        .from("home_slides")
+        .update({ active: false })
+        .eq("store_id", profile.storeId)
+        .eq("placement", "inline")
+        .eq("active", true);
+      if (offError) throw offError;
+    }
+    // Новый слайд — в конец списка своего placement.
     const { data: last } = await supabase
       .from("home_slides")
       .select("priority")
       .eq("store_id", profile.storeId)
+      .eq("placement", parsed.row.placement)
       .order("priority", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -57,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     const { data: row, error } = await supabase
       .from("home_slides")
-      .insert({ ...parsed.row, store_id: profile.storeId, priority, active: body?.active === false ? false : true })
+      .insert({ ...parsed.row, store_id: profile.storeId, priority, active })
       .select("id")
       .single();
     if (error) throw error;
