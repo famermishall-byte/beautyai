@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { disablePush } from "@/lib/push";
 
 export type Session = {
   email: string | null;
@@ -74,6 +75,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     const supabase = createBrowserSupabaseClient();
+    // Уведомления этого аккаунта больше не должны приходить на этот телефон (lib/push.ts).
+    await disablePush();
     await supabase.auth.signOut();
     setSession(null);
     router.push("/login");

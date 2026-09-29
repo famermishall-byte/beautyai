@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Settings, ChevronDown, Bell, MapPin } from "lucide-react";
+import { pushSupported } from "@/lib/push";
 import {
   isNotifOn,
   isGeoOn,
@@ -50,6 +51,8 @@ export function NotificationGeoSettings() {
   const [notifOn, setNotifOn] = useState(false);
   const [notifBlocked, setNotifBlocked] = useState(false);
   const [geoOn, setGeoOn] = useState(false);
+  // Веб-push есть не везде (нет в оболочке Capacitor и в Safari вне экрана «Домой») — тогда подсказка.
+  const [pushOk, setPushOk] = useState(true);
   const [notifBusy, setNotifBusy] = useState(false);
   const [geoBusy, setGeoBusy] = useState(false);
 
@@ -59,6 +62,7 @@ export function NotificationGeoSettings() {
       setNotifOn(isNotifOn());
       setNotifBlocked(notifBlockedByBrowser());
       setGeoOn(isGeoOn());
+      setPushOk(pushSupported());
     });
   }, []);
 
@@ -121,6 +125,7 @@ export function NotificationGeoSettings() {
               <div className="text-xs text-muted mt-0.5">
                 {notifBlocked ? t("notifBlockedHint") : notifOn ? t("notifOnHint") : t("notifOffHint")}
               </div>
+              {!pushOk && <div className="text-xs text-warning mt-1 leading-snug">{t("notifNoPush")}</div>}
             </div>
             <Switch checked={notifOn} disabled={notifBlocked || notifBusy} label={t("notifLabel")} onClick={toggleNotif} />
           </div>

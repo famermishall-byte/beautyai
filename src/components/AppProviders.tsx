@@ -11,6 +11,7 @@ import { NavHeader } from "@/components/NavHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { CartDrawer } from "@/components/CartDrawer";
 import { FirstRunFlow } from "@/components/FirstRunFlow";
+import { PushSync } from "@/components/PushSync";
 
 export function AppProviders({
   children,
@@ -33,6 +34,7 @@ export function AppProviders({
               <CartDrawer />
               <BottomNav />
               <FirstRunFlow />
+              <PushSync />
             </AppSplashGate>
           </PurchaseHistoryProvider>
         </MyBagProvider>

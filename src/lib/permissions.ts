@@ -5,6 +5,7 @@
 // Один источник правды на оба места, чтобы они не разошлись по ключам/статусам.
 import type { Branch } from "@/types";
 import { setStoredCity } from "@/lib/city";
+import { disablePush, enablePush } from "@/lib/push";
 
 const NOTIF_KEY = "beautyai-notif-prompt";
 const GEO_KEY = "beautyai-geo-prompt";
@@ -42,8 +43,8 @@ export function notifBlockedByBrowser(): boolean {
 
 /**
  * Наше собственное представление о том, включено ли — не совпадает 1-в-1 с разрешением браузера:
- * push пока не отправляется (см. NotificationPrompt — UI + разрешение only), поэтому "выключено"
- * здесь означает «пользователь не хочет, чтобы его считали согласившимся», а не отзыв разрешения
+ * "выключено" здесь означает «пользователь не хочет уведомлений» — подписка на push снимается (lib/push.ts),
+ * но это не отзыв разрешения
  * у браузера (JS не может отозвать Notification.permission — это может только сам пользователь
  * в настройках браузера).
  */
@@ -62,6 +63,8 @@ export async function requestNotifPermission(): Promise<string> {
   try {
     const result = typeof Notification !== "undefined" ? await Notification.requestPermission() : "granted-ui";
     writePermissionFlag(NOTIF_KEY, result);
+    // Разрешили — сразу подписываем браузер на push (lib/push.ts); без поддержки push просто ничего не произойдёт.
+    if (result === "granted") await enablePush();
     return result;
   } catch {
     writePermissionFlag(NOTIF_KEY, "error");
@@ -71,6 +74,7 @@ export async function requestNotifPermission(): Promise<string> {
 
 export function dismissNotif() {
   writePermissionFlag(NOTIF_KEY, "dismissed");
+  void disablePush();
 }
 
 function requestPosition(): Promise<GeolocationPosition | null> {
