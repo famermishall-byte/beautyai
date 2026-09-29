@@ -43,6 +43,8 @@ export type RecommendedProduct = Product & { reason: string };
 export type CartItem = {
   product: Product;
   quantity: number;
+  /** Галочка «в заказ» в корзине; снятые товары остаются в корзине после оформления. */
+  selected: boolean;
 };
 
 export type Branch = {
