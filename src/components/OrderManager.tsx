@@ -120,6 +120,7 @@ function OrderRow({
 }) {
   const t = useTranslations("orderManager");
   const ts = useTranslations("orderStatus");
+  const tw = useTranslations("wholesale");
   const locale = useLocale();
   const money = usePrice();
   const [saving, setSaving] = useState(false);
@@ -166,6 +167,9 @@ function OrderRow({
             <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} aria-label={t("selectOrder", { number: order.number })} className="size-4 accent-[var(--accent)]" />
           )}
           #{order.number}
+          {order.isWholesale && (
+            <span className="text-[11px] font-semibold rounded-full bg-accent-soft text-accent px-2 py-0.5">{tw("badge")}</span>
+          )}
         </label>
         <span className={["text-xs font-medium rounded-full px-2.5 py-1", PILL[order.status] ?? "bg-border text-muted"].join(" ")}>
           {getOrderStatusAdminLabel(ts, order.status)}

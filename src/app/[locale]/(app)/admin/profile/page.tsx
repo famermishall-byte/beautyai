@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
+import { WholesaleSettings } from "@/components/admin/WholesaleSettings";
 
 export default function AdminProfilePage() {
   const t = useTranslations("adminProfile");
@@ -71,6 +72,7 @@ export default function AdminProfilePage() {
           </span>
         </form>
       </div>
+      <WholesaleSettings />
     </AdminPage>
   );
 }
