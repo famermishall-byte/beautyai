@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const { id } = await params;
   const body = await request.json();
-  const { title, subtitle, imageUrl, productId, buttonText, startAt, endAt, status, priority } = body;
+  const { title, subtitle, imageUrl, videoUrl, productId, buttonText, startAt, endAt, status, priority } = body;
 
   if (!title || !startAt || !endAt) {
     return NextResponse.json({ error: "Заполните название и даты показа." }, { status: 400 });
@@ -25,6 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         title,
         subtitle: subtitle || null,
         image_url: imageUrl || null,
+        video_url: videoUrl || null,
         button_text: buttonText || null,
         start_at: startAt,
         end_at: endAt,

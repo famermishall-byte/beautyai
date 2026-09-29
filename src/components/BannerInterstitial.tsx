@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
+import { Volume2, VolumeX, X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
 import { wasAdShown, markAdShown, type AdPage } from "@/lib/session-flags";
@@ -17,6 +17,9 @@ import type { Banner } from "@/types";
 export function BannerInterstitial({ banner, onClose, previewOnly = false }: { banner: Banner; onClose: () => void; previewOnly?: boolean }) {
   const t = useTranslations("bannerInterstitial");
   const price = usePrice();
+  const tHome = useTranslations("home");
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const body = (
     <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
@@ -32,11 +35,43 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
         <X className="size-4" strokeWidth={2} aria-hidden />
       </button>
 
-      {banner.imageUrl && (
+      {banner.videoUrl ? (
+        <div className="relative aspect-[16/11] bg-accent-soft">
+          <video
+            ref={videoRef}
+            src={banner.videoUrl}
+            poster={banner.imageUrl ?? undefined}
+            autoPlay
+            muted={muted}
+            loop
+            playsInline
+            preload="metadata"
+            className="w-full h-full object-cover"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              // Карточка — ссылка: клик по кнопке звука не должен открывать товар.
+              e.preventDefault();
+              e.stopPropagation();
+              setMuted((m) => !m);
+              // Тап — пользовательский жест: запускаем ролик, если автоплей был заблокирован.
+              const v = videoRef.current;
+              if (v?.paused) v.play().catch(() => {});
+            }}
+            aria-label={muted ? tHome("soundOn") : tHome("soundOff")}
+            className="absolute bottom-3 right-3 z-10 size-9 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm transition active:scale-95"
+          >
+            {muted ? <VolumeX className="size-4.5" strokeWidth={2} aria-hidden /> : <Volume2 className="size-4.5" strokeWidth={2} aria-hidden />}
+          </button>
+        </div>
+      ) : (
+        banner.imageUrl && (
         <div className="relative aspect-[16/11] bg-accent-soft">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
         </div>
+        )
       )}
 
       <div className="p-5">

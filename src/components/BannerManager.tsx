@@ -2,44 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Plus, Eye, Pause, Play, Trash2, Loader2, ImageOff } from "lucide-react";
+import { Plus, Eye, Pause, Play, Trash2, Film } from "lucide-react";
 import { ProductPicker, type PickedProduct } from "@/components/ProductPicker";
 import { BannerInterstitial } from "@/components/BannerInterstitial";
+import { MediaPicker } from "@/components/admin/MediaPicker";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { effectiveState, type EffectiveState } from "@/lib/promo-status";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { Banner } from "@/types";
-
-const TARGET_W = 960;
-const TARGET_H = 660; // 16:11, как HeroSlider
-
-async function toBannerJpeg(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const srcRatio = bitmap.width / bitmap.height;
-  const dstRatio = TARGET_W / TARGET_H;
-  let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
-  if (srcRatio > dstRatio) {
-    sw = bitmap.height * dstRatio;
-    sx = (bitmap.width - sw) / 2;
-  } else {
-    sh = bitmap.width / dstRatio;
-    sy = (bitmap.height - sh) / 2;
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = TARGET_W;
-  canvas.height = TARGET_H;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas");
-  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H);
-  bitmap.close();
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("blob"))), "image/jpeg", 0.85));
-}
 
 type FormState = {
   title: string;
   subtitle: string;
+  mediaType: "image" | "video";
   imageUrl: string | null;
+  videoUrl: string | null;
   buttonText: string;
   startAt: string;
   endAt: string;
@@ -51,7 +28,9 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   title: "",
   subtitle: "",
+  mediaType: "image",
   imageUrl: null,
+  videoUrl: null,
   buttonText: "",
   startAt: "",
   endAt: "",
@@ -71,7 +50,9 @@ function bannerToForm(b: Banner): FormState {
   return {
     title: b.title,
     subtitle: b.subtitle ?? "",
+    mediaType: b.videoUrl ? "video" : "image",
     imageUrl: b.imageUrl,
+    videoUrl: b.videoUrl,
     buttonText: b.buttonText ?? "",
     startAt: toDatetimeLocal(b.startAt),
     endAt: toDatetimeLocal(b.endAt),
@@ -102,44 +83,9 @@ function BannerForm({
 }) {
   const t = useTranslations("bannerManager");
   const [form, setForm] = useState(initial);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
-
-  async function handleUpload(file: File | undefined) {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError(t("choosePhoto"));
-      return;
-    }
-    setUploading(true);
-    setError(null);
-    try {
-      const supabase = createBrowserSupabaseClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("auth");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const storeId = session ? (await supabase.from("profiles").select("store_id").eq("id", user.id).single()).data?.store_id : null;
-      if (!storeId) throw new Error("store");
-      const blob = await toBannerJpeg(file);
-      const path = `${storeId}/${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from("banners")
-        .upload(path, blob, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" });
-      if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from("banners").getPublicUrl(path);
-      setForm((f) => ({ ...f, imageUrl: `${data.publicUrl}?v=${Date.now()}` }));
-    } catch {
-      setError(t("uploadFailed"));
-    } finally {
-      setUploading(false);
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -164,6 +110,7 @@ function BannerForm({
     title: form.title || t("titlePlaceholder"),
     subtitle: form.subtitle || null,
     imageUrl: form.imageUrl,
+    videoUrl: form.mediaType === "video" ? form.videoUrl : null,
     buttonText: form.buttonText || null,
     startAt: new Date().toISOString(),
     endAt: new Date(new Date().getTime() + 86400000).toISOString(),
@@ -186,22 +133,13 @@ function BannerForm({
       />
 
       <div>
-        <div className="text-xs text-muted mb-1.5">{t("fields.image")}</div>
-        {form.imageUrl ? (
-          <div className="relative rounded-xl overflow-hidden aspect-[16/11] bg-accent-soft mb-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
-        ) : (
-          <div className="rounded-xl aspect-[16/11] bg-accent-soft flex items-center justify-center mb-2 text-muted">
-            <ImageOff className="size-8" strokeWidth={1.5} aria-hidden />
-          </div>
-        )}
-        <label className="inline-flex items-center gap-2 text-sm text-accent cursor-pointer">
-          {uploading && <Loader2 className="size-4 animate-spin" aria-hidden />}
-          {form.imageUrl ? t("changePhoto") : t("addPhoto")}
-          <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => handleUpload(e.target.files?.[0])} />
-        </label>
+        <div className="text-xs text-muted mb-1.5">{t("fields.media")}</div>
+        <MediaPicker
+          mediaType={form.mediaType}
+          imageUrl={form.imageUrl}
+          videoUrl={form.videoUrl}
+          onChange={(m) => setForm((f) => ({ ...f, ...m }))}
+        />
       </div>
 
       <div>
@@ -290,6 +228,7 @@ export function BannerManager() {
       title: form.title,
       subtitle: form.subtitle || null,
       imageUrl: form.imageUrl,
+      videoUrl: form.mediaType === "video" ? form.videoUrl : null,
       productId: form.product?.id ?? null,
       buttonText: form.buttonText || null,
       startAt: new Date(form.startAt).toISOString(),
@@ -328,6 +267,7 @@ export function BannerManager() {
         title: banner.title,
         subtitle: banner.subtitle,
         imageUrl: banner.imageUrl,
+        videoUrl: banner.videoUrl,
         productId: banner.productId,
         buttonText: banner.buttonText,
         startAt: banner.startAt,
@@ -378,10 +318,15 @@ export function BannerManager() {
             />
           ) : (
             <div key={banner.id} className="bg-card rounded-2xl border border-black/5 p-4 flex gap-3.5 items-center">
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-accent-soft shrink-0">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-accent-soft shrink-0">
                 {banner.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+                )}
+                {banner.videoUrl && (
+                  <span className="absolute bottom-1 right-1 size-5 rounded-full bg-black/50 text-white flex items-center justify-center">
+                    <Film className="size-3" strokeWidth={2} aria-hidden />
+                  </span>
                 )}
               </div>
               <div className="min-w-0 flex-1">

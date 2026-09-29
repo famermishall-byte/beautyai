@@ -13,7 +13,7 @@ import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
-import type { Product } from "@/types";
+import type { HomeSlide, Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 
 const SLIDES = 5;
@@ -60,6 +60,8 @@ export default function Home() {
   const [forYou, setForYou] = useState<Product[]>([]);
   const [promoProducts, setPromoProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [promoSlides, setPromoSlides] = useState<HomeSlide[]>([]);
+  const [slidesLoading, setSlidesLoading] = useState(true);
 
   useEffect(() => {
     // Fetching data on mount — see the same pattern/rationale in BranchManager.tsx.
@@ -97,6 +99,15 @@ export default function Home() {
       .catch(() => setPromoProducts([]));
   }, []);
 
+  // Промо-слайды (фото/видео от owner/admin) — идут в верхнем слайдере перед товарами.
+  useEffect(() => {
+    fetch("/api/home-slides")
+      .then((res) => (res.ok ? res.json() : { slides: [] }))
+      .then((data: { slides: HomeSlide[] }) => setPromoSlides(data.slides ?? []))
+      .catch(() => setPromoSlides([]))
+      .finally(() => setSlidesLoading(false));
+  }, []);
+
   useEffect(() => {
     fetch("/api/new-arrivals")
       .then((res) => (res.ok ? res.json() : { products: [] }))
@@ -115,10 +126,10 @@ export default function Home() {
       <MarketingGate page="home" promoIndex={0} />
       <BuyAgainPrompt />
       <div className="px-4 max-w-2xl mx-auto w-full pt-3 flex flex-col gap-8">
-        {loading ? (
+        {loading || slidesLoading ? (
           <Skeleton className="aspect-[16/11] rounded-[var(--radius-card)]" />
-        ) : slides.length > 0 ? (
-          <HeroSlider products={slides} isNew={newArrivals.length > 0} />
+        ) : promoSlides.length + slides.length > 0 ? (
+          <HeroSlider promo={promoSlides} products={slides} isNew={newArrivals.length > 0} />
         ) : null}
 
         <WholesaleBanner />
