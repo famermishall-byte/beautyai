@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapOrder } from "@/lib/supabase";
 import { getSessionProfile, isStaff } from "@/lib/auth";
-import { isOrderStatus, SALE_STATUSES } from "@/lib/orderStatus";
+import { isOrderStatus } from "@/lib/orderStatus";
 import { applyQuantities, orderTotal, validQuantities } from "@/lib/orderEdit";
 import type { OrderItem } from "@/types";
 
@@ -26,14 +26,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const supabase = await createServerSupabaseClient();
     // Remember WHEN the order became a sale (paid) and when it went to the courier, for the sales totals.
-    const { data: before } = await supabase.from("orders").select("paid_at, shipped_at, status_source").eq("id", id).eq("store_id", profile.storeId).maybeSingle();
+    // «Отправлен» — не оплата (доставку можно отправить до оплаты, supabase/order_delivery.sql); «Выполнен» — всегда оплачен.
+    const { data: before } = await supabase
+      .from("orders")
+      .select("paid_at, shipped_at, delivered_at, delivery_method, status_source")
+      .eq("id", id)
+      .eq("store_id", profile.storeId)
+      .maybeSingle();
     const now = new Date().toISOString();
     const stamps: Record<string, string> = {};
     if (before) {
       stamps.status_source = "admin";
       stamps.status_changed_at = now;
-      if (SALE_STATUSES.includes(status) && !before.paid_at) stamps.paid_at = now;
+      if ((status === "paid" || status === "completed") && !before.paid_at) stamps.paid_at = now;
       if (status === "shipped" && !before.shipped_at) stamps.shipped_at = now;
+      if (status === "completed" && before.delivery_method === "delivery" && !before.delivered_at) stamps.delivered_at = now;
     }
     let update = supabase.from("orders").update({ status, ...stamps }).eq("id", id).eq("store_id", profile.storeId);
     if (profile.role === "branch_manager") {

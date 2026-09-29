@@ -109,6 +109,12 @@ export type Order = {
   editedAt: string | null;
   editedBy: string | null;
   items: OrderItem[];
+  /** Самовывоз из филиала или доставка (адрес, желательное время, телефон для курьера — только у доставки). */
+  deliveryMethod: "pickup" | "delivery";
+  deliveryAddress: string | null;
+  deliveryTime: string | null;
+  courierPhone: string | null;
+  deliveredAt: string | null;
 };
 
 export type Banner = {

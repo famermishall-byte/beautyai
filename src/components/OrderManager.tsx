@@ -8,13 +8,9 @@ import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
-import {
-  NEXT_ORDER_STEP,
-  ORDER_STATUSES,
-  SALE_STATUSES,
-  getOrderStatusAdminLabel,
-  isOrderStatus,
-} from "@/lib/orderStatus";
+import { ORDER_STATUSES, getOrderStatusAdminLabel } from "@/lib/orderStatus";
+import { ACTION_STATUS, isSale, sellerActions } from "@/lib/delivery";
+import { DeliveryInfo } from "@/components/DeliveryInfo";
 
 // Тот же ключ, что и в admin/stock и admin/product-rating — выбор филиала общий между инструментами
 // админки. Раньше жил только в React-состоянии: обновление страницы (F5, pull-to-refresh) сбрасывало
@@ -119,7 +115,9 @@ function OrderRow({
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<number[]>(order.items.map((i) => i.quantity));
-  const next = isOrderStatus(order.status) ? NEXT_ORDER_STEP[order.status] : undefined;
+  const tdl = useTranslations("delivery");
+  // Главная кнопка — первый доступный шаг (lib/delivery.ts): оплата, отправка, выдача или доставка; «Отменить» — в списке статусов.
+  const next = sellerActions(order).filter((a) => a !== "cancel")[0];
   const issues = stockIssues(order);
   const reduced = isReduced(order.items);
 
@@ -179,6 +177,15 @@ function OrderRow({
       )}
       <div className="text-sm mb-2">
         {order.customerName} · {order.customerPhone}
+      </div>
+      <div className="mb-2">
+        <DeliveryInfo
+          method={order.deliveryMethod}
+          address={order.deliveryAddress}
+          time={order.deliveryTime}
+          customerPhone={order.customerPhone}
+          courierPhone={order.courierPhone}
+        />
       </div>
 
       {issues.length > 0 && (
@@ -276,11 +283,27 @@ function OrderRow({
           <>
             {next && (
               <button
-                onClick={() => changeStatus(next.status)}
+                onClick={() => {
+                  if (next === "delivered" && !order.paidAt && !confirm(tdl("confirmPaidOnDelivery", { total: money(order.totalPrice) }))) return;
+                  changeStatus(ACTION_STATUS[next]);
+                }}
                 disabled={saving}
                 className="rounded-full bg-accent text-white px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 active:scale-95 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                {saving ? t("saving") : ts(`next.${next.labelKey}`)}
+                {saving
+                  ? t("saving")
+                  : next === "paid"
+                    ? ts("next.paid")
+                    : tdl(next === "ship" && !order.paidAt ? "actions.shipUnpaid" : next === "delivered" && !order.paidAt ? "actions.deliveredAndPaid" : `actions.${next}`)}
+              </button>
+            )}
+            {next === "paid" && order.deliveryMethod === "delivery" && (
+              <button
+                onClick={() => changeStatus("shipped")}
+                disabled={saving}
+                className="rounded-full border border-accent text-accent-strong px-4 py-2 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-50"
+              >
+                {tdl("actions.shipUnpaid")}
               </button>
             )}
             {canEdit && order.status !== "cancelled" && (
@@ -354,7 +377,7 @@ function SalesSummary({
     return r.from === range.from && r.to === range.to;
   });
 
-  const sales = orders.filter((o) => SALE_STATUSES.includes(o.status) && inDateRange(o.paidAt ?? o.createdAt, applied.from, applied.to));
+  const sales = orders.filter((o) => isSale(o) && inDateRange(o.paidAt ?? o.createdAt, applied.from, applied.to));
   const total = sales.reduce((sum, o) => sum + o.totalPrice, 0);
 
   const rows = new Map<string, { name: string; city: string; count: number; sum: number }>();

@@ -6,6 +6,7 @@ import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { loadCart } from "@/lib/cart-server";
 import { orderLinesFromCart } from "@/lib/cart-logic";
 import { applyWholesale } from "@/lib/wholesale";
+import { parseDeliveryInput } from "@/lib/delivery";
 
 // Товары заказа берутся НЕ из запроса, а из корзины аккаунта (только отмеченные галочкой), с ценами
 // из каталога и акциями — см. loadCart(). Заказанные строки потом удаляются из корзины; неотмеченные
@@ -24,6 +25,12 @@ export async function POST(request: NextRequest) {
   if (!branchId || !customerName || !customerPhone) {
     return NextResponse.json({ error: "Не хватает данных для оформления заказа." }, { status: 400 });
   }
+  // Самовывоз или доставка (адрес обязателен) — lib/delivery.ts, supabase/order_delivery.sql.
+  const parsedDelivery = parseDeliveryInput(body);
+  if (!parsedDelivery.ok) {
+    return NextResponse.json({ error: parsedDelivery.error }, { status: 400 });
+  }
+  const { delivery } = parsedDelivery;
 
   try {
     const supabase = await createServerSupabaseClient();
@@ -82,6 +89,10 @@ export async function POST(request: NextRequest) {
         items_json: lines,
         // «Опт» — только если оптовые цены реально применены (порог мог набраться без единой оптовой цены).
         is_wholesale: wholesale.applied,
+        delivery_method: delivery.method,
+        delivery_address: delivery.address,
+        delivery_time: delivery.time,
+        courier_phone: delivery.courierPhone,
       })
       .select("id, status_token, number")
       .single();
@@ -106,6 +117,7 @@ export async function POST(request: NextRequest) {
       statusToken: order.status_token,
       origin: request.nextUrl.origin,
       wholesaleThreshold: wholesale.applied ? wholesale.threshold : null,
+      delivery,
     });
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 

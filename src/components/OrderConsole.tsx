@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Send } from "lucide-react";
+import { buildCourierMessage, sellerActions } from "@/lib/delivery";
+import { DeliveryInfo } from "@/components/DeliveryInfo";
 import type { OrderItem } from "@/types";
 import { describeChanges, isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import { buildWhatsAppUrl, whatsappDigits } from "@/lib/whatsapp";
@@ -20,6 +22,13 @@ export type ConsoleOrder = {
   items: OrderItem[];
   branchName: string | null;
   editedAt: string | null;
+  // Поля доставки — после supabase/order_delivery.sql (до неё их нет: заказ считается самовывозом).
+  paidAt?: string | null;
+  deliveryMethod?: "pickup" | "delivery";
+  deliveryAddress?: string | null;
+  deliveryTime?: string | null;
+  courierPhone?: string | null;
+  courierToken?: string | null;
 };
 
 
@@ -35,7 +44,26 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const tdl = useTranslations("delivery");
   const editable = order.status === "sent" || order.status === "confirmed";
+  const method = order.deliveryMethod ?? "pickup";
+  const actions = sellerActions({ status: order.status, deliveryMethod: method, paidAt: order.paidAt ?? null });
+  const canSendToCourier = method === "delivery" && order.status === "shipped" && !!order.courierToken && !!order.deliveryAddress;
+  // WhatsApp без номера: продавец сам выбирает курьера из контактов. Ссылка — адрес сайта известен только в браузере.
+  function sendToCourier() {
+    const text = buildCourierMessage({
+      number: order.number,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      courierPhone: order.courierPhone ?? null,
+      address: order.deliveryAddress!,
+      time: order.deliveryTime ?? null,
+      totalPrice: order.totalPrice,
+      paid: !!order.paidAt,
+      link: `${window.location.origin}/c/${order.courierToken}`,
+    });
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  }
   const changed = quantities.some((q, i) => q !== order.items[i].quantity);
   const newTotal = orderTotal(order.items, quantities);
   const reduced = isReduced(order.items);
@@ -83,6 +111,16 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
         {t("status")}: <span className="font-medium">{getOrderStatusAdminLabel(ts, order.status)}</span>
         {order.branchName ? <span className="text-muted"> · {order.branchName}</span> : null}
       </p>
+
+      <div className="mb-4">
+        <DeliveryInfo
+          method={method}
+          address={order.deliveryAddress ?? null}
+          time={order.deliveryTime ?? null}
+          customerPhone={order.customerPhone}
+          courierPhone={order.courierPhone ?? null}
+        />
+      </div>
 
       <ul className="bg-card rounded-2xl border border-border divide-y divide-border mb-4">
         {order.items.map((item, i) => {
@@ -138,7 +176,11 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
         <p className="rounded-xl bg-accent-soft px-4 py-3 text-sm mb-4">
           {order.status === "cancelled"
             ? t("cancelled")
-            : t("alreadyPaid")}
+            : order.status === "completed"
+              ? tdl(method === "delivery" ? "note.delivered" : "note.handedOver")
+              : order.status === "shipped"
+                ? tdl(order.paidAt ? "note.shippedPaid" : "note.shippedUnpaid", { total: money(order.totalPrice) })
+                : t("alreadyPaid")}
         </p>
       )}
 
@@ -158,7 +200,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             {busy ? t("saving") : t("saveChanges", { total: money(newTotal) })}
           </button>
         )}
-        {editable && (
+        {actions.includes("paid") && (
           <button
             onClick={() => call({ action: "status", status: "paid" }, t("paidOk"))}
             disabled={busy || changed}
@@ -167,6 +209,50 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             💰 {t("paymentReceived")}
           </button>
         )}
+        {actions.includes("ship") && (
+          <button
+            onClick={() => call({ action: "status", status: "shipped" }, tdl("ok.ship"))}
+            disabled={busy || changed}
+            className={[
+              "rounded-full py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40",
+              actions[0] === "ship" ? "bg-accent text-white" : "border border-accent text-accent-strong bg-card",
+            ].join(" ")}
+          >
+            🚚 {tdl(order.paidAt ? "actions.ship" : "actions.shipUnpaid")}
+          </button>
+        )}
+        {actions.includes("handedOver") && (
+          <button
+            onClick={() => call({ action: "status", status: "completed" }, tdl("ok.handedOver"))}
+            disabled={busy}
+            className="rounded-full bg-accent text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
+          >
+            ✅ {tdl("actions.handedOver")}
+          </button>
+        )}
+        {canSendToCourier && (
+          <button
+            type="button"
+            onClick={sendToCourier}
+            className="rounded-full bg-[#25D366] text-white py-3.5 text-base font-semibold flex items-center justify-center gap-2 transition active:scale-[0.98]"
+          >
+            <Send className="size-4.5" strokeWidth={2} aria-hidden />
+            {tdl("actions.sendToCourier")}
+          </button>
+        )}
+        {actions.includes("delivered") && (
+          <button
+            onClick={() => {
+              if (!order.paidAt && !confirm(tdl("confirmPaidOnDelivery", { total: money(order.totalPrice) }))) return;
+              call({ action: "status", status: "completed" }, tdl("ok.delivered"));
+            }}
+            disabled={busy}
+            className="rounded-full bg-accent text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
+          >
+            ✅ {tdl(order.paidAt ? "actions.delivered" : "actions.deliveredAndPaid")}
+          </button>
+        )}
+        {canSendToCourier && <p className="text-xs text-muted text-center">{tdl("courierHint")}</p>}
         {editable && changed && <p className="text-xs text-muted text-center">{t("saveFirst")}</p>}
         {reduced && (
           <a
@@ -178,7 +264,7 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             {t("writeToCustomer")}
           </a>
         )}
-        {editable && (
+        {actions.includes("cancel") && (
           <button
             onClick={() => {
               if (confirm(t("cancelConfirm"))) call({ action: "status", status: "cancelled" }, t("cancelled"));

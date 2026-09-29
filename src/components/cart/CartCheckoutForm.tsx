@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Store, Truck } from "lucide-react";
+import type { DeliveryMethod } from "@/lib/delivery";
 import { usePrice } from "@/lib/use-price";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
@@ -28,6 +29,11 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
   const [branchId, setBranchId] = useState("");
   const [name, setName] = useState(session?.displayName ?? "");
   const [phone, setPhone] = useState("");
+  // Как получить заказ (docs/superpowers/specs/2026-09-29-order-delivery-design.md); проверка — parseDeliveryInput на сервере.
+  const [method, setMethod] = useState<DeliveryMethod>("pickup");
+  const [address, setAddress] = useState("");
+  const [time, setTime] = useState("");
+  const [courierPhone, setCourierPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +64,12 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         if (!last) return;
         setName((current) => current || last.customerName);
         setPhone((current) => current || last.customerPhone);
+        // Адрес — из последнего заказа с доставкой, чтобы не вводить его заново.
+        const lastDelivery = data.orders?.find((o) => o.deliveryMethod === "delivery" && o.deliveryAddress);
+        if (lastDelivery) {
+          setAddress((current) => current || lastDelivery.deliveryAddress!);
+          setCourierPhone((current) => current || lastDelivery.courierPhone || "");
+        }
       })
       .catch(() => {});
     return () => {
@@ -65,7 +77,8 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
     };
   }, []);
 
-  const canSubmit = selectedCount > 0 && !!branchId && !!name.trim() && !!phone.trim() && !submitting;
+  const addressMissing = method === "delivery" && address.trim().length < 5;
+  const canSubmit = selectedCount > 0 && !!branchId && !!name.trim() && !!phone.trim() && !addressMissing && !submitting;
 
   async function submit() {
     if (!canSubmit) return;
@@ -81,7 +94,13 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ branchId, customerName: name, customerPhone: phone }),
+        body: JSON.stringify({
+          branchId,
+          customerName: name,
+          customerPhone: phone,
+          deliveryMethod: method,
+          ...(method === "delivery" ? { deliveryAddress: address, deliveryTime: time, courierPhone } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -121,6 +140,68 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       <input className={inputClass} placeholder={t("namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
       <input className={inputClass} placeholder={t("phonePlaceholder")} value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" />
 
+      <fieldset>
+        <legend className="block text-xs font-medium text-muted mb-1.5">{t("howToGet")}</legend>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup">
+          {(
+            [
+              { key: "pickup", icon: Store, label: t("pickup") },
+              { key: "delivery", icon: Truck, label: t("delivery") },
+            ] as const
+          ).map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              type="button"
+              role="radio"
+              aria-checked={method === key}
+              onClick={() => setMethod(key)}
+              className={[
+                "rounded-[var(--radius-control)] border px-3 py-3 text-sm font-medium flex items-center justify-center gap-2 min-h-11 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                method === key ? "border-accent bg-accent-soft text-accent-strong" : "border-border bg-card text-foreground",
+              ].join(" ")}
+            >
+              <Icon className="size-4.5 shrink-0" strokeWidth={1.9} aria-hidden />
+              {label}
+            </button>
+          ))}
+        </div>
+        {method === "pickup" && <p className="text-xs text-muted mt-1.5">{t("pickupHint")}</p>}
+      </fieldset>
+
+      {method === "delivery" && (
+        <div className="flex flex-col gap-3 animate-rise-in">
+          <label className="block">
+            <span className="block text-xs font-medium text-muted mb-1.5">{t("addressLabel")}</span>
+            <textarea
+              className={`${inputClass} resize-none`}
+              rows={2}
+              placeholder={t("addressPlaceholder")}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              autoComplete="street-address"
+              maxLength={300}
+            />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium text-muted mb-1.5">{t("timeLabel")}</span>
+            <input className={inputClass} placeholder={t("timePlaceholder")} value={time} onChange={(e) => setTime(e.target.value)} maxLength={100} />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium text-muted mb-1.5">{t("courierPhoneLabel")}</span>
+            <input
+              className={inputClass}
+              placeholder={t("courierPhonePlaceholder")}
+              value={courierPhone}
+              onChange={(e) => setCourierPhone(e.target.value)}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+            />
+            <span className="block text-xs text-muted mt-1.5">{t("courierPhoneHint")}</span>
+          </label>
+        </div>
+      )}
+
       <WholesaleProgress summary={wholesale} />
 
       <div className="flex justify-between font-display text-xl mt-1">
@@ -138,7 +219,7 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         className="w-full rounded-full bg-[#25D366] text-white px-6 py-3.5 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2"
       >
         <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
-        {submitting ? t("sending") : selectedCount === 0 ? t("nothingSelected") : t("sendWhatsApp")}
+        {submitting ? t("sending") : selectedCount === 0 ? t("nothingSelected") : addressMissing ? t("enterAddress") : t("sendWhatsApp")}
       </button>
     </div>
   );
