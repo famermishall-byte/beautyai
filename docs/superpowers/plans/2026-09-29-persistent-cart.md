@@ -57,7 +57,7 @@
 ```powershell
 cd C:\Users\Admin\Desktop\BeautyAI
 git worktree add .claude/worktrees/persistent-cart -b worktree-persistent-cart main
-Copy-Item .env.local .claude/worktrees/persistent-cart/.env.local
+Copy-Item .env .claude/worktrees/persistent-cart/.env
 cd .claude/worktrees/persistent-cart; npm install
 ```
 
