@@ -1,4 +1,5 @@
 import type { CartItem } from "@/types";
+import type { Delivery } from "./delivery";
 
 function sanitizePhoneForWhatsApp(phone: string): string {
   return phone.replace(/[^\d]/g, "");
@@ -17,7 +18,19 @@ type OrderMessageInput = {
   origin: string;
   /** Порог опта в сомах, если заказ оптовый (цены в items уже оптовые). */
   wholesaleThreshold?: number | null;
+  /** Самовывоз или доставка (lib/delivery.ts); без него — как раньше, самовывоз. */
+  delivery?: Delivery;
 };
+
+function deliveryLines(d: Delivery | undefined): string[] {
+  if (!d || d.method === "pickup") return ["Способ получения: Самовывоз из филиала."];
+  return [
+    "Способ получения: Доставка 🚚",
+    `Адрес доставки: ${d.address}`,
+    ...(d.time ? [`Желательное время: ${d.time}`] : []),
+    ...(d.courierPhone ? [`Телефон для курьера: ${d.courierPhone}`] : []),
+  ];
+}
 
 export function buildOrderMessage(order: OrderMessageInput): string {
   const itemLines = order.items
@@ -46,11 +59,11 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     order.branchName,
     `Адрес: ${order.branchAddress}`,
     "",
-    "Клиент хочет оформить доставку.",
+    ...deliveryLines(order.delivery),
     "",
-    "Пожалуйста, свяжитесь с клиентом для подтверждения заказа и оформления доставки.",
+    "Пожалуйста, свяжитесь с клиентом для подтверждения заказа.",
     "",
-    "Когда обработаете заказ — откройте ссылку (входить в приложение не нужно). Там можно убрать то, чего нет в наличии, отметить оплату или отменить заказ. Всё сразу отобразится в приложении:",
+    "Когда обработаете заказ — откройте ссылку (входить в приложение не нужно). Там можно убрать то, чего нет в наличии, отметить оплату, отправку, выдачу или отменить заказ. Всё сразу отобразится в приложении:",
     `👉 ${order.origin}/o/${order.statusToken}`,
   ].join("\n");
 }

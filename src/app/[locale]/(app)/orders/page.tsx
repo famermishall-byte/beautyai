@@ -96,6 +96,13 @@ export default function OrdersPage() {
               <div className="text-xs text-muted mt-2">
                 {t("branchLine", { name: order.branch.name, address: order.branch.address })}
               </div>
+              <div className="text-xs text-muted mt-1">
+                {order.deliveryMethod === "delivery"
+                  ? order.deliveryTime
+                    ? t("deliveryLineTime", { address: order.deliveryAddress ?? "", time: order.deliveryTime })
+                    : t("deliveryLine", { address: order.deliveryAddress ?? "" })
+                  : t("pickupLine")}
+              </div>
             </div>
           ))}
         </div>

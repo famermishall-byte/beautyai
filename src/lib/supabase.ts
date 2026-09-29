@@ -81,6 +81,12 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
     editedAt: (row.edited_at as string | null | undefined) ?? null,
     editedBy: (row.edited_by as string | null | undefined) ?? null,
     items: row.items_json as OrderItem[],
+    // До миграции supabase/order_delivery.sql колонок нет — все заказы считаются самовывозом.
+    deliveryMethod: row.delivery_method === "delivery" ? ("delivery" as const) : ("pickup" as const),
+    deliveryAddress: (row.delivery_address as string | null | undefined) ?? null,
+    deliveryTime: (row.delivery_time as string | null | undefined) ?? null,
+    courierPhone: (row.courier_phone as string | null | undefined) ?? null,
+    deliveredAt: (row.delivered_at as string | null | undefined) ?? null,
   };
 }
 

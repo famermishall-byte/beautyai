@@ -15,7 +15,7 @@ const LOCALE_HEADER = "X-NEXT-INTL-LOCALE";
 // Pages reachable without being logged in.
 // "/o" — one-click order-status links sent to the store's WhatsApp; the
 // random token in the URL is the authorization, not a login session.
-const PUBLIC_PATHS = ["/login", "/reset-password", "/o"];
+const PUBLIC_PATHS = ["/login", "/reset-password", "/o", "/c"];
 
 // A branch manager only gets these admin screens (everything else is for the owner / admin).
 const BRANCH_MANAGER_PATHS = ["/admin", "/admin/stock", "/admin/orders", "/admin/settings", "/admin/feedback", "/admin/product-rating"];
