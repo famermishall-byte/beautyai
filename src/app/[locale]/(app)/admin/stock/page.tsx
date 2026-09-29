@@ -40,6 +40,14 @@ const PILL: Record<StockStatus, string> = {
   unknown: "bg-border text-muted",
 };
 
+// «Светофор» остатков (просьба владельца 29.09): зелёный — в наличии, жёлтый — мало, красный — нет. Токены --stock-* в globals.css.
+const DOT: Partial<Record<StockStatus, string>> = { ok: "bg-stock-ok", low: "bg-stock-low", out: "bg-stock-out" };
+
+function StatusDot({ status, ring = false }: { status: StockStatus; ring?: boolean }) {
+  if (!DOT[status]) return null;
+  return <span aria-hidden className={["inline-block size-2.5 rounded-full shrink-0", DOT[status], ring ? "ring-2 ring-white/80" : ""].join(" ")} />;
+}
+
 function formatWhen(t: (key: string, values?: Record<string, string>) => string, locale: string, iso: string | null) {
   if (!iso) return t("neverSet");
   const d = new Date(iso);
@@ -209,10 +217,11 @@ export default function AdminStockPage() {
               setPage(1);
             }}
             className={[
-              "shrink-0 rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap",
+              "shrink-0 rounded-full px-3.5 py-2 text-sm font-medium transition whitespace-nowrap inline-flex items-center gap-1.5",
               status === f.key ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
             ].join(" ")}
           >
+            {f.key !== "all" && <StatusDot status={f.key} ring />}
             {ts(`status.${f.key}`)}
             {counts ? ` · ${counts[f.key]}` : ""}
           </button>
@@ -303,7 +312,10 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
         </div>
         <div className="text-sm font-medium leading-snug line-clamp-2">{item.name}</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className={["text-[11px] font-medium rounded-full px-2 py-0.5", PILL[item.status]].join(" ")}>{ts(`status.${item.status}`)}</span>
+          <span className={["text-[11px] font-medium rounded-full px-2 py-0.5 inline-flex items-center gap-1", PILL[item.status]].join(" ")}>
+            <StatusDot status={item.status} />
+            {ts(`status.${item.status}`)}
+          </span>
           {savedFlash ? (
             <span className="text-[11px] font-semibold text-success">✓ {t("saved")}</span>
           ) : saving ? (

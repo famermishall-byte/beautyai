@@ -26,6 +26,11 @@ via `@theme inline`.
   `--border-strong`. Semantic: `--success` / `--success-soft`,
   `--warning` / `--warning-soft`, `--error` / `--error-soft` — each a
   color plus its own tinted surface, no gray standing in for status.
+  Stock «traffic light» dots (admin «Остатки» only): `--stock-ok` #22a55a
+  green / `--stock-low` #f5b700 yellow / `--stock-out` #dc2640 red — a
+  round dot before the status word; the word itself stays in the readable
+  `--success`/`--warning`/`--error` (yellow text would fail contrast).
+  «Не заполнено» has no dot.
 - **Radius:** `--radius-card` 18px (cards, sheets, tiles) /
   `--radius-control` 13px (inputs, chips' corner family — chips
   themselves stay pill/`rounded-full`).
