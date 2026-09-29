@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { MessageCircle, TriangleAlert } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
 export type SentOrder = { orderNumber: string; whatsappUrl: string };
 
@@ -10,7 +9,7 @@ export type SentOrder = { orderNumber: string; whatsappUrl: string };
  * «Заказ отправлен» внутри шторки корзины. wa.me только ОТКРЫВАЕТ чат с готовым текстом — отправить
  * должен сам клиент, поэтому предупреждение и кнопка «Открыть WhatsApp снова» (жалоба владельца 24.09).
  */
-export function CartOrderSent({ order, onDone }: { order: SentOrder; onDone: () => void }) {
+export function CartOrderSent({ order }: { order: SentOrder }) {
   const t = useTranslations("checkout");
   return (
     <div className="flex-1 overflow-y-auto px-5 py-8 flex flex-col items-center text-center">
@@ -34,10 +33,7 @@ export function CartOrderSent({ order, onDone }: { order: SentOrder; onDone: () 
         <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
         {t("reopenWhatsapp")}
       </button>
-
-      <Button variant="primary" size="lg" fullWidth onClick={onDone}>
-        {t("done")}
-      </Button>
+      {/* Кнопки «Готово» нет по просьбе владельца 29.09 — вернуть, когда появится онлайн-оплата. Закрыть — крестиком в шапке. */}
     </div>
   );
 }
