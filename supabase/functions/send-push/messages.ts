@@ -35,3 +35,21 @@ export function staffRecipient(
   if (p.role === "owner" || p.role === "admin") return true;
   return p.role === "branch_manager" && !!p.branch_id && p.branch_id === order.branch_id;
 }
+
+/** Рассылка клиентам: к тексту — «До 05.10», если есть срок действия (docs/superpowers/specs/2026-09-29-push-schedule-design.md). */
+export function broadcastMessage(b: { id: string; title: string; body: string; url: string | null; valid_until: string | null }): PushMessage {
+  const until = b.valid_until ? ` · До ${b.valid_until.slice(8, 10)}.${b.valid_until.slice(5, 7)}` : "";
+  return { title: b.title, body: `${b.body}${until}`, url: b.url || "/", tag: `broadcast-${b.id}` };
+}
+
+const BISHKEK_OFFSET_H = 6;
+const MAX_TTL = 28 * 24 * 3600;
+
+/** Сколько секунд push-служба хранит рассылку для выключенных телефонов: до конца дня «до» по Бишкеку, не больше 28 дней. */
+export function broadcastTtl(validUntil: string | null, now: Date = new Date()): number {
+  if (!validUntil) return 24 * 3600;
+  const [y, m, d] = validUntil.split("-").map(Number);
+  const end = Date.UTC(y, m - 1, d + 1, -BISHKEK_OFFSET_H); // 00:00 следующего дня в Бишкеке
+  const seconds = Math.floor((end - now.getTime()) / 1000);
+  return Math.max(0, Math.min(MAX_TTL, seconds));
+}

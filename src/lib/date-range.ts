@@ -44,3 +44,17 @@ export function inDateRange(iso: string, from: Date | null, to: Date | null): bo
   if (to && t >= new Date(to.getFullYear(), to.getMonth(), to.getDate() + 1).getTime()) return false;
   return true;
 }
+
+/** Время ЧЧ:ММ вводом цифр (запланированная рассылка): "1030" → "10:30". */
+export function formatTimeInput(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 4);
+  return d.length <= 2 ? d : `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
+export function parseTimeInput(s: string): { hours: number; minutes: number } | null {
+  const m = /^(\d{2}):(\d{2})$/.exec(s.trim());
+  if (!m) return null;
+  const hours = Number(m[1]);
+  const minutes = Number(m[2]);
+  return hours <= 23 && minutes <= 59 ? { hours, minutes } : null;
+}

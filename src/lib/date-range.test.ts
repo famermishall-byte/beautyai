@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatDateInput, inDateRange, parseDateInput, presetRange, toDateInput } from "./date-range";
+import { formatDateInput, formatTimeInput, inDateRange, parseDateInput, parseTimeInput, presetRange, toDateInput } from "./date-range";
 
 test("formatDateInput keeps only digits and puts the dots in as you type", () => {
   assert.equal(formatDateInput("0"), "0");
@@ -47,4 +47,22 @@ test("inDateRange includes both whole days; an empty side means no limit", () =>
   assert.equal(inDateRange(new Date(2026, 7, 31, 23, 59).toISOString(), from, to), false);
   assert.equal(inDateRange(new Date(2020, 0, 1).toISOString(), null, to), true);
   assert.equal(inDateRange(new Date(2030, 0, 1).toISOString(), from, null), true);
+});
+
+test("formatTimeInput keeps digits and puts the colon in: 1030 → 10:30", () => {
+  assert.equal(formatTimeInput("1"), "1");
+  assert.equal(formatTimeInput("10"), "10");
+  assert.equal(formatTimeInput("103"), "10:3");
+  assert.equal(formatTimeInput("1030"), "10:30");
+  assert.equal(formatTimeInput("10:30"), "10:30");
+  assert.equal(formatTimeInput("10305"), "10:30");
+});
+
+test("parseTimeInput accepts only real times ЧЧ:ММ", () => {
+  assert.deepEqual(parseTimeInput("09:05"), { hours: 9, minutes: 5 });
+  assert.deepEqual(parseTimeInput("23:59"), { hours: 23, minutes: 59 });
+  assert.equal(parseTimeInput("24:00"), null);
+  assert.equal(parseTimeInput("12:60"), null);
+  assert.equal(parseTimeInput("9:05"), null);
+  assert.equal(parseTimeInput(""), null);
 });
