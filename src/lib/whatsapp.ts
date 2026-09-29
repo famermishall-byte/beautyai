@@ -1,9 +1,5 @@
 import type { CartItem } from "@/types";
 
-export function formatOrderNumber(sequence: number): string {
-  return `BA-${String(sequence).padStart(5, "0")}`;
-}
-
 function sanitizePhoneForWhatsApp(phone: string): string {
   return phone.replace(/[^\d]/g, "");
 }

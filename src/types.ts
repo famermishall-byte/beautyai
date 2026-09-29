@@ -83,6 +83,8 @@ export type OrderItem = {
 export type Order = {
   id: string;
   number: string;
+  /** Номер до перехода на простые числа (BA-00017) — только для поиска старых заказов из переписки. */
+  legacyNumber: string | null;
   customerName: string;
   customerPhone: string;
   totalPrice: number;
