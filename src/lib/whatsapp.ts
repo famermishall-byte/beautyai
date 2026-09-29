@@ -15,6 +15,8 @@ type OrderMessageInput = {
   storeName: string;
   statusToken: string;
   origin: string;
+  /** Порог опта в сомах, если заказ оптовый (цены в items уже оптовые). */
+  wholesaleThreshold?: number | null;
 };
 
 export function buildOrderMessage(order: OrderMessageInput): string {
@@ -29,6 +31,7 @@ export function buildOrderMessage(order: OrderMessageInput): string {
     `Новый заказ из ${order.storeName} 💄`,
     "",
     `Заказ: #${order.orderNumber}`,
+    ...(order.wholesaleThreshold ? [`Оптовый заказ (от ${order.wholesaleThreshold.toLocaleString("ru-RU")} сом)`] : []),
     "",
     "Товары:",
     itemLines,

@@ -11,6 +11,7 @@ const PAGE = 100;
 
 export default function AdminCatalogPage() {
   const t = useTranslations("adminCatalog");
+  const tw = useTranslations("wholesale");
   const price = usePrice();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [query, setQuery] = useState("");
@@ -61,6 +62,7 @@ export default function AdminCatalogPage() {
                   <th className="py-2 pr-4">{t("colVolume")}</th>
                   <th className="py-2 pr-4">{t("colBarcode")}</th>
                   <th className="py-2 pr-4">{t("colPrice")}</th>
+                  <th className="py-2 pr-4">{tw("badge")}</th>
                   <th className="py-2 pr-4">{t("colStock")}</th>
                 </tr>
               </thead>
@@ -73,6 +75,7 @@ export default function AdminCatalogPage() {
                     <td className="py-2 pr-4 whitespace-nowrap">{p.attributes?.volume ?? "—"}</td>
                     <td className="py-2 pr-4 whitespace-nowrap font-mono text-xs">{p.barcode ?? "—"}</td>
                     <td className="py-2 pr-4 whitespace-nowrap">{price(p.price)}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap">{p.wholesalePrice ? price(p.wholesalePrice) : "—"}</td>
                     <td className="py-2 pr-4">{p.inStock ? "✅" : "—"}</td>
                   </tr>
                 ))}

@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import type { ColumnMapping, RawTable } from "./types";
-import { parsePrice } from "./validate";
+import { parseOptionalPrice, parsePrice } from "./validate";
 
 export type ExistingProductRef = {
   id: string;
@@ -14,6 +14,7 @@ export type SyncBranch = { id: string; name: string };
 type NewProductInput = {
   name: string;
   price: number;
+  wholesalePrice: number | null;
   sku: string;
   barcode: string | null;
   externalId: string | null;
@@ -146,6 +147,7 @@ export function planSyncRows(
     const purpose = get(row, "purpose");
     const imageUrl = get(row, "imageUrl");
     const quantity = parseQuantity(get(row, "quantity"));
+    const wholesalePrice = parseOptionalPrice(get(row, "wholesalePrice"));
 
     if (!externalId && !barcode && !sku) {
       sku = syntheticSku(name, brandRaw || "Без бренда");
@@ -185,6 +187,7 @@ export function planSyncRows(
 
     if (match) {
       const changes: ProductUpdateInput = { price };
+      if (wholesalePrice !== null) changes.wholesalePrice = wholesalePrice;
       if (brandRaw) changes.brand = brandRaw;
       if (categoryRaw) changes.category = categoryRaw;
       if (description) changes.description = description;
@@ -211,6 +214,7 @@ export function planSyncRows(
         product: {
           name,
           price,
+          wholesalePrice,
           sku: groupKey,
           barcode,
           externalId,

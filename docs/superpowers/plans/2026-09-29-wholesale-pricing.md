@@ -46,7 +46,7 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
 ```
 `Product` получает `wholesalePrice?: number | null` (кандидат, ставит только сервер корзины) и `retailPrice?: number` (обычная цена, заполняется `applyWholesale`, когда цена заменена оптовой).
 
-- [ ] Step 1: тесты `src/lib/wholesale.test.ts`:
+- [x] Step 1: тесты `src/lib/wholesale.test.ts`:
 
 ```ts
 import { test } from "node:test";
@@ -113,8 +113,8 @@ test("mapWholesaleSettings reads DB numerics (strings) and defaults", () => {
   assert.equal(mapWholesaleSettings({ wholesale_mode: "junk" }).mode, "off");
 });
 ```
-- [ ] Step 2: добавить файл в `scripts.test`; `npm test` → FAIL «Cannot find module './wholesale'».
-- [ ] Step 3: реализация `src/lib/wholesale.ts`:
+- [x] Step 2: добавить файл в `scripts.test`; `npm test` → FAIL «Cannot find module './wholesale'».
+- [x] Step 3: реализация `src/lib/wholesale.ts`:
 
 ```ts
 import type { CartItem } from "@/types";
@@ -176,8 +176,8 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
   /** Cart only: the regular price when `price` was replaced by the wholesale one (shown struck through). */
   retailPrice?: number;
 ```
-- [ ] Step 4: `npm test` → PASS (все).
-- [ ] Step 5: commit `feat(wholesale): pricing core with tests`.
+- [x] Step 4: `npm test` → PASS (все).
+- [x] Step 5: commit `feat(wholesale): pricing core with tests`.
 
 ### Task 2: Колонка «Оптовая цена» в загрузке Excel и синхронизации
 
@@ -185,7 +185,7 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
 
 **Interfaces — Produces:** `FieldKey` += `"wholesalePrice"`; поле списка полей может иметь `exclude?: string[]`; `ParsedImportProduct.wholesalePrice: number | null`; `parseOptionalPrice(value: string): number | null` (в `validate.ts`).
 
-- [ ] Step 1: тест `src/lib/import/autoMap.test.ts`:
+- [x] Step 1: тест `src/lib/import/autoMap.test.ts`:
 ```ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -219,7 +219,7 @@ test("parseOptionalPrice: empty / junk / non-positive → null", () => {
 });
 ```
 Добавить в `scripts.test`. `npm test` → FAIL (нет поля / функции).
-- [ ] Step 2: реализация:
+- [x] Step 2: реализация:
   - `types.ts`: `| "wholesalePrice"`; в `ParsedImportProduct` — `wholesalePrice: number | null;`.
   - `fields.ts` и `syncFields.ts`: тип элемента + `exclude?: string[]`; у `price` — `exclude: ["опт", "wholesale"]`; новое поле после `price`: `{ key: "wholesalePrice", label: "Оптовая цена", required: false, aliases: ["оптовая цена", "опт", "цена опт", "оптом", "оптовая", "wholesale", "wholesale price"] }`.
   - `autoMap.ts`: `type ImportField = { key; required; aliases; exclude?: string[] }`; в обоих `findIndex` добавить условие `!(field.exclude ?? []).some((x) => h.includes(x))`.
@@ -227,12 +227,12 @@ test("parseOptionalPrice: empty / junk / non-positive → null", () => {
   - `import/route.ts` insert: `wholesale_price: product.wholesalePrice ?? null`.
   - `sync.ts`: `NewProductInput.wholesalePrice: number | null`; `const wholesalePrice = parseOptionalPrice(get(row, "wholesalePrice"));` — в update `if (wholesalePrice !== null) changes.wholesalePrice = wholesalePrice;`, в create `wholesalePrice`.
   - `executeSync.ts`: insert `wholesale_price: c.product.wholesalePrice`; update `if (u.changes.wholesalePrice !== undefined) changes.wholesale_price = u.changes.wholesalePrice;`.
-- [ ] Step 3: `npm test` → PASS; `npx tsc --noEmit` — ошибок в import-файлах нет.
-- [ ] Step 4: commit `feat(import): optional wholesale price column; price never grabs the wholesale column`.
+- [x] Step 3: `npm test` → PASS; `npx tsc --noEmit` — ошибок в import-файлах нет.
+- [x] Step 4: commit `feat(import): optional wholesale price column; price never grabs the wholesale column`.
 
 ### Task 3: Миграция `supabase/wholesale.sql`
 
-- [ ] Step 1: файл:
+- [x] Step 1: файл:
 ```sql
 -- Оптовые цены (docs/superpowers/specs/2026-09-29-wholesale-pricing-design.md). Выключено по умолчанию.
 alter table public.stores add column if not exists wholesale_mode text not null default 'off';
@@ -254,8 +254,8 @@ alter table public.products add constraint products_wholesale_price_check check 
 
 alter table public.orders add column if not exists is_wholesale boolean not null default false;
 ```
-- [ ] Step 2: СПРОСИТЬ владельца; применить `apply_migration` (name `wholesale`); проверить `information_schema.columns` и `get_advisors`.
-- [ ] Step 3: commit `feat(db): wholesale settings, product wholesale price, order flag`.
+- [x] Step 2: СПРОСИТЬ владельца; применить `apply_migration` (name `wholesale`); проверить `information_schema.columns` и `get_advisors`.
+- [x] Step 3: commit `feat(db): wholesale settings, product wholesale price, order flag`.
 
 ### Task 4: Сервер — корзина, заказ, настройки
 
@@ -263,15 +263,15 @@ alter table public.orders add column if not exists is_wholesale boolean not null
 
 **Interfaces — Produces:** `loadCart(...)` → `Promise<{ items: CartItem[]; threshold: number | null }>`; `GET /api/cart` → `{ items, wholesaleThreshold }`; `GET /api/wholesale` → `{ settings: WholesaleSettings, thresholdSom: number | null }`; `PUT /api/admin/wholesale` body `WholesaleSettings` → `{ ok, settings, thresholdSom }` | 400 с текстом; `Order.isWholesale: boolean`; админский каталог отдаёт у товаров `wholesalePrice`.
 
-- [ ] `cart-server.ts`: прочитать `stores` (`wholesale_mode, wholesale_percent, wholesale_threshold_usd, usd_rate`) по `storeId` → `mapWholesaleSettings`; у каждого товара до акции `base = Number(p.price)`, `own = p.wholesale_price` → `wholesalePrice: wholesaleCandidate(base, own, settings)`; вернуть `{ items, threshold: thresholdSom(settings) }`.
-- [ ] `GET /api/cart`: `const { items, threshold } = await loadCart(...)`; ответ `{ items, wholesaleThreshold: threshold }`.
-- [ ] `POST /api/orders`: `const { items: raw, threshold } = await loadCart(..., { selectedOnly: true })`; `const { items, summary } = applyWholesale(raw, threshold)`; строки/итог из `items`; insert `is_wholesale: summary.qualifies`; `buildOrderMessage({... wholesaleThreshold: summary.qualifies ? threshold : null })`.
-- [ ] `whatsapp.ts` `OrderMessageInput.wholesaleThreshold?: number | null` → после строки «Заказ: #…» при значении: `Оптовый заказ (от ${threshold.toLocaleString("ru-RU")} сом)`. `items` в сообщении уже с оптовыми ценами.
-- [ ] `mapOrder`: `isWholesale: row.is_wholesale === true`; `Order.isWholesale: boolean`.
-- [ ] `GET /api/wholesale` (любая сессия): `stores` → настройки + `thresholdSom`.
-- [ ] `PUT /api/admin/wholesale` (`isStoreManager`): валидация — `mode` ∈ режимы; `thresholdUsd > 0`; для `mode !== "off"` нужен `usdRate > 0` («Укажите курс доллара»); для `percent` — `0 < percent < 100` («Укажите процент скидки от 1 до 99»); update `stores` (все 4 колонки) по `profile.storeId`.
-- [ ] `admin/catalog` route: к каждому товару `wholesalePrice: p.wholesale_price != null ? Number(p.wholesale_price) : null` (через `select("*")` уже есть).
-- [ ] `npx tsc --noEmit` и `npm test` чисто; commit `feat(wholesale): server pricing in cart and orders; settings API`.
+- [x] `cart-server.ts`: прочитать `stores` (`wholesale_mode, wholesale_percent, wholesale_threshold_usd, usd_rate`) по `storeId` → `mapWholesaleSettings`; у каждого товара до акции `base = Number(p.price)`, `own = p.wholesale_price` → `wholesalePrice: wholesaleCandidate(base, own, settings)`; вернуть `{ items, threshold: thresholdSom(settings) }`.
+- [x] `GET /api/cart`: `const { items, threshold } = await loadCart(...)`; ответ `{ items, wholesaleThreshold: threshold }`.
+- [x] `POST /api/orders`: `const { items: raw, threshold } = await loadCart(..., { selectedOnly: true })`; `const { items, summary } = applyWholesale(raw, threshold)`; строки/итог из `items`; insert `is_wholesale: summary.qualifies`; `buildOrderMessage({... wholesaleThreshold: summary.qualifies ? threshold : null })`.
+- [x] `whatsapp.ts` `OrderMessageInput.wholesaleThreshold?: number | null` → после строки «Заказ: #…» при значении: `Оптовый заказ (от ${threshold.toLocaleString("ru-RU")} сом)`. `items` в сообщении уже с оптовыми ценами.
+- [x] `mapOrder`: `isWholesale: row.is_wholesale === true`; `Order.isWholesale: boolean`.
+- [x] `GET /api/wholesale` (любая сессия): `stores` → настройки + `thresholdSom`.
+- [x] `PUT /api/admin/wholesale` (`isStoreManager`): валидация — `mode` ∈ режимы; `thresholdUsd > 0`; для `mode !== "off"` нужен `usdRate > 0` («Укажите курс доллара»); для `percent` — `0 < percent < 100` («Укажите процент скидки от 1 до 99»); update `stores` (все 4 колонки) по `profile.storeId`.
+- [x] `admin/catalog` route: к каждому товару `wholesalePrice: p.wholesale_price != null ? Number(p.wholesale_price) : null` (через `select("*")` уже есть).
+- [x] `npx tsc --noEmit` и `npm test` чисто; commit `feat(wholesale): server pricing in cart and orders; settings API`.
 
 ### Task 5: Корзина покупателя
 
@@ -279,26 +279,26 @@ alter table public.orders add column if not exists is_wholesale boolean not null
 
 **Interfaces:** `CartState.wholesaleThreshold: number | null` (из ответа GET /api/cart); `useCart()` дополнительно отдаёт `wholesale: WholesaleSummary`, а `items`/`selectedTotal` — уже пересчитанные `applyWholesale`.
 
-- [ ] Тест в `cart-store.test.ts`: fake GET возвращает `wholesaleThreshold: 5000` → после `load()` `getState().wholesaleThreshold === 5000`; FAIL → в `fetchItems` сохранять `wholesaleThreshold: data.wholesaleThreshold ?? null` (+ в начальное состояние и `switchAccount` → null) → PASS.
-- [ ] `cart-context.tsx`: `const priced = useMemo(() => applyWholesale(state.items, state.wholesaleThreshold), [...])`; `items: priced.items`, totals из `priced.items`, `wholesale: priced.summary`.
-- [ ] `CartItemRow`: если `item.product.retailPrice` — над ценой строки зачёркнутая `price(retailPrice * quantity)` мелким `text-muted line-through`.
-- [ ] `WholesaleProgress` (в `CartCheckoutForm` над строкой «Итого», только если `wholesale.threshold !== null`): ниже порога — текст `wholesale.progress` + полоска (`h-2 rounded-full bg-accent-soft`, заполнение `bg-accent` шириной `retailTotal/threshold`); от порога — `bg-success-soft text-success` текст `wholesale.applied` (экономия).
-- [ ] messages ru/ky, неймспейс `wholesale`: `progress` «До оптовых цен осталось {amount}» / «Дүң бааларга чейин {amount} калды»; `applied` «Оптовые цены применены — вы экономите {amount}» / «Дүң баалар колдонулду — {amount} үнөмдөйсүз»; `homeBanner` «Опт от {usd} $ (≈ {som}) — цены ниже» / «{usd} $ баштап дүңүнөн (≈ {som}) — баалар арзаныраак»; `badge` «Опт» / «Дүң».
-- [ ] tsc/eslint/test; commit `feat(wholesale): cart progress bar and wholesale prices`.
+- [x] Тест в `cart-store.test.ts`: fake GET возвращает `wholesaleThreshold: 5000` → после `load()` `getState().wholesaleThreshold === 5000`; FAIL → в `fetchItems` сохранять `wholesaleThreshold: data.wholesaleThreshold ?? null` (+ в начальное состояние и `switchAccount` → null) → PASS.
+- [x] `cart-context.tsx`: `const priced = useMemo(() => applyWholesale(state.items, state.wholesaleThreshold), [...])`; `items: priced.items`, totals из `priced.items`, `wholesale: priced.summary`.
+- [x] `CartItemRow`: если `item.product.retailPrice` — над ценой строки зачёркнутая `price(retailPrice * quantity)` мелким `text-muted line-through`.
+- [x] `WholesaleProgress` (в `CartCheckoutForm` над строкой «Итого», только если `wholesale.threshold !== null`): ниже порога — текст `wholesale.progress` + полоска (`h-2 rounded-full bg-accent-soft`, заполнение `bg-accent` шириной `retailTotal/threshold`); от порога — `bg-success-soft text-success` текст `wholesale.applied` (экономия).
+- [x] messages ru/ky, неймспейс `wholesale`: `progress` «До оптовых цен осталось {amount}» / «Дүң бааларга чейин {amount} калды»; `applied` «Оптовые цены применены — вы экономите {amount}» / «Дүң баалар колдонулду — {amount} үнөмдөйсүз»; `homeBanner` «Опт от {usd} $ (≈ {som}) — цены ниже» / «{usd} $ баштап дүңүнөн (≈ {som}) — баалар арзаныраак»; `badge` «Опт» / «Дүң».
+- [x] tsc/eslint/test; commit `feat(wholesale): cart progress bar and wholesale prices`.
 
 ### Task 6: Админка и главная
 
 **Files:** Create `src/components/admin/WholesaleSettings.tsx`, `src/components/WholesaleBanner.tsx`; Modify `admin/profile/page.tsx`, `admin/catalog/page.tsx`, `OrderManager.tsx`, `(app)/page.tsx`; messages.
 
-- [ ] `WholesaleSettings` (под формой названия в «Магазине»): GET `/api/wholesale`; радио из 3 способов; поле «Скидка, %» (только для percent); «Порог, $»; «Курс доллара, сом»; живой текст `= {thresholdSom}`; для `per_product` — «У {n} товаров оптовая цена не заполнена — они продаются по обычной цене.» (n из `/api/admin/catalog`: товары без `wholesalePrice`); «Сохранить» → PUT, ошибки сервера показываются как есть.
-- [ ] `admin/catalog`: колонка «Опт» — `price(p.wholesalePrice)` или «—».
-- [ ] `OrderManager` карточка: рядом с `#{order.number}` метка `wholesale.badge` (`text-[11px] font-semibold rounded-full bg-accent-soft text-accent px-2 py-0.5`) при `order.isWholesale`.
-- [ ] `WholesaleBanner` на главной сразу после слайдера: GET `/api/wholesale`; если `thresholdSom` — плашка `rounded-[var(--radius-card)] bg-accent-soft px-4 py-3 text-sm` с `wholesale.homeBanner` (usd — порог $, som — `price(thresholdSom)`).
-- [ ] messages ru/ky, неймспейс `adminWholesale`: title «Оптовые цены»/«Дүң баалар»; hint «Когда сумма заказа достигает порога, на все отмеченные товары действует оптовая цена.»/«Буйрутманын суммасы босогого жеткенде, бардык белгиленген товарларга дүң баа колдонулат.»; modeOff «Выключено»/«Өчүрүлгөн»; modePercent «Скидка % на все товары»/«Бардык товарларга % арзандатуу»; modePerProduct «Своя оптовая цена у товара (колонка «Оптовая цена» в Excel)»/«Ар бир товардын өз дүң баасы (Excel'деги «Оптовая цена» тилкеси)»; percent «Скидка, %»/«Арзандатуу, %»; thresholdUsd «Порог, $»/«Босого, $»; usdRate «Курс доллара, сом»/«Доллардын курсу, сом»; equals «= {amount}»; missing «У {n} товаров оптовая цена не заполнена — они продаются по обычной цене.»/«{n} товардын дүң баасы толтурулган эмес — алар кадимки баада сатылат.»; save «Сохранить»/«Сактоо»; saved «Сохранено»/«Сакталды»; saveFailed «Не удалось сохранить»/«Сактоо мүмкүн болбоду»; и в `adminCatalog` (или его неймспейсе) `wholesale` «Опт»/«Дүң».
-- [ ] tsc/eslint/test/build; commit `feat(wholesale): admin settings, catalog column, order badge, home banner`.
+- [x] `WholesaleSettings` (под формой названия в «Магазине»): GET `/api/wholesale`; радио из 3 способов; поле «Скидка, %» (только для percent); «Порог, $»; «Курс доллара, сом»; живой текст `= {thresholdSom}`; для `per_product` — «У {n} товаров оптовая цена не заполнена — они продаются по обычной цене.» (n из `/api/admin/catalog`: товары без `wholesalePrice`); «Сохранить» → PUT, ошибки сервера показываются как есть.
+- [x] `admin/catalog`: колонка «Опт» — `price(p.wholesalePrice)` или «—».
+- [x] `OrderManager` карточка: рядом с `#{order.number}` метка `wholesale.badge` (`text-[11px] font-semibold rounded-full bg-accent-soft text-accent px-2 py-0.5`) при `order.isWholesale`.
+- [x] `WholesaleBanner` на главной сразу после слайдера: GET `/api/wholesale`; если `thresholdSom` — плашка `rounded-[var(--radius-card)] bg-accent-soft px-4 py-3 text-sm` с `wholesale.homeBanner` (usd — порог $, som — `price(thresholdSom)`).
+- [x] messages ru/ky, неймспейс `adminWholesale`: title «Оптовые цены»/«Дүң баалар»; hint «Когда сумма заказа достигает порога, на все отмеченные товары действует оптовая цена.»/«Буйрутманын суммасы босогого жеткенде, бардык белгиленген товарларга дүң баа колдонулат.»; modeOff «Выключено»/«Өчүрүлгөн»; modePercent «Скидка % на все товары»/«Бардык товарларга % арзандатуу»; modePerProduct «Своя оптовая цена у товара (колонка «Оптовая цена» в Excel)»/«Ар бир товардын өз дүң баасы (Excel'деги «Оптовая цена» тилкеси)»; percent «Скидка, %»/«Арзандатуу, %»; thresholdUsd «Порог, $»/«Босого, $»; usdRate «Курс доллара, сом»/«Доллардын курсу, сом»; equals «= {amount}»; missing «У {n} товаров оптовая цена не заполнена — они продаются по обычной цене.»/«{n} товардын дүң баасы толтурулган эмес — алар кадимки баада сатылат.»; save «Сохранить»/«Сактоо»; saved «Сохранено»/«Сакталды»; saveFailed «Не удалось сохранить»/«Сактоо мүмкүн болбоду»; и в `adminCatalog` (или его неймспейсе) `wholesale` «Опт»/«Дүң».
+- [x] tsc/eslint/test/build; commit `feat(wholesale): admin settings, catalog column, order badge, home banner`.
 
 ### Task 7: Проверка и журнал
 
-- [ ] Браузер 390×844, временный аккаунт: включить на живой базе `percent 20 %, 1000 $, курс 87.5` (владелец знает); ниже порога — полоска и остаток; выше — оптовые цены, зачёркнутые обычные, экономия; оформить заказ → `items_json` оптовые, `is_wholesale = true`, в тексте WhatsApp «Оптовый заказ»; главная — плашка. Затем `per_product` без оптовых цен → опт не меняет цены. Вернуть `wholesale_mode = 'off'`, `usd_rate = null`; удалить аккаунт и его заказы; `cart_items` аккаунта уходят каскадом.
-- [ ] Админка (временная роль admin тому же аккаунту — снять после): блок «Оптовые цены», валидация без курса.
-- [ ] `PROJECT_CONTEXT.md`: запись; отметить Review Focus 5 (уменьшение заказа продавцом не пересчитывает опт). `[x]` в плане. commit, доклад, «пуш?».
+- [x] Браузер 390×844, временный аккаунт: включить на живой базе `percent 20 %, 1000 $, курс 87.5` (владелец знает); ниже порога — полоска и остаток; выше — оптовые цены, зачёркнутые обычные, экономия; оформить заказ → `items_json` оптовые, `is_wholesale = true`, в тексте WhatsApp «Оптовый заказ»; главная — плашка. Затем `per_product` без оптовых цен → опт не меняет цены. Вернуть `wholesale_mode = 'off'`, `usd_rate = null`; удалить аккаунт и его заказы; `cart_items` аккаунта уходят каскадом.
+- [x] Админка (временная роль admin тому же аккаунту — снять после): блок «Оптовые цены», валидация без курса.
+- [x] `PROJECT_CONTEXT.md`: запись; отметить Review Focus 5 (уменьшение заказа продавцом не пересчитывает опт). `[x]` в плане. commit, доклад, «пуш?».

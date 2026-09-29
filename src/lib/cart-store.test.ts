@@ -13,6 +13,7 @@ function fakeServer(catalog: Product[]) {
   const rows = new Map<string, { quantity: number; selected: boolean }>();
   let failNext = 0;
   let writeGate: Promise<void> | null = null;
+  let wholesaleThreshold: number | null = null;
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
   const fetchImpl = async (url: string, init: RequestInit = {}) => {
     const method = init.method ?? "GET";
@@ -24,7 +25,7 @@ function fakeServer(catalog: Product[]) {
     const body = init.body ? JSON.parse(String(init.body)) : {};
     if (method === "GET") {
       const items: CartItem[] = [...rows].map(([id, r]) => ({ product: catalog.find((p) => p.id === id)!, ...r }));
-      return json({ items });
+      return json({ items, wholesaleThreshold });
     }
     if (method === "PUT") {
       if (body.quantity <= 0) rows.delete(body.productId);
@@ -40,6 +41,7 @@ function fakeServer(catalog: Product[]) {
     rows,
     fetchImpl,
     failNextRequests: (n: number) => (failNext = n),
+    setWholesaleThreshold: (t: number | null) => (wholesaleThreshold = t),
     holdWrites: () => {
       let release!: () => void;
       writeGate = new Promise((r) => (release = r));
@@ -111,7 +113,7 @@ test("switching account drops the previous account's cart and ignores its in-fli
   await store.load();
   store.add(product("a"));
   store.switchAccount(null);
-  assert.deepEqual(store.getState(), { items: [], loaded: false, saveFailed: false });
+  assert.deepEqual(store.getState(), { items: [], loaded: false, saveFailed: false, wholesaleThreshold: null });
 });
 
 test("switchAccount to the same account is a no-op; a different account starts clean", async () => {
@@ -147,4 +149,12 @@ test("an add made before the account is known is not dropped when the account ar
   assert.equal(await store.flush(), true);
   assert.equal(server.rows.get("a")?.quantity, 1);
   assert.deepEqual(store.getState().items.map((i) => i.product.id), ["a"]);
+});
+
+test("the cart keeps the wholesale threshold the server sent", async () => {
+  const server = fakeServer([product("a")]);
+  server.setWholesaleThreshold(5000);
+  const store = createCartStore(server.fetchImpl, () => {});
+  await store.load();
+  assert.equal(store.getState().wholesaleThreshold, 5000);
 });

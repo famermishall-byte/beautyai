@@ -5,8 +5,10 @@ import type { CartItem, Product } from "@/types";
 import { useSession } from "@/lib/session-context";
 import { cartTotals, parseLegacyCart } from "@/lib/cart-logic";
 import { createCartStore, type CartState } from "@/lib/cart-store";
+import { applyWholesale, type WholesaleSummary } from "@/lib/wholesale";
 
 type CartContextValue = {
+  /** Уже с оптовыми ценами, если корзина набрала порог (обычная цена — в product.retailPrice). */
   items: CartItem[];
   /** The account's cart has been loaded from the server at least once. */
   hydrated: boolean;
@@ -23,6 +25,8 @@ type CartContextValue = {
   totalCount: number;
   selectedCount: number;
   selectedTotal: number;
+  /** Опт: порог, набран ли, сколько осталось, экономия (threshold null — опт не действует). */
+  wholesale: WholesaleSummary;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -40,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   // Смена аккаунта (выход / вход другим) — корзина загружается с нуля.
   const accountKey = session ? `${session.storeId}:${session.email ?? ""}` : null;
-  const [state, setState] = useState<CartState>({ items: [], loaded: false, saveFailed: false });
+  const [state, setState] = useState<CartState>({ items: [], loaded: false, saveFailed: false, wholesaleThreshold: null });
   const [store] = useState(() => createCartStore((url, init) => fetch(url, init), setState));
 
   useEffect(() => {
@@ -70,12 +74,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     store.load();
   }, [loading, accountKey, store]);
 
-  const totals = useMemo(() => cartTotals(state.items), [state.items]);
+  // Тот же пересчёт, что делает сервер при оформлении (lib/wholesale.ts) — сумма на экране = сумма заказа.
+  const priced = useMemo(() => applyWholesale(state.items, state.wholesaleThreshold), [state.items, state.wholesaleThreshold]);
+  const totals = useMemo(() => cartTotals(priced.items), [priced.items]);
 
   return (
     <CartContext.Provider
       value={{
-        items: state.items,
+        items: priced.items,
+        wholesale: priced.summary,
         hydrated: state.loaded,
         saveFailed: state.saveFailed,
         addItem: store.add,

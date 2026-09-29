@@ -7,6 +7,7 @@ import { usePrice } from "@/lib/use-price";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
 import type { SentOrder } from "@/components/cart/CartOrderSent";
+import { WholesaleProgress } from "@/components/cart/WholesaleProgress";
 import type { Branch, Order } from "@/types";
 
 // Тот же ключ, что в каталоге и на странице товара, — филиал, выбранный там, подставляется сюда.
@@ -20,7 +21,7 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
   const t = useTranslations("checkout");
   const tCart = useTranslations("cart");
   const price = usePrice();
-  const { selectedCount, selectedTotal, flush, reload } = useCart();
+  const { selectedCount, selectedTotal, flush, reload, wholesale } = useCart();
   const { session } = useSession();
 
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -119,6 +120,8 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       </label>
       <input className={inputClass} placeholder={t("namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
       <input className={inputClass} placeholder={t("phonePlaceholder")} value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" />
+
+      <WholesaleProgress summary={wholesale} />
 
       <div className="flex justify-between font-display text-xl mt-1">
         <span>{t("totalSelected", { count: selectedCount })}</span>

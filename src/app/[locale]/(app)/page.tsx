@@ -8,6 +8,7 @@ import { skinTypeLabel, type SkinType } from "@/lib/skincare";
 import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
 import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
+import { WholesaleBanner } from "@/components/WholesaleBanner";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
@@ -119,6 +120,8 @@ export default function Home() {
         ) : slides.length > 0 ? (
           <HeroSlider products={slides} isNew={newArrivals.length > 0} />
         ) : null}
+
+        <WholesaleBanner />
 
         <Section title={t("forYou")} icon={Sparkles} hint={skinLabel ? t("skinHint", { type: skinLabel.toLowerCase() }) : undefined}>
           {forYou.length > 0 ? (

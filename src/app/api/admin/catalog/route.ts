@@ -25,7 +25,8 @@ export async function GET() {
     return NextResponse.json({
       storeName: profile.storeName,
       count: products.length,
-      products: products.map(mapProduct),
+      // Оптовая цена — только админке (в каталог покупателя mapProduct её не отдаёт).
+      products: products.map((p) => ({ ...mapProduct(p), wholesalePrice: p.wholesale_price != null ? Number(p.wholesale_price) : null })),
     });
   } catch {
     return NextResponse.json({ count: 0, products: [], error: "База данных недоступна." });

@@ -11,7 +11,8 @@ export async function GET() {
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   try {
     const supabase = await createServerSupabaseClient();
-    return NextResponse.json({ items: await loadCart(supabase, profile.userId, profile.storeId) });
+    const { items, threshold } = await loadCart(supabase, profile.userId, profile.storeId);
+    return NextResponse.json({ items, wholesaleThreshold: threshold });
   } catch {
     return NextResponse.json({ error: "База данных недоступна." }, { status: 500 });
   }
