@@ -89,6 +89,8 @@ export type Order = {
   number: string;
   /** Номер до перехода на простые числа (BA-00017) — только для поиска старых заказов из переписки. */
   legacyNumber: string | null;
+  /** Заказ оформлен по оптовым ценам (сумма от порога опта). */
+  isWholesale: boolean;
   customerName: string;
   customerPhone: string;
   totalPrice: number;

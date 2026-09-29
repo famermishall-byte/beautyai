@@ -5,6 +5,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { loadCart } from "@/lib/cart-server";
 import { orderLinesFromCart } from "@/lib/cart-logic";
+import { applyWholesale } from "@/lib/wholesale";
 
 // Товары заказа берутся НЕ из запроса, а из корзины аккаунта (только отмеченные галочкой), с ценами
 // из каталога и акциями — см. loadCart(). Заказанные строки потом удаляются из корзины; неотмеченные
@@ -27,7 +28,9 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
 
-    const items = await loadCart(supabase, profile.userId, profile.storeId, { selectedOnly: true });
+    const cart = await loadCart(supabase, profile.userId, profile.storeId, { selectedOnly: true });
+    // От порога — оптовые цены (supabase/wholesale.sql, lib/wholesale.ts); ниже — обычные.
+    const { items, summary: wholesale } = applyWholesale(cart.items, cart.threshold);
     if (items.length === 0) {
       return NextResponse.json({ error: "Отметьте в корзине хотя бы один товар." }, { status: 400 });
     }
@@ -77,6 +80,7 @@ export async function POST(request: NextRequest) {
         total_price: totalPrice,
         status: "sent",
         items_json: lines,
+        is_wholesale: wholesale.qualifies,
       })
       .select("id, status_token, number")
       .single();
@@ -100,6 +104,7 @@ export async function POST(request: NextRequest) {
       storeName: profile.storeName,
       statusToken: order.status_token,
       origin: request.nextUrl.origin,
+      wholesaleThreshold: wholesale.qualifies ? wholesale.threshold : null,
     });
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 
