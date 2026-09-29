@@ -26,7 +26,8 @@ export function WholesaleBanner() {
 
   if (!info) return null;
   return (
-    <div className="promo-sheen rounded-[var(--radius-card)] bg-accent-soft px-4 py-3 text-sm font-medium flex items-center gap-2.5">
+    // Розовая рамка и более насыщенный фон — чтобы плашка выделялась на светло-розовом фоне главной (просьба владельца).
+    <div className="promo-sheen rounded-[var(--radius-card)] border-2 border-accent bg-gradient-to-r from-accent/15 to-accent/25 px-4 py-3 text-sm font-semibold text-accent-strong flex items-center gap-2.5 shadow-[var(--shadow-card)]">
       <BadgePercent className="size-5 shrink-0 text-accent" strokeWidth={2} aria-hidden />
       {t("homeBanner", { usd: info.usd.toLocaleString("ru-RU"), som: price(info.som) })}
     </div>
