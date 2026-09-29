@@ -68,6 +68,8 @@ export type Feedback = {
   message: string;
   createdAt: string;
   authorName: string | null;
+  authorEmail: string | null;
+  contactPhone: string | null;
   branchName: string | null;
 };
 
