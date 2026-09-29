@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
-import { formatDateInput, inDateRange, parseDateInput, presetRange, type PresetKey } from "@/lib/date-range";
+import { formatDateInput, inDateRange, parseDateInput, presetRange } from "@/lib/date-range";
 import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
@@ -27,7 +27,6 @@ const PILL: Record<string, string> = {
   cancelled: "bg-error-soft text-error",
 };
 
-const PRESETS: PresetKey[] = ["today", "7", "30", "all"];
 
 // The work queue first: orders that still need the seller's action.
 const GROUPS = [
@@ -361,7 +360,7 @@ function SalesSummary({
 }) {
   const t = useTranslations("orderManager");
   const money = usePrice();
-  // Период вводится вручную (ДД.ММ.ГГГГ); быстрые кнопки только заполняют поля. По умолчанию — последние 30 дней.
+  // Период вводится вручную (ДД.ММ.ГГГГ); быстрых кнопок нет (убраны по просьбе владельца 29.09). По умолчанию — последние 30 дней.
   const [range, setRange] = useState(() => presetRange("30"));
   const oneBranch = branchId !== "all" ? branchOptions.find((b) => b.id === branchId) : undefined;
 
@@ -375,10 +374,6 @@ function SalesSummary({
   if (!fromBad && !toBad && !reversed && (applied.from?.getTime() !== from?.getTime() || applied.to?.getTime() !== to?.getTime())) {
     setApplied({ from, to });
   }
-  const activePreset = PRESETS.find((p) => {
-    const r = presetRange(p);
-    return r.from === range.from && r.to === range.to;
-  });
 
   const sales = orders.filter((o) => isSale(o) && inDateRange(o.paidAt ?? o.createdAt, applied.from, applied.to));
   const total = sales.reduce((sum, o) => sum + o.totalPrice, 0);
@@ -447,13 +442,7 @@ function SalesSummary({
       {(fromBad || toBad || reversed) && (
         <p className="text-xs text-error mb-2">{reversed ? t("dateReversed") : t("dateInvalid")}</p>
       )}
-      <p className="text-xs text-muted mb-2">{t("dateHint")}</p>
-
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
-        {PRESETS.map((p) => (
-          <Chip key={p} label={t(`periods.${p}`)} active={activePreset === p} onClick={() => setRange(presetRange(p))} />
-        ))}
-      </div>
+      <p className="text-xs text-muted mb-3">{t("dateHint")}</p>
 
       <div className="rounded-xl bg-accent-soft px-4 py-4 mb-3">
         <div className="text-xs text-accent-strong/80">{oneBranch ? t("soldOne", { name: oneBranch.name }) : allBranches ? t("soldAll") : t("soldTotal")}</div>
