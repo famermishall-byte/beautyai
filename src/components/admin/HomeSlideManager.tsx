@@ -6,17 +6,19 @@ import { Plus, ArrowUp, ArrowDown, Eye, EyeOff, Pencil, Trash2, Loader2, Video }
 import { ProductPicker, type PickedProduct } from "@/components/ProductPicker";
 import { Button } from "@/components/ui/Button";
 import { MediaPicker, type MediaValue } from "@/components/admin/MediaPicker";
-import { moveSlide } from "@/lib/home-slides";
-import type { HomeSlide, SlideAction } from "@/types";
+import { CATEGORY_GROUPS } from "@/lib/categories";
+import { HERO_ACTIONS, INLINE_ACTIONS, moveSlide } from "@/lib/home-slides";
+import type { HomeSlide, SlideAction, SlidePlacement } from "@/types";
 
 type FormState = MediaValue & {
   title: string;
   subtitle: string;
   action: SlideAction;
   product: PickedProduct | null;
+  category: string;
 };
 
-const EMPTY_FORM: FormState = { mediaType: "image", imageUrl: null, videoUrl: null, title: "", subtitle: "", action: "promo", product: null };
+const EMPTY_FORM: FormState = { mediaType: "image", imageUrl: null, videoUrl: null, title: "", subtitle: "", action: "promo", product: null, category: "" };
 
 function slideToForm(s: HomeSlide): FormState {
   return {
@@ -27,6 +29,7 @@ function slideToForm(s: HomeSlide): FormState {
     subtitle: s.subtitle ?? "",
     action: s.action,
     product: s.product ? { id: s.product.id, name: s.product.name, brand: s.product.brand, imageUrl: s.product.imageUrl, price: s.product.price } : null,
+    category: s.category ?? "",
   };
 }
 
@@ -35,8 +38,22 @@ const iconBase = "w-9 h-9 rounded-full flex items-center justify-center text-mut
 const iconButton = `${iconBase} hover:bg-black/5 hover:text-foreground`;
 const deleteButton = `${iconBase} hover:bg-error-soft hover:text-error`;
 
-function SlideForm({ initial, onCancel, onSave }: { initial: FormState; onCancel: () => void; onSave: (form: FormState) => Promise<void> }) {
+function SlideForm({
+  placement,
+  initial,
+  onCancel,
+  onSave,
+}: {
+  placement: SlidePlacement;
+  initial: FormState;
+  onCancel: () => void;
+  onSave: (form: FormState) => Promise<void>;
+}) {
   const t = useTranslations("homeSlides");
+  const tg = useTranslations("catalogGroups");
+  const inline = placement === "inline";
+  const actions = inline ? INLINE_ACTIONS : HERO_ACTIONS;
+  const actionLabel = (a: SlideAction) => (inline ? t(`inline.actions.${a}`) : t(`actions.${a}`));
   const [form, setForm] = useState(initial);
   const radioName = useId(); // создание и правка могут быть открыты одновременно
   const [saving, setSaving] = useState(false);
@@ -48,8 +65,12 @@ function SlideForm({ initial, onCancel, onSave }: { initial: FormState; onCancel
       setError(t("needMedia"));
       return;
     }
-    if (form.action === "cart" && !form.product) {
-      setError(t("needProduct"));
+    if ((form.action === "cart" || form.action === "product") && !form.product) {
+      setError(inline ? t("inline.needProductOpen") : t("needProduct"));
+      return;
+    }
+    if (form.action === "category" && !form.category) {
+      setError(t("inline.needCategory"));
       return;
     }
     setSaving(true);
@@ -87,7 +108,7 @@ function SlideForm({ initial, onCancel, onSave }: { initial: FormState; onCancel
       <fieldset>
         <legend className="text-xs text-muted mb-1.5">{t("fields.action")}</legend>
         <div className="grid grid-cols-2 gap-2">
-          {(["cart", "promo"] as const).map((a) => (
+          {actions.map((a) => (
             <label
               key={a}
               className={[
@@ -103,17 +124,31 @@ function SlideForm({ initial, onCancel, onSave }: { initial: FormState; onCancel
                 onChange={() => setForm({ ...form, action: a })}
                 className="accent-accent size-4 shrink-0"
               />
-              {t(`actions.${a}`)}
+              {actionLabel(a)}
             </label>
           ))}
         </div>
       </fieldset>
 
-      {form.action === "cart" && (
+      {(form.action === "cart" || form.action === "product") && (
         <div>
           <div className="text-xs text-muted mb-1.5">{t("fields.product")}</div>
           <ProductPicker picked={form.product} onPick={(product) => setForm({ ...form, product })} />
         </div>
+      )}
+
+      {form.action === "category" && (
+        <label className="block">
+          <span className="block text-xs text-muted mb-1.5">{t("fields.category")}</span>
+          <select className={inputClass} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+            <option value="">{t("inline.categoryPlaceholder")}</option>
+            {CATEGORY_GROUPS.map((g) => (
+              <option key={g.key} value={g.name}>
+                {tg(`${g.key}.title`)}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
 
       {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-3 py-2">{error}</p>}
@@ -131,8 +166,15 @@ function SlideForm({ initial, onCancel, onSave }: { initial: FormState; onCancel
 }
 
 /** Промо-слайды верхнего слайдера на главной: фото/видео, действие, порядок, показать/скрыть. */
-export function HomeSlideManager() {
+export function HomeSlideManager({ placement = "hero" }: { placement?: SlidePlacement }) {
   const t = useTranslations("homeSlides");
+  const tg = useTranslations("catalogGroups");
+  const inline = placement === "inline";
+  const actionLabel = (a: SlideAction) => (inline ? t(`inline.actions.${a}`) : t(`actions.${a}`));
+  const groupLabel = (name: string) => {
+    const g = CATEGORY_GROUPS.find((x) => x.name === name);
+    return g ? tg(`${g.key}.title`) : name;
+  };
   const [slides, setSlides] = useState<HomeSlide[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -140,7 +182,7 @@ export function HomeSlideManager() {
   const [error, setError] = useState<string | null>(null);
 
   function load() {
-    return fetch("/api/admin/home-slides")
+    return fetch(`/api/admin/home-slides?placement=${placement}`)
       .then((res) => (res.ok ? res.json() : { slides: [] }))
       .then((data: { slides?: HomeSlide[] }) => setSlides(data.slides ?? []))
       .catch(() => setSlides([]));
@@ -148,17 +190,21 @@ export function HomeSlideManager() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placement]);
 
   async function submitForm(id: string | null, form: FormState) {
+    const withProduct = form.action === "cart" || form.action === "product";
     const body = {
+      placement,
+      category: form.action === "category" ? form.category : null,
       mediaType: form.mediaType,
       imageUrl: form.imageUrl,
       videoUrl: form.mediaType === "video" ? form.videoUrl : null,
       title: form.title,
       subtitle: form.subtitle,
       action: form.action,
-      productId: form.action === "cart" ? (form.product?.id ?? null) : null,
+      productId: withProduct ? (form.product?.id ?? null) : null,
     };
     const res = await fetch(id ? `/api/admin/home-slides/${id}` : "/api/admin/home-slides", {
       method: id ? "PUT" : "POST",
@@ -221,25 +267,25 @@ export function HomeSlideManager() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-muted">{t("intro")}</p>
+        <p className="text-sm text-muted">{inline ? t("inline.intro") : t("intro")}</p>
         {!creating && (
           <Button size="sm" onClick={() => setCreating(true)} className="shrink-0">
             <Plus className="size-4" strokeWidth={2.25} aria-hidden />
-            {t("create")}
+            {inline ? t("inline.create") : t("create")}
           </Button>
         )}
       </div>
 
-      {creating && <SlideForm initial={EMPTY_FORM} onCancel={() => setCreating(false)} onSave={(form) => submitForm(null, form)} />}
+      {creating && <SlideForm placement={placement} initial={EMPTY_FORM} onCancel={() => setCreating(false)} onSave={(form) => submitForm(null, form)} />}
 
       {error && <p className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-4 py-3">{error}</p>}
 
-      {slides.length === 0 && !creating && <p className="text-sm text-muted">{t("empty")}</p>}
+      {slides.length === 0 && !creating && <p className="text-sm text-muted">{inline ? t("inline.empty") : t("empty")}</p>}
 
       <div className="flex flex-col gap-3">
         {slides.map((slide, i) =>
           editingId === slide.id ? (
-            <SlideForm key={slide.id} initial={slideToForm(slide)} onCancel={() => setEditingId(null)} onSave={(form) => submitForm(slide.id, form)} />
+            <SlideForm key={slide.id} placement={placement} initial={slideToForm(slide)} onCancel={() => setEditingId(null)} onSave={(form) => submitForm(slide.id, form)} />
           ) : (
             <div
               key={slide.id}
@@ -261,32 +307,45 @@ export function HomeSlideManager() {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium truncate">{slide.title || t("untitled")}</div>
                   <div className="text-xs text-muted truncate">
-                    {t(`actions.${slide.action}`)}
-                    {slide.action === "cart" && ` · ${slide.product?.name ?? t("noProduct")}`}
+                    {actionLabel(slide.action)}
+                    {(slide.action === "cart" || slide.action === "product") && ` · ${slide.product?.name ?? t("noProduct")}`}
+                    {slide.action === "category" && ` · ${slide.category ? groupLabel(slide.category) : t("inline.noCategory")}`}
                   </div>
-                  {!slide.active && (
-                    <span className="inline-block mt-1 text-[11px] rounded-full bg-black/5 text-muted px-2 py-0.5">{t("hidden")}</span>
+                  {inline ? (
+                    <span
+                      className={`inline-block mt-1 text-[11px] rounded-full px-2 py-0.5 ${slide.active ? "bg-accent-soft text-accent-strong" : "bg-black/5 text-muted"}`}
+                    >
+                      {slide.active ? t("inline.active") : t("inline.inactive")}
+                    </span>
+                  ) : (
+                    !slide.active && (
+                      <span className="inline-block mt-1 text-[11px] rounded-full bg-black/5 text-muted px-2 py-0.5">{t("hidden")}</span>
+                    )
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-1 justify-end">
-                <button type="button" onClick={() => handleMove(i, -1)} disabled={busy || i === 0} aria-label={t("moveUp")} className={iconButton}>
-                  <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMove(i, 1)}
-                  disabled={busy || i === slides.length - 1}
-                  aria-label={t("moveDown")}
-                  className={iconButton}
-                >
-                  <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
-                </button>
+                {!inline && (
+                  <>
+                    <button type="button" onClick={() => handleMove(i, -1)} disabled={busy || i === 0} aria-label={t("moveUp")} className={iconButton}>
+                      <ArrowUp className="size-4" strokeWidth={2} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMove(i, 1)}
+                      disabled={busy || i === slides.length - 1}
+                      aria-label={t("moveDown")}
+                      className={iconButton}
+                    >
+                      <ArrowDown className="size-4" strokeWidth={2} aria-hidden />
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => toggleActive(slide)}
                   disabled={busy}
-                  aria-label={slide.active ? t("hide") : t("show")}
+                  aria-label={inline ? (slide.active ? t("inline.hide") : t("inline.show")) : slide.active ? t("hide") : t("show")}
                   className={iconButton}
                 >
                   {slide.active ? <EyeOff className="size-4" strokeWidth={2} aria-hidden /> : <Eye className="size-4" strokeWidth={2} aria-hidden />}

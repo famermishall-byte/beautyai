@@ -11,7 +11,7 @@ import { NewArrivalsManager } from "@/components/NewArrivalsManager";
 import { PushBroadcastManager } from "@/components/admin/PushBroadcastManager";
 import { HomeSlideManager } from "@/components/admin/HomeSlideManager";
 
-const TABS = ["banners", "slides", "promotions", "newArrivals", "push"] as const;
+const TABS = ["banners", "slides", "inline", "promotions", "newArrivals", "push"] as const;
 type Tab = (typeof TABS)[number];
 
 function PromoContent() {
@@ -26,6 +26,7 @@ function PromoContent() {
       <div className="flex gap-2 mb-5 overflow-x-auto -mx-4 px-4 pb-1">
         <Chip label={t("tabs.banners")} active={tab === "banners"} onClick={() => setTab("banners")} />
         <Chip label={t("tabs.slides")} active={tab === "slides"} onClick={() => setTab("slides")} />
+        <Chip label={t("tabs.inline")} active={tab === "inline"} onClick={() => setTab("inline")} />
         <Chip label={t("tabs.promotions")} active={tab === "promotions"} onClick={() => setTab("promotions")} />
         <Chip label={t("tabs.newArrivals")} active={tab === "newArrivals"} onClick={() => setTab("newArrivals")} />
         <Chip label={t("tabs.push")} active={tab === "push"} onClick={() => setTab("push")} />
@@ -33,7 +34,9 @@ function PromoContent() {
       {tab === "banners" ? (
         <BannerManager />
       ) : tab === "slides" ? (
-        <HomeSlideManager />
+        <HomeSlideManager key="hero" placement="hero" />
+      ) : tab === "inline" ? (
+        <HomeSlideManager key="inline" placement="inline" />
       ) : tab === "promotions" ? (
         <PromotionManager />
       ) : tab === "newArrivals" ? (
