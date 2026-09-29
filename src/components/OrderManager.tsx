@@ -11,6 +11,7 @@ import { isReduced, orderTotal, orderedQty } from "@/lib/orderEdit";
 import { ORDER_STATUSES, getOrderStatusAdminLabel } from "@/lib/orderStatus";
 import { ACTION_STATUS, isSale, sellerActions } from "@/lib/delivery";
 import { DeliveryInfo } from "@/components/DeliveryInfo";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 // Тот же ключ, что и в admin/stock и admin/product-rating — выбор филиала общий между инструментами
 // админки. Раньше жил только в React-состоянии: обновление страницы (F5, pull-to-refresh) сбрасывало
@@ -549,8 +550,29 @@ export function OrderManager() {
     }, 20_000);
     const onVisible = () => document.visibilityState === "visible" && load();
     document.addEventListener("visibilitychange", onVisible);
+
+    // Мгновенно: база сообщает о любом изменении заказа (новый, оплачен, отправлен, доставлен, изменён) — сразу
+    // перечитываем список (просьба владельца 29.09: статус у админа должен меняться сам). Supabase Realtime уважает RLS —
+    // управляющий получает только заказы своего филиала. Опрос раз в 20 с остаётся запасным вариантом.
+    const supabase = createBrowserSupabaseClient();
+    let debounce: ReturnType<typeof setTimeout> | undefined;
+    let stopped = false;
+    const channel = supabase.channel("admin-orders-live").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => load(), 400);
+    });
+    // Без токена вошедшего Realtime подписывает как гостя — RLS не отдаёт ему ни одного заказа, событий нет.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (stopped) return;
+      if (data.session) supabase.realtime.setAuth(data.session.access_token);
+      channel.subscribe();
+    });
+
     return () => {
+      stopped = true;
       clearInterval(timer);
+      clearTimeout(debounce);
+      void supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVisible);
       document.title = prevTitle;
     };
