@@ -5,7 +5,8 @@ import type { CartItem } from "@/types";
 
 export type WholesaleMode = "off" | "percent" | "per_product";
 export type WholesaleSettings = { mode: WholesaleMode; percent: number | null; thresholdUsd: number; usdRate: number | null };
-export type WholesaleSummary = { threshold: number | null; qualifies: boolean; retailTotal: number; savings: number; remaining: number };
+/** qualifies — порог набран; applied — хоть одна цена реально снижена (только тогда заказ помечается оптовым). */
+export type WholesaleSummary = { threshold: number | null; qualifies: boolean; applied: boolean; retailTotal: number; savings: number; remaining: number };
 
 const MODES: WholesaleMode[] = ["off", "percent", "per_product"];
 const num = (v: unknown): number | null => {
@@ -40,7 +41,7 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
   if (!qualifies) {
     return {
       items,
-      summary: { threshold, qualifies: false, retailTotal, savings: 0, remaining: threshold === null ? 0 : Math.max(0, threshold - retailTotal) },
+      summary: { threshold, qualifies: false, applied: false, retailTotal, savings: 0, remaining: threshold === null ? 0 : Math.max(0, threshold - retailTotal) },
     };
   }
   let savings = 0;
@@ -50,5 +51,29 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
     savings += (i.product.price - w) * i.quantity;
     return { ...i, product: { ...i.product, retailPrice: i.product.price, price: w } };
   });
-  return { items: priced, summary: { threshold, qualifies: true, retailTotal, savings, remaining: 0 } };
+  return { items: priced, summary: { threshold, qualifies: true, applied: savings > 0, retailTotal, savings, remaining: 0 } };
+}
+
+const positive = (v: unknown): number | null => {
+  const n = typeof v === "number" ? v : Number(String(v ?? "").replace(",", ".").replace(/\s/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
+/**
+ * Проверка формы «Оптовые цены» (PUT /api/admin/wholesale). Процент сохраняется в любом режиме, чтобы не
+ * пропадал при переключении способа; порог и курс обязательны, только когда опт включён.
+ */
+export function parseWholesaleInput(body: Record<string, unknown>): { ok: true; settings: WholesaleSettings } | { ok: false; error: string } {
+  const mode = body.mode as WholesaleMode;
+  if (!MODES.includes(mode)) return { ok: false, error: "Неизвестный способ расчёта опта." };
+  const percentRaw = positive(body.percent);
+  const percent = percentRaw !== null && percentRaw >= 1 && percentRaw <= 99 ? percentRaw : null;
+  const thresholdUsd = positive(body.thresholdUsd);
+  const usdRate = positive(body.usdRate);
+  if (mode !== "off") {
+    if (!thresholdUsd) return { ok: false, error: "Укажите порог опта в долларах (больше нуля)." };
+    if (!usdRate) return { ok: false, error: "Укажите курс доллара." };
+    if (mode === "percent" && percent === null) return { ok: false, error: "Укажите процент скидки от 1 до 99." };
+  }
+  return { ok: true, settings: { mode, percent, thresholdUsd: thresholdUsd ?? 1000, usdRate } };
 }

@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
         total_price: totalPrice,
         status: "sent",
         items_json: lines,
-        is_wholesale: wholesale.qualifies,
+        // «Опт» — только если оптовые цены реально применены (порог мог набраться без единой оптовой цены).
+        is_wholesale: wholesale.applied,
       })
       .select("id, status_token, number")
       .single();
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
       storeName: profile.storeName,
       statusToken: order.status_token,
       origin: request.nextUrl.origin,
-      wholesaleThreshold: wholesale.qualifies ? wholesale.threshold : null,
+      wholesaleThreshold: wholesale.applied ? wholesale.threshold : null,
     });
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 
