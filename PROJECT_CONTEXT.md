@@ -1445,3 +1445,12 @@ threshold_usd/usd_rate; products.wholesale_price; orders.is_wholesale). **Опт
 включён владельцем: «Своя оптовая цена у товара», порог 1 000 $, курс 87,46. Когда магазин купит приложение и
 пришлёт реальный каталог — убрать: `update products set wholesale_price = null;` (или удалить демо-товары целиком,
 см. запись про DEMO-каталог) и загрузить реальные оптовые цены колонкой «Оптовая цена» в Excel.
+
+## ДЕМО: остатки подняты до 500 для проверки опта — 29.09 (вернуть!)
+
+По просьбе владельца (проверить оптовую покупку, набрав много штук) в живой базе все остатки
+`product_branch_stock` меньше 500 подняты до 500 (792 строки, 3 филиала). Прежние значения сохранены в
+`backup.product_branch_stock_20260929` (схема `backup` закрыта от anon/authenticated). Вернуть как было:
+`update public.product_branch_stock s set quantity = b.quantity, updated_at = now() from backup.product_branch_stock_20260929 b where b.id = s.id;`
+затем `drop table backup.product_branch_stock_20260929;`. При запуске реального каталога остатки всё равно
+перезапишутся синхронизацией.
