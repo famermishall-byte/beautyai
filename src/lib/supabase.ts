@@ -54,7 +54,10 @@ export function mapFeedback(
     id: row.id as string,
     message: row.message as string,
     createdAt: row.created_at as string,
-    authorName: profile?.display_name ?? null,
+    // author_* / contact_phone — снимок при отправке (профили клиентов сотрудникам не видны); у старых сообщений их нет.
+    authorName: (row.author_name as string | null) ?? profile?.display_name ?? null,
+    authorEmail: (row.author_email as string | null) ?? null,
+    contactPhone: (row.contact_phone as string | null) ?? null,
     branchName: branch?.name ?? null,
   };
 }

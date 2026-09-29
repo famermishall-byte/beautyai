@@ -1,20 +1,37 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { normalizeContactPhone } from "@/lib/feedback";
+
+const fieldClass =
+  "w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent";
 
 export default function FeedbackPage() {
   const t = useTranslations("feedback");
   const [message, setMessage] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
+  // Телефон из последнего заказа — чтобы клиенту не вводить его заново; своё значение не затираем.
+  useEffect(() => {
+    fetch("/api/feedback")
+      .then((res) => (res.ok ? res.json() : { phone: null }))
+      .then((data: { phone: string | null }) => {
+        if (data.phone) setPhone((current) => current || data.phone!);
+      })
+      .catch(() => {});
+  }, []);
+
+  const phoneValid = normalizeContactPhone(phone) !== null;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !phoneValid) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -29,7 +46,7 @@ export default function FeedbackPage() {
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message.trim(), branchId }),
+        body: JSON.stringify({ message: message.trim(), phone, branchId }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -71,9 +88,26 @@ export default function FeedbackPage() {
           onChange={(e) => setMessage(e.target.value)}
           placeholder={t("placeholder")}
           rows={6}
-          className="w-full rounded-[var(--radius-control)] border border-border bg-background px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:border-accent resize-none mb-4"
+          className={`${fieldClass} resize-none mb-4`}
         />
-        <Button type="submit" size="lg" loading={submitting} disabled={!message.trim()} fullWidth>
+        <label htmlFor="feedback-phone" className="block text-xs font-medium text-muted mb-1.5">
+          {t("phoneLabel")}
+        </label>
+        <input
+          id="feedback-phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          type="tel"
+          autoComplete="tel"
+          inputMode="tel"
+          placeholder={t("phonePlaceholder")}
+          aria-invalid={phone.trim() !== "" && !phoneValid}
+          className={fieldClass}
+        />
+        <p className={`text-xs mt-1.5 mb-4 ${phone.trim() !== "" && !phoneValid ? "text-error" : "text-muted"}`}>
+          {phone.trim() !== "" && !phoneValid ? t("phoneInvalid") : t("phoneHint")}
+        </p>
+        <Button type="submit" size="lg" loading={submitting} disabled={!message.trim() || !phoneValid} fullWidth>
           {t("send")}
         </Button>
       </form>

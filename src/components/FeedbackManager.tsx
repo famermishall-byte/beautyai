@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Mail, MessageCircle, Phone } from "lucide-react";
+import { whatsappChatUrl, whatsappDigits } from "@/lib/whatsapp";
 import type { Feedback } from "@/types";
 
+/**
+ * Сообщения «Обратной связи». С 29.09 у каждого нового сообщения есть контакты клиента (имя, телефон,
+ * почта — сохраняются при отправке), чтобы филиал мог связаться: WhatsApp и звонок в один тап.
+ */
 export function FeedbackManager() {
   const t = useTranslations("feedbackAdmin");
   const locale = useLocale();
@@ -41,6 +47,43 @@ export function FeedbackManager() {
                 </div>
               )}
               <p className="text-sm whitespace-pre-wrap">{item.message}</p>
+
+              {(item.contactPhone || item.authorEmail) && (
+                <div className="mt-3 pt-3 border-t border-border flex flex-col gap-2">
+                  {item.contactPhone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="size-4 text-muted shrink-0" strokeWidth={1.85} aria-hidden />
+                      <span className="tabular-nums">{item.contactPhone}</span>
+                    </div>
+                  )}
+                  {item.authorEmail && (
+                    <a href={`mailto:${item.authorEmail}`} className="flex items-center gap-2 text-sm text-muted break-all hover:text-accent">
+                      <Mail className="size-4 shrink-0" strokeWidth={1.85} aria-hidden />
+                      {item.authorEmail}
+                    </a>
+                  )}
+                  {item.contactPhone && (
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <a
+                        href={whatsappChatUrl(item.contactPhone)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full bg-[#25D366] text-white py-2.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                      >
+                        <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
+                        {t("whatsapp")}
+                      </a>
+                      <a
+                        href={`tel:+${whatsappDigits(item.contactPhone)}`}
+                        className="rounded-full border border-border bg-card py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <Phone className="size-4" strokeWidth={1.85} aria-hidden />
+                        {t("call")}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
