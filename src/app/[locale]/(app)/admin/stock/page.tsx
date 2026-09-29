@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Search, Sparkle } from "lucide-react";
 import type { StockStatus } from "@/lib/stock";
+import { ALL_CATEGORIES, type CategoryOption } from "@/lib/category-filter";
+import { CategorySelect } from "@/components/admin/CategorySelect";
 import { useSession } from "@/lib/session-context";
 import type { Branch } from "@/types";
 
@@ -59,6 +61,8 @@ export default function AdminStockPage() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StockStatus | "all">("all");
+  const [category, setCategory] = useState<string>(ALL_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<"problems" | "name">("problems");
   const [justSaved, setJustSaved] = useState<Record<string, true>>({});
@@ -98,7 +102,7 @@ export default function AdminStockPage() {
 
   useEffect(() => {
     if (!branchId) return;
-    const params = new URLSearchParams({ branchId, status, page: String(page), sort });
+    const params = new URLSearchParams({ branchId, status, category, page: String(page), sort });
     if (search) params.set("q", search);
     // Data fetching triggered by filter changes — React's documented fetch-in-effect pattern.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -110,11 +114,12 @@ export default function AdminStockPage() {
         setItems(data.items);
         setTotal(data.total);
         setCounts(data.counts);
+        setCategories(data.categories ?? []);
         setError("");
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [branchId, search, status, page, sort, t]);
+  }, [branchId, search, status, category, page, sort, t]);
 
   function selectBranch(id: string) {
     setBranchId(id);
@@ -175,6 +180,15 @@ export default function AdminStockPage() {
       </select>
         </>
       )}
+
+      <CategorySelect
+        value={category}
+        options={categories}
+        onChange={(c) => {
+          setCategory(c);
+          setPage(1);
+        }}
+      />
 
       <div className="relative mb-3">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4.5 text-muted" strokeWidth={2} aria-hidden />

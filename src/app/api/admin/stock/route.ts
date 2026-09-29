@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile, isStaff, type SessionProfile } from "@/lib/auth";
 import { stockStatus, type StockStatus } from "@/lib/stock";
+import { ALL_CATEGORIES, categoryOptions, filterByCategory } from "@/lib/category-filter";
 
 const PAGE_SIZE = 50;
 
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   if (!branchId) return NextResponse.json({ error: "Вам пока не назначен филиал — обратитесь к владельцу." }, { status: 403 });
   const q = (sp.get("q") ?? "").replace(/[,()%*\\]/g, " ").trim();
   const statusFilter = sp.get("status") ?? "all";
+  const category = sp.get("category") ?? ALL_CATEGORIES;
   const page = Math.max(1, Number(sp.get("page")) || 1);
 
   try {
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest) {
     const { data: branch } = await supabase.from("branches").select("id").eq("id", branchId).eq("store_id", profile.storeId).maybeSingle();
     if (!branch) return NextResponse.json({ error: "Филиал не найден." }, { status: 404 });
 
-    const products = await fetchAll<Record<string, unknown>>((from, to) => {
+    const products = await fetchAll<Record<string, unknown> & { category: string | null }>((from, to) => {
       let query = supabase.from("products").select("id, sku, name, brand, category, image_url").eq("store_id", profile.storeId).order("name");
       if (q) query = query.or(`name.ilike.%${q}%,sku.ilike.%${q}%,brand.ilike.%${q}%`);
       return query.range(from, to);
@@ -59,7 +61,12 @@ export async function GET(request: NextRequest) {
     );
     const byProduct = new Map(stock.map((s) => [s.product_id as string, s]));
 
-    const all = products.map((p) => {
+    // Список категорий — из всего каталога магазина (не зависит от поиска и выбранной категории).
+    const categories = categoryOptions(
+      await fetchAll<{ category: string | null }>((from, to) => supabase.from("products").select("category").eq("store_id", profile.storeId).order("id").range(from, to))
+    );
+
+    const all = filterByCategory(products, category).map((p) => {
       const s = byProduct.get(p.id as string);
       const quantity = s ? (s.quantity as number) : null;
       return {
@@ -87,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     const filtered = statusFilter === "all" ? all : all.filter((i) => i.status === statusFilter);
     const items = filtered.slice(0, page * PAGE_SIZE);
-    return NextResponse.json({ items, total: filtered.length, counts });
+    return NextResponse.json({ items, total: filtered.length, counts, categories });
   } catch {
     return NextResponse.json({ error: "База данных недоступна." }, { status: 500 });
   }
