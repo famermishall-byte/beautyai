@@ -2,7 +2,8 @@ import type { CartItem, Product } from "@/types";
 import { applyDelta, quantityOf, removeProduct, setSelected } from "@/lib/cart-logic";
 
 export type CartFetch = (url: string, init?: RequestInit) => Promise<Response>;
-export type CartState = { items: CartItem[]; loaded: boolean; saveFailed: boolean };
+/** wholesaleThreshold — порог опта в сомах от сервера (null — опт не действует); пересчёт — applyWholesale. */
+export type CartState = { items: CartItem[]; loaded: boolean; saveFailed: boolean; wholesaleThreshold: number | null };
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
@@ -18,7 +19,7 @@ type Change = { next: CartItem[]; request: () => Promise<Response> };
  * - flush() сообщает, дошло ли всё до сервера — заказ не уходит с галочкой, которая не сохранилась.
  */
 export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartState) => void) {
-  let state: CartState = { items: [], loaded: false, saveFailed: false };
+  let state: CartState = { items: [], loaded: false, saveFailed: false, wholesaleThreshold: null };
   let tail: Promise<unknown> = Promise.resolve();
   let failedSinceFlush = false;
   // Растёт при смене аккаунта: задачи, поставленные для прежнего аккаунта, ничего не меняют.
@@ -52,8 +53,8 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
   async function fetchItems(current: Current): Promise<boolean> {
     const res = await fetchImpl("/api/cart").catch(() => null);
     if (!res?.ok) return false;
-    const data = (await res.json()) as { items?: CartItem[] };
-    if (current()) set({ items: data.items ?? [], loaded: true });
+    const data = (await res.json()) as { items?: CartItem[]; wholesaleThreshold?: number | null };
+    if (current()) set({ items: data.items ?? [], loaded: true, wholesaleThreshold: data.wholesaleThreshold ?? null });
     return true;
   }
 
@@ -161,7 +162,7 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
       generation++;
       failedSinceFlush = false;
       tail = Promise.resolve();
-      set({ items: [], loaded: false, saveFailed: false });
+      set({ items: [], loaded: false, saveFailed: false, wholesaleThreshold: null });
       return true;
     },
   };

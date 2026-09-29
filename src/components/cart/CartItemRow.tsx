@@ -65,7 +65,11 @@ export function CartItemRow({ item }: { item: CartItem }) {
         </div>
       </div>
 
-      <div className={["text-sm font-display tabular-nums shrink-0", item.selected ? "" : "text-muted"].join(" ")}>
+      <div className={["text-sm font-display tabular-nums shrink-0 text-right", item.selected ? "" : "text-muted"].join(" ")}>
+        {/* Оптовый заказ: обычная цена зачёркнута, ниже — оптовая (lib/wholesale.ts). */}
+        {item.product.retailPrice !== undefined && (
+          <div className="text-xs text-muted line-through">{price(item.product.retailPrice * item.quantity)}</div>
+        )}
         {price(item.product.price * item.quantity)}
       </div>
     </div>

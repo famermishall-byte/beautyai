@@ -1350,5 +1350,11 @@
   "sellerExit": {
     "backToWhatsapp": "WhatsApp'ка кайтуу",
     "openAdmin": "Админ панелди ачуу"
+  },
+  "wholesale": {
+    "progress": "Дүң бааларга чейин {amount} калды",
+    "applied": "Дүң баалар колдонулду — {amount} үнөмдөйсүз",
+    "homeBanner": "{usd} $ баштап дүңүнөн (≈ {som}) — баалар арзаныраак",
+    "badge": "Дүң"
   }
 }

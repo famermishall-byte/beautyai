@@ -1350,5 +1350,11 @@
   "sellerExit": {
     "backToWhatsapp": "Вернуться в WhatsApp",
     "openAdmin": "Открыть админку"
+  },
+  "wholesale": {
+    "progress": "До оптовых цен осталось {amount}",
+    "applied": "Оптовые цены применены — вы экономите {amount}",
+    "homeBanner": "Опт от {usd} $ (≈ {som}) — цены ниже",
+    "badge": "Опт"
   }
 }

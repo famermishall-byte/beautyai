@@ -1,0 +1,38 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { BadgePercent } from "lucide-react";
+import { usePrice } from "@/lib/use-price";
+import type { WholesaleSummary } from "@/lib/wholesale";
+
+/** Полоска опта в корзине: сколько осталось до оптовых цен, а после порога — сколько клиент экономит. */
+export function WholesaleProgress({ summary }: { summary: WholesaleSummary }) {
+  const t = useTranslations("wholesale");
+  const price = usePrice();
+  if (summary.threshold === null) return null;
+
+  if (summary.qualifies) {
+    return (
+      <div className="rounded-xl bg-success-soft text-success text-sm font-medium px-4 py-3 flex items-center gap-2">
+        <BadgePercent className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
+        {t("applied", { amount: price(summary.savings) })}
+      </div>
+    );
+  }
+
+  const share = Math.min(100, Math.round((summary.retailTotal / summary.threshold) * 100));
+  return (
+    <div className="rounded-xl bg-accent-soft px-4 py-3">
+      <div className="text-sm mb-2">{t("progress", { amount: price(summary.remaining) })}</div>
+      <div
+        className="h-2 rounded-full bg-white overflow-hidden"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={share}
+      >
+        <div className="h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${share}%` }} />
+      </div>
+    </div>
+  );
+}
