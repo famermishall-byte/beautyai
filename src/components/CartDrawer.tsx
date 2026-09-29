@@ -83,7 +83,7 @@ export function CartDrawer() {
             </div>
 
             {sent ? (
-              <CartOrderSent order={sent} onDone={close} />
+              <CartOrderSent order={sent} />
             ) : items.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <EmptyState icon={ShoppingBag} title={t("empty")} description={t("emptyHint")} />
