@@ -57,3 +57,11 @@ test("ffmpegArgs", () => {
   assert.ok(!a.includes("-map"));
   assert.equal(ffmpegArgs("i", "o", null)[ffmpegArgs("i", "o", null).indexOf("-b:v") + 1], "1500k");
 });
+
+test("ffmpegArgs: -vf с чётными размерами", () => {
+  const a = ffmpegArgs("i", "o", 120);
+  assert.equal(
+    a[a.indexOf("-vf") + 1],
+    "scale='if(gt(iw,ih),-2,trunc(min(720,iw)/2)*2)':'if(gt(iw,ih),trunc(min(720,ih)/2)*2,-2)'",
+  );
+});

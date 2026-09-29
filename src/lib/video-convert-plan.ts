@@ -33,7 +33,7 @@ export function ffmpegArgs(input: string, output: string, durationSec: number | 
   return [
     "-i", input,
     // короткая сторона ≤ 720, без увеличения, чётные размеры
-    "-vf", "scale='if(gt(iw,ih),-2,min(720,iw))':'if(gt(iw,ih),min(720,ih),-2)'",
+    "-vf", "scale='if(gt(iw,ih),-2,trunc(min(720,iw)/2)*2)':'if(gt(iw,ih),trunc(min(720,ih)/2)*2,-2)'",
     "-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
     "-b:v", `${v}k`, "-maxrate", `${v}k`, "-bufsize", `${v * 2}k`,
     "-c:a", "aac", "-b:a", "128k",
