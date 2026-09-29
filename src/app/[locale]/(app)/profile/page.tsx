@@ -29,11 +29,12 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AvatarUploader } from "@/components/profile/AvatarUploader";
 import { QuestionnaireSummary } from "@/components/profile/QuestionnaireSummary";
 import { QuestionnaireForm } from "@/components/profile/QuestionnaireForm";
-import { CareKitView } from "@/components/profile/CareKitView";
+import { CareKitTips, CareKitView } from "@/components/profile/CareKitView";
 import { NotificationGeoSettings } from "@/components/profile/NotificationGeoSettings";
 import { PromotionGate } from "@/components/PromotionInterstitial";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
+import { useCollapsed } from "@/lib/use-collapsed";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -70,6 +71,11 @@ export default function ProfilePage() {
   const hairConcerns = useMemo(() => (session?.hairConcerns as HairConcern[]) ?? [], [session?.hairConcerns]);
   const hasAnswers = !!skinType || !!hairType || skinConcerns.length > 0 || hairConcerns.length > 0;
   const isEditing = editing ?? !hasAnswers;
+  // Анкету и набор с советами можно свернуть; незаполненная анкета и редактирование всегда открыты.
+  const [questionnaireCollapsed, setQuestionnaireCollapsed] = useCollapsed("questionnaire", true);
+  const [kitCollapsed, setKitCollapsed] = useCollapsed("kit", true);
+  const [tipsCollapsed, setTipsCollapsed] = useCollapsed("tips", true);
+  const questionnaireOpen = isEditing || !hasAnswers || !questionnaireCollapsed;
 
   useEffect(() => {
     // Read after mount (SSR has no localStorage) — see the same rationale in page.tsx (home).
@@ -97,6 +103,8 @@ export default function ProfilePage() {
   async function handleQuestionnaireSaved() {
     await refresh();
     setEditing(false);
+    setKitCollapsed(false);
+    setTipsCollapsed(false);
     setSavedTick((n) => n + 1);
   }
 
@@ -203,13 +211,34 @@ export default function ProfilePage() {
       </div>
 
       <div className={cardClass}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl">{t("myQuestionnaire")}</h2>
+        <div className={["flex items-center justify-between gap-3", questionnaireOpen ? "mb-4" : ""].join(" ")}>
+          {isEditing ? (
+            <h2 className="font-display text-xl">{t("myQuestionnaire")}</h2>
+          ) : (
+            <h2 className="flex-1 font-display text-xl">
+              <button
+                type="button"
+                onClick={() => setQuestionnaireCollapsed(!questionnaireCollapsed)}
+                aria-expanded={questionnaireOpen}
+                className="w-full flex items-center gap-2 text-left min-h-11 -my-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {t("myQuestionnaire")}
+                <ChevronDown
+                  className={["size-4.5 text-muted transition-transform", questionnaireOpen ? "rotate-180" : ""].join(" ")}
+                  strokeWidth={2}
+                  aria-hidden
+                />
+              </button>
+            </h2>
+          )}
           {!isEditing && (
             <button
               type="button"
-              onClick={() => setEditing(true)}
-              className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline"
+              onClick={() => {
+                setQuestionnaireCollapsed(false);
+                setEditing(true);
+              }}
+              className="flex items-center gap-1.5 text-sm text-accent font-medium hover:underline min-h-11 -my-2 shrink-0"
             >
               <Pencil className="size-3.5" strokeWidth={2} aria-hidden />
               {t("edit")}
@@ -217,7 +246,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {isEditing ? (
+        {!questionnaireOpen ? null : isEditing ? (
           <>
             {!hasAnswers && (
               <p className="text-sm text-muted mb-5 leading-relaxed">
@@ -244,12 +273,30 @@ export default function ProfilePage() {
 
       {hasAnswers && !isEditing && (
         <div ref={kitRef} className="mb-6 scroll-mt-20 animate-rise-in">
-          <div className="flex items-center gap-1.5 mb-3">
-            <Sparkles className="size-4 text-accent" strokeWidth={2} aria-hidden />
-            <h2 className="font-display text-xl">{t("yourKit")}</h2>
-          </div>
-          {kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-[var(--radius-card)]" />}
+          <h2>
+            <button
+              type="button"
+              onClick={() => setKitCollapsed(!kitCollapsed)}
+              aria-expanded={!kitCollapsed}
+              className={[
+                "w-full flex items-center gap-1.5 text-left min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                kitCollapsed ? "bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] px-5 py-3" : "rounded-lg mb-3",
+              ].join(" ")}
+            >
+              <Sparkles className="size-4 text-accent shrink-0" strokeWidth={2} aria-hidden />
+              <span className="flex-1 min-w-0">
+                <span className="block font-display text-xl">{t("yourKit")}</span>
+                {kitCollapsed && <span className="block text-xs text-muted font-normal">{t("kitCollapsedHint")}</span>}
+              </span>
+              <ChevronDown className={["size-4.5 text-muted transition-transform shrink-0", kitCollapsed ? "" : "rotate-180"].join(" ")} strokeWidth={2} aria-hidden />
+            </button>
+          </h2>
+          {!kitCollapsed && (kit ? <CareKitView kit={kit} /> : <Skeleton className="h-64 rounded-[var(--radius-card)]" />)}
         </div>
+      )}
+
+      {hasAnswers && !isEditing && kit && (
+        <CareKitTips kit={kit} collapsed={tipsCollapsed} onToggle={() => setTipsCollapsed(!tipsCollapsed)} />
       )}
 
       <div className="bg-card rounded-[var(--radius-card)] border border-border shadow-[var(--shadow-card)] overflow-hidden mb-4">

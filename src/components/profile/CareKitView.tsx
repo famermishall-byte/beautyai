@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
-import { Check, Lightbulb, Plus, ShoppingBag, Sparkle } from "lucide-react";
+import { Check, ChevronDown, Lightbulb, Plus, ShoppingBag, Sparkle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/Button";
 import type { CareKit } from "@/lib/kit";
@@ -74,7 +74,6 @@ export function CareKitView({ kit }: { kit: CareKit }) {
 
   const kitProducts = [...kit.skinSteps.map((s) => s.product), ...kit.hairProducts].filter((p): p is Product => p !== null);
   const total = kitProducts.reduce((sum, p) => sum + p.price, 0);
-  const hasTips = kit.skinTips.length > 0 || kit.hairTips.length > 0;
 
   function addAll() {
     kitProducts.forEach((p) => addItem(p));
@@ -127,21 +126,45 @@ export function CareKitView({ kit }: { kit: CareKit }) {
         </Button>
       )}
 
-      {hasTips && (
-        <div className="bg-accent-soft rounded-[var(--radius-card)] p-5">
-          <div className="flex items-center gap-2 mb-3 text-accent-strong">
-            <Lightbulb className="size-4.5" strokeWidth={2} aria-hidden />
-            <h3 className="font-display text-lg">{t("tips")}</h3>
-          </div>
-          <ul className="flex flex-col gap-2.5 text-sm text-accent-strong/90 leading-relaxed">
-            {[...kit.skinTips, ...kit.hairTips].map((tip) => (
-              <li key={tip} className="flex gap-2">
-                <span aria-hidden>•</span>
-                <span>{tip}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+    </div>
+  );
+}
+
+/**
+ * «Советы» по анкете — отдельный блок профиля, который сворачивается сам по себе (просьба владельца 29.09:
+ * советы не должны прятаться вместе с набором). null — советов нет.
+ */
+export function CareKitTips({ kit, collapsed, onToggle }: { kit: CareKit; collapsed: boolean; onToggle: () => void }) {
+  const t = useTranslations("kit");
+  const tips = [...kit.skinTips, ...kit.hairTips];
+  if (tips.length === 0) return null;
+
+  return (
+    <div className="bg-accent-soft rounded-[var(--radius-card)] mb-6">
+      <h2>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          className="w-full flex items-center gap-2 px-5 py-3 min-h-11 text-left text-accent-strong rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <Lightbulb className="size-4.5 shrink-0" strokeWidth={2} aria-hidden />
+          <span className="flex-1 min-w-0">
+            <span className="block font-display text-lg">{t("tips")}</span>
+            {collapsed && <span className="block text-xs text-accent-strong/80 font-normal">{t("tipsCount", { n: tips.length })}</span>}
+          </span>
+          <ChevronDown className={["size-4.5 shrink-0 transition-transform", collapsed ? "" : "rotate-180"].join(" ")} strokeWidth={2} aria-hidden />
+        </button>
+      </h2>
+      {!collapsed && (
+        <ul className="flex flex-col gap-2.5 text-sm text-accent-strong/90 leading-relaxed px-5 pb-5">
+          {tips.map((tip) => (
+            <li key={tip} className="flex gap-2">
+              <span aria-hidden>•</span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
