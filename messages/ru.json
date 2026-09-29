@@ -1357,7 +1357,8 @@
     "homeBanner": "Опт от {usd} $ (≈ {som}) — цены ниже",
     "badge": "Опт",
     "unitPrice": "Опт: {amount}/шт",
-    "wouldCost": "По оптовым ценам этот заказ — {wholesale} вместо {retail}"
+    "wouldCost": "По оптовым ценам этот заказ — {wholesale} вместо {retail}",
+    "stripApplied": "Оптовые цены применены — экономия {amount}"
   },
   "adminWholesale": {
     "title": "Оптовые цены",
