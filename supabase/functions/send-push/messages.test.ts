@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { customerOrderMessage, newOrderMessage, staffRecipient } from "./messages.ts";
+import { broadcastMessage, broadcastTtl, customerOrderMessage, newOrderMessage, staffRecipient } from "./messages.ts";
 
 test("newOrderMessage: number, total, delivery method and a link to the orders", () => {
   assert.deepEqual(newOrderMessage({ number: "48", total_price: 2010, delivery_method: "delivery", customer_name: "Айгуль" }), {
@@ -34,4 +34,20 @@ test("staffRecipient: owner/admin get every order of the store, a branch manager
   assert.equal(staffRecipient({ role: "branch_manager", store_id: "s1", branch_id: "b2" }, order), false);
   assert.equal(staffRecipient({ role: "owner", store_id: "s2", branch_id: null }, order), false);
   assert.equal(staffRecipient({ role: "user", store_id: "s1", branch_id: null }, order), false);
+});
+
+test("broadcastMessage adds «До 05.10» when there is an end date; default link is home", () => {
+  const b = { id: "b1", title: "Скидка −20%", body: "На все кремы", url: null as string | null, valid_until: "2026-10-05" as string | null };
+  assert.deepEqual(broadcastMessage(b), { title: "Скидка −20%", body: "На все кремы · До 05.10", url: "/", tag: "broadcast-b1" });
+  assert.equal(broadcastMessage({ ...b, valid_until: null, url: "/catalog" }).body, "На все кремы");
+  assert.equal(broadcastMessage({ ...b, valid_until: null, url: "/catalog" }).url, "/catalog");
+});
+
+test("broadcastTtl: until the end of the «до» day in Bishkek (UTC+6), at most 28 days; no end date → 24 h; past → 0", () => {
+  const now = new Date("2026-09-29T08:00:00Z"); // 14:00 in Bishkek
+  // end of 30.09 in Bishkek = 2026-09-30T18:00Z → 34 h
+  assert.equal(broadcastTtl("2026-09-30", now), 34 * 3600);
+  assert.equal(broadcastTtl(null, now), 24 * 3600);
+  assert.equal(broadcastTtl("2026-12-31", now), 28 * 24 * 3600);
+  assert.equal(broadcastTtl("2026-09-28", now), 0);
 });
