@@ -550,11 +550,12 @@ export function OrderManager() {
   const q = query.trim().toLowerCase();
   const qDigits = q.replace(/\D/g, "").replace(/^0+/, "");
   const matchesQuery = (o: Order) => {
-    const text = [o.number, o.customerName, o.customerPhone, ...o.items.map((i) => i.name)].join(" ").toLowerCase();
+    const text = [o.number, o.legacyNumber ?? "", o.customerName, o.customerPhone, ...o.items.map((i) => i.name)].join(" ").toLowerCase();
     if (text.includes(q)) return true;
-    // "17" / "00017" find BA-00017; digits of a phone find it however it was typed
+    // "17" finds order 17 (and an old BA-00017); digits of a phone find it however it was typed
     if (qDigits.length >= 2) {
       if (o.number.replace(/\D/g, "").replace(/^0+/, "").includes(qDigits)) return true;
+      if ((o.legacyNumber ?? "").replace(/\D/g, "").replace(/^0+/, "").includes(qDigits)) return true;
       if (o.customerPhone.replace(/\D/g, "").includes(qDigits)) return true;
     }
     return false;

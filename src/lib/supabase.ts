@@ -63,6 +63,7 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
   return {
     id: row.id as string,
     number: row.number as string,
+    legacyNumber: (row.legacy_number as string | null | undefined) ?? null,
     customerName: row.customer_name as string,
     customerPhone: row.customer_phone as string,
     totalPrice: row.total_price as number,

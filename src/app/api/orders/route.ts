@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapOrder } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
-import { formatOrderNumber, buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
+import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { loadCart } from "@/lib/cart-server";
 import { orderLinesFromCart } from "@/lib/cart-logic";
 
@@ -44,12 +44,6 @@ export async function POST(request: NextRequest) {
 
     const { lines, total: totalPrice } = orderLinesFromCart(items);
 
-    const { count: orderCount } = await supabase
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .eq("store_id", profile.storeId);
-    const orderNumber = formatOrderNumber((orderCount ?? 0) + 1);
-
     // Stock check in the chosen branch. Only what is certainly not there stops the order — a missing stock row
     // ("no data") is allowed, and the seller still has the last word.
     const productIds = lines.map((l) => l.productId);
@@ -78,17 +72,18 @@ export async function POST(request: NextRequest) {
         store_id: profile.storeId,
         user_id: profile.userId,
         branch_id: branch.id,
-        number: orderNumber,
         customer_name: customerName,
         customer_phone: customerPhone,
         total_price: totalPrice,
         status: "sent",
         items_json: lines,
       })
-      .select("id, status_token")
+      .select("id, status_token, number")
       .single();
 
     if (orderError) throw orderError;
+    // Номер (1, 2, 3 …) выдаёт база — триггер orders_assign_number, см. supabase/order_numbers.sql.
+    const orderNumber = order.number as string;
 
     // Заказ уже в базе — если убрать строки из корзины не получилось, заказ всё равно оформлен:
     // клиент просто увидит эти товары в корзине и удалит их сам. Ошибку не возвращаем.
