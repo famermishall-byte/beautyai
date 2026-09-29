@@ -8,6 +8,7 @@ import { skinTypeLabel, type SkinType } from "@/lib/skincare";
 import { SKIN_TYPE_CATEGORIES, skinFit } from "@/lib/personalization";
 import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { HeroSlider } from "@/components/HeroSlider";
+import { InlineBanner } from "@/components/InlineBanner";
 import { WholesaleBanner } from "@/components/WholesaleBanner";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
@@ -161,6 +162,8 @@ export default function Home() {
             </Link>
           )}
         </Section>
+
+        <InlineBanner />
 
         {promoProducts.length > 0 && (
           <Section title={t("promoTitle")} icon={Flame}>

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
-import type { HomeSlide, OrderItem, Product } from "@/types";
+import type { HomeSlide, OrderItem, Product, SlideAction } from "@/types";
 
 // Клиент без авторизации пользователя — RLS теперь ограничивает доступ к данным
 // (products/branches/orders/stores) только авторизованным пользователям своего
@@ -119,8 +119,10 @@ export function mapHomeSlide(row: Record<string, unknown>, product: Product | nu
     videoUrl: (row.video_url as string | null) ?? null,
     title: (row.title as string | null) ?? null,
     subtitle: (row.subtitle as string | null) ?? null,
-    action: row.action as "cart" | "promo",
+    action: row.action as SlideAction,
     productId: (row.product_id as string | null) ?? null,
+    placement: row.placement === "inline" ? "inline" : "hero",
+    category: (row.link_category as string | null) ?? null,
     priority: row.priority as number,
     active: row.active as boolean,
     product,
