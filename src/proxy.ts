@@ -5,6 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
 import createIntlMiddleware from "next-intl/middleware";
 import { isStaff } from "@/lib/auth";
 import { routing } from "@/i18n/routing";
+import { safeNextPath } from "@/lib/safe-next";
 
 // Locale detection / /ru|/ky prefix redirects / NEXT_LOCALE cookie are handled by next-intl.
 const handleI18nRouting = createIntlMiddleware(routing);
@@ -80,7 +81,10 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user && !isPublicPath(pathname)) {
-    return redirectTo("/login");
+    // Запоминаем, куда человек шёл (например, продавец — «Открыть админку» со страницы заказа), чтобы после
+    // входа вернуть его туда же, а не на главную.
+    const target = pathname + request.nextUrl.search;
+    return redirectTo(target === "/" ? "/login" : `/login?next=${encodeURIComponent(target)}`);
   }
 
   if (user && (pathname === "/login" || !isPublicPath(pathname))) {
@@ -89,7 +93,8 @@ export async function proxy(request: NextRequest) {
     const staff = isStaff(role);
 
     if (pathname === "/login") {
-      return redirectTo(staff ? "/admin" : "/");
+      const next = safeNextPath(request.nextUrl.searchParams.get("next"));
+      return redirectTo(next !== "/" ? next : staff ? "/admin" : "/");
     }
 
     if (pathname === "/admin" || pathname.startsWith("/admin/")) {
