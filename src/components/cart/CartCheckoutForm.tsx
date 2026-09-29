@@ -72,7 +72,11 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
     setError(null);
     try {
       // Галочки/количества, изменённые секунду назад, должны дойти до сервера раньше заказа.
-      await flush();
+      // Если какое-то изменение не сохранилось, сервер оформил бы не то, что клиент видит, — стоп.
+      if (!(await flush())) {
+        setError(tCart("saveFailed"));
+        return;
+      }
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

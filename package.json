@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/cart-logic.test.ts",
+    "test": "tsx --test src/lib/cart-logic.test.ts src/lib/cart-store.test.ts",
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios"
