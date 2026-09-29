@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
+import { formatDateInput, inDateRange, parseDateInput, presetRange, type PresetKey } from "@/lib/date-range";
 import { Minus, Plus, Search, Volume2, VolumeX } from "lucide-react";
 import type { Branch, Order, OrderItem } from "@/types";
 import { useSession } from "@/lib/session-context";
@@ -30,8 +31,7 @@ const PILL: Record<string, string> = {
   cancelled: "bg-error-soft text-error",
 };
 
-const PERIODS = [{ key: "today" }, { key: "7" }, { key: "30" }, { key: "all" }] as const;
-type Period = (typeof PERIODS)[number]["key"];
+const PRESETS: PresetKey[] = ["today", "7", "30", "all"];
 
 // The work queue first: orders that still need the seller's action.
 const GROUPS = [
@@ -53,14 +53,6 @@ function waiting(t: (key: string, values?: Record<string, number>) => string, is
   if (min < 60) return t("waiting.minutes", { n: min });
   if (min < 48 * 60) return t("waiting.hours", { n: Math.round(min / 60) });
   return t("waiting.days", { n: Math.round(min / 1440) });
-}
-
-function inPeriod(iso: string, period: Period) {
-  if (period === "all") return true;
-  const d = new Date(iso);
-  const now = new Date();
-  if (period === "today") return d.toDateString() === now.toDateString();
-  return now.getTime() - d.getTime() <= Number(period) * 86_400_000;
 }
 
 /** Lines the branch may not be able to fill (only for orders still waiting for action). */
@@ -343,10 +335,26 @@ function SalesSummary({
 }) {
   const t = useTranslations("orderManager");
   const money = usePrice();
-  const [period, setPeriod] = useState<Period>("30");
+  // Период вводится вручную (ДД.ММ.ГГГГ); быстрые кнопки только заполняют поля. По умолчанию — последние 30 дней.
+  const [range, setRange] = useState(() => presetRange("30"));
   const oneBranch = branchId !== "all" ? branchOptions.find((b) => b.id === branchId) : undefined;
 
-  const sales = orders.filter((o) => SALE_STATUSES.includes(o.status) && inPeriod(o.paidAt ?? o.createdAt, period));
+  const from = parseDateInput(range.from);
+  const to = parseDateInput(range.to);
+  const fromBad = range.from !== "" && !from;
+  const toBad = range.to !== "" && !to;
+  const reversed = !!from && !!to && from > to;
+  // Пока дата введена не до конца — показываем прошлый результат по последнему правильному периоду.
+  const [applied, setApplied] = useState<{ from: Date | null; to: Date | null }>({ from, to });
+  if (!fromBad && !toBad && !reversed && (applied.from?.getTime() !== from?.getTime() || applied.to?.getTime() !== to?.getTime())) {
+    setApplied({ from, to });
+  }
+  const activePreset = PRESETS.find((p) => {
+    const r = presetRange(p);
+    return r.from === range.from && r.to === range.to;
+  });
+
+  const sales = orders.filter((o) => SALE_STATUSES.includes(o.status) && inDateRange(o.paidAt ?? o.createdAt, applied.from, applied.to));
   const total = sales.reduce((sum, o) => sum + o.totalPrice, 0);
 
   const rows = new Map<string, { name: string; city: string; count: number; sum: number }>();
@@ -385,9 +393,39 @@ function SalesSummary({
         </label>
       )}
 
+      <div className="grid grid-cols-2 gap-3 mb-2">
+        {(["from", "to"] as const).map((side) => {
+          const bad = side === "from" ? fromBad : toBad;
+          return (
+            <label key={side} className="block">
+              <span className="block text-xs font-medium text-muted mb-1.5">{t(side === "from" ? "dateFrom" : "dateTo")}</span>
+              <input
+                value={range[side]}
+                onChange={(e) => {
+                  const value = formatDateInput(e.target.value);
+                  setRange((r) => ({ ...r, [side]: value }));
+                }}
+                inputMode="numeric"
+                placeholder={t("datePlaceholder")}
+                aria-invalid={bad || reversed}
+                maxLength={10}
+                className={[
+                  "w-full rounded-lg border bg-background px-3 py-2.5 text-sm tabular-nums outline-none focus:ring-2 focus:ring-accent",
+                  bad || reversed ? "border-error" : "border-black/10",
+                ].join(" ")}
+              />
+            </label>
+          );
+        })}
+      </div>
+      {(fromBad || toBad || reversed) && (
+        <p className="text-xs text-error mb-2">{reversed ? t("dateReversed") : t("dateInvalid")}</p>
+      )}
+      <p className="text-xs text-muted mb-2">{t("dateHint")}</p>
+
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1">
-        {PERIODS.map((p) => (
-          <Chip key={p.key} label={t(`periods.${p.key}`)} active={period === p.key} onClick={() => setPeriod(p.key)} />
+        {PRESETS.map((p) => (
+          <Chip key={p} label={t(`periods.${p}`)} active={activePreset === p} onClick={() => setRange(presetRange(p))} />
         ))}
       </div>
 
