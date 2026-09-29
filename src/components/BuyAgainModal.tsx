@@ -6,7 +6,6 @@ import { RotateCcw, X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
-import { markAdded } from "@/lib/session-flags";
 import type { Product } from "@/types";
 
 /** «Не хотите купить снова?» — товар, который клиент уже покупал 2+ раза. */
@@ -35,7 +34,6 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
   function handleBuyAgain() {
     if (!product) return;
     addItem(product);
-    markAdded(product.id);
     onClose();
   }
 

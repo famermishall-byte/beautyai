@@ -5,7 +5,6 @@ import { Check, Minus, Plus, Trash2 } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
-import { unmarkAdded } from "@/lib/session-flags";
 import type { CartItem } from "@/types";
 
 /** Строка корзины: галочка «в заказ», количество, удаление. Снятая галочка — товар остаётся в корзине. */
@@ -57,10 +56,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
           </div>
           <button
             type="button"
-            onClick={() => {
-              removeItem(item.product.id);
-              unmarkAdded(item.product.id);
-            }}
+            onClick={() => removeItem(item.product.id)}
             aria-label={t("remove", { name })}
             className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
           >

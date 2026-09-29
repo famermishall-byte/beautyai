@@ -4,12 +4,12 @@ import { use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
-import { ArrowLeft, Heart, Sparkle, Minus, Plus, Check, PackageX, LayoutGrid, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Heart, Sparkle, Minus, Plus, PackageX, LayoutGrid, BadgeCheck } from "lucide-react";
 import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
-import { isMarkedAdded, markAdded, wasProductPromptShown, markProductPromptShown } from "@/lib/session-flags";
+import { wasProductPromptShown, markProductPromptShown } from "@/lib/session-flags";
 import { useGoBack } from "@/lib/use-go-back";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { ProductCard } from "@/components/ProductCard";
@@ -37,8 +37,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  // Держится, пока товар не убран из корзины (не 1-2 секунды) — см. session-flags.ts.
-  const [added, setAdded] = useState(false);
   const [showBuyAgain, setShowBuyAgain] = useState(false);
 
   useEffect(() => {
@@ -60,12 +58,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       .then((data: { products: Product[] }) => setRelated((data.products ?? []).filter((p) => p.id !== id).slice(0, 6)))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [id]);
-
-  // localStorage недоступен при рендере/SSR — читаем и решаем после монтирования
-  // (отложено через микрозадачу — тот же приём, что в NavHeader.tsx).
-  useEffect(() => {
-    Promise.resolve().then(() => setAdded(isMarkedAdded(id)));
   }, [id]);
 
   const purchaseCount = countOf(id);
@@ -116,8 +108,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   function handleAdd() {
     if (!product) return;
     addItem(product);
-    markAdded(product.id);
-    setAdded(true);
   }
 
   return (
@@ -248,15 +238,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         ) : (
           <Button variant="primary" size="lg" fullWidth disabled={outOfStock} onClick={handleAdd}>
-            {added ? (
-              <>
-                <Check className="size-4.5" strokeWidth={2.5} aria-hidden /> {t("added")}
-              </>
-            ) : outOfStock ? (
-              t("outOfStock")
-            ) : (
-              t("addToCart")
-            )}
+            {/* Товар в корзине — вместо этой кнопки «− N +» выше (по данным корзины, 29.09):
+                отдельная отметка «Добавлено» в памяти телефона врала после заказа и на другом устройстве. */}
+            {outOfStock ? t("outOfStock") : t("addToCart")}
           </Button>
         )}
       </div>
