@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { VIDEO_MAX_BYTES, checkVideoFile, validateSlideInput, visibleSlides, moveSlide } from "./home-slides";
+import { VIDEO_MAX_BYTES, checkVideoFile, validateSlideInput, visibleSlides, moveSlide, slideRowFromBody } from "./home-slides";
 import type { HomeSlide, Product } from "../types";
 
 test("checkVideoFile: тип и размер", () => {
@@ -35,6 +35,19 @@ test("visibleSlides фильтрует и сортирует", () => {
     slide("a", { priority: 1, action: "cart", product: prod(true) }),
   ];
   assert.deepEqual(visibleSlides(list).map((s) => s.id), ["a", "b"]);
+});
+
+test("slideRowFromBody", () => {
+  assert.deepEqual(slideRowFromBody({ mediaType: "video", imageUrl: "p", action: "promo" }), { ok: false, error: "media" });
+  assert.deepEqual(slideRowFromBody(null), { ok: false, error: "media" });
+  const promo = slideRowFromBody({ mediaType: "image", imageUrl: "i", videoUrl: "v", action: "promo", productId: "x", title: "  ", subtitle: " s " });
+  assert.deepEqual(promo, {
+    ok: true,
+    row: { media_type: "image", image_url: "i", video_url: null, title: null, subtitle: "s", action: "promo", product_id: null },
+  });
+  const cart = slideRowFromBody({ mediaType: "video", imageUrl: "p", videoUrl: "v", action: "cart", productId: "x" });
+  assert.equal(cart.ok && cart.row.product_id, "x");
+  assert.equal(cart.ok && cart.row.video_url, "v");
 });
 
 test("moveSlide", () => {

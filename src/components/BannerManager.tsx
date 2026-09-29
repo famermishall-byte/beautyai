@@ -9,32 +9,8 @@ import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { effectiveState, type EffectiveState } from "@/lib/promo-status";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { photoToJpeg as toBannerJpeg } from "@/lib/promo-media";
 import type { Banner } from "@/types";
-
-const TARGET_W = 960;
-const TARGET_H = 660; // 16:11, как HeroSlider
-
-async function toBannerJpeg(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const srcRatio = bitmap.width / bitmap.height;
-  const dstRatio = TARGET_W / TARGET_H;
-  let sx = 0, sy = 0, sw = bitmap.width, sh = bitmap.height;
-  if (srcRatio > dstRatio) {
-    sw = bitmap.height * dstRatio;
-    sx = (bitmap.width - sw) / 2;
-  } else {
-    sh = bitmap.width / dstRatio;
-    sy = (bitmap.height - sh) / 2;
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = TARGET_W;
-  canvas.height = TARGET_H;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas");
-  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H);
-  bitmap.close();
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("blob"))), "image/jpeg", 0.85));
-}
 
 type FormState = {
   title: string;

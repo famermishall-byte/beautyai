@@ -19,6 +19,51 @@ export function validateSlideInput(i: SlideInput): "ok" | "media" | "product" | 
   return "ok";
 }
 
+export const SLIDE_INPUT_ERRORS: Record<"media" | "product" | "action", string> = {
+  media: "Загрузите фото или видео для слайда.",
+  product: "Выберите товар для кнопки «Купить товар».",
+  action: "Выберите действие слайда.",
+};
+
+export type SlideRow = {
+  media_type: "image" | "video";
+  image_url: string | null;
+  video_url: string | null;
+  title: string | null;
+  subtitle: string | null;
+  action: "cart" | "promo";
+  product_id: string | null;
+};
+
+const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+// Полная форма слайда из JSON → строка для home_slides (или код ошибки).
+export function slideRowFromBody(body: unknown): { ok: true; row: SlideRow } | { ok: false; error: "media" | "product" | "action" } {
+  const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
+  const input: SlideInput = {
+    mediaType: b.mediaType === "video" ? "video" : "image",
+    imageUrl: str(b.imageUrl),
+    videoUrl: str(b.videoUrl),
+    action: typeof b.action === "string" ? b.action : "",
+    productId: str(b.productId),
+  };
+  const check = validateSlideInput(input);
+  if (check !== "ok") return { ok: false, error: check };
+  const action = input.action as "cart" | "promo";
+  return {
+    ok: true,
+    row: {
+      media_type: input.mediaType as "image" | "video",
+      image_url: input.imageUrl,
+      video_url: input.mediaType === "video" ? input.videoUrl : null,
+      title: str(b.title),
+      subtitle: str(b.subtitle),
+      action,
+      product_id: action === "cart" ? input.productId : null,
+    },
+  };
+}
+
 // Показываем активные слайды; «в корзину» — только если товар есть в наличии.
 export function visibleSlides(slides: HomeSlide[]): HomeSlide[] {
   return slides
