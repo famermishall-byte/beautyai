@@ -12,6 +12,8 @@ export const IMPORT_FIELDS: {
   label: string;
   required: boolean;
   aliases: string[];
+  /** Header words that rule a column out for this field even if an alias matches. */
+  exclude?: string[];
 }[] = [
   {
     key: "name",
@@ -24,6 +26,14 @@ export const IMPORT_FIELDS: {
     label: "Цена",
     required: true,
     aliases: ["цена", "розничная цена", "стоимость", "price", "cost"],
+    // «Оптовая цена» тоже содержит слово «цена» — без этого обычная цена могла взяться из оптовой колонки.
+    exclude: ["опт", "wholesale"],
+  },
+  {
+    key: "wholesalePrice",
+    label: "Оптовая цена",
+    required: false,
+    aliases: ["оптовая цена", "опт", "цена опт", "оптом", "оптовая", "wholesale", "wholesale price"],
   },
   {
     key: "sku",

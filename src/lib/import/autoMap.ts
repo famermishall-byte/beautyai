@@ -5,7 +5,7 @@ function normalizeHeader(header: string): string {
   return header.trim().toLowerCase();
 }
 
-type ImportField = { key: FieldKey; required: boolean; aliases: string[] };
+type ImportField = { key: FieldKey; required: boolean; aliases: string[]; exclude?: string[] };
 
 /**
  * Guesses which file column holds each Beauty field, by matching header
@@ -27,10 +27,11 @@ export function suggestMapping(headers: string[], fields: ImportField[] = IMPORT
   for (const field of orderedFields) {
     // Exact match first ("цена" === "цена"), then substring containment
     // ("розничная цена" contains "цена") as a fallback.
-    let matchIndex = normalized.findIndex((h, i) => !claimed.has(i) && field.aliases.includes(h));
+    const excluded = (h: string) => (field.exclude ?? []).some((word) => h.includes(word));
+    let matchIndex = normalized.findIndex((h, i) => !claimed.has(i) && !excluded(h) && field.aliases.includes(h));
     if (matchIndex === -1) {
       matchIndex = normalized.findIndex(
-        (h, i) => !claimed.has(i) && h.length > 0 && field.aliases.some((alias) => h.includes(alias))
+        (h, i) => !claimed.has(i) && h.length > 0 && !excluded(h) && field.aliases.some((alias) => h.includes(alias))
       );
     }
     if (matchIndex !== -1) {

@@ -16,6 +16,7 @@ export type ImportFormat = "xlsx" | "csv" | "json";
 export type FieldKey =
   | "name"
   | "price"
+  | "wholesalePrice"
   | "sku"
   | "barcode"
   | "externalId"
@@ -35,6 +36,8 @@ export type ColumnMapping = Partial<Record<FieldKey, number>>;
 export type ParsedImportProduct = {
   name: string;
   price: number;
+  /** Optional wholesale unit price (column «Оптовая цена»); null when absent or not a positive number. */
+  wholesalePrice: number | null;
   sku: string;
   inStock: boolean;
   brand: string;

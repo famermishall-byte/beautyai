@@ -36,6 +36,7 @@ export async function executeSyncPlan(
           brand: c.product.brand,
           category: c.product.category,
           price: c.product.price,
+          wholesale_price: c.product.wholesalePrice,
           description: c.product.description || null,
           characteristics: c.product.characteristics || null,
           purpose: c.product.purpose || null,
@@ -59,6 +60,7 @@ export async function executeSyncPlan(
   for (const u of updateRows) {
     const changes: Record<string, unknown> = {};
     if (u.changes.price !== undefined) changes.price = u.changes.price;
+    if (u.changes.wholesalePrice !== undefined) changes.wholesale_price = u.changes.wholesalePrice;
     if (u.changes.brand !== undefined) changes.brand = u.changes.brand;
     if (u.changes.category !== undefined) changes.category = u.changes.category;
     if (u.changes.description !== undefined) changes.description = u.changes.description;

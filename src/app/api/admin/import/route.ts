@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       brand: product.brand,
       category: product.category,
       price: product.price,
+      wholesale_price: product.wholesalePrice ?? null,
       description: product.description || null,
       characteristics: product.characteristics || null,
       purpose: product.purpose || null,

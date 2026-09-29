@@ -9,7 +9,7 @@ import type { FieldKey } from "./types";
  * `externalId`, and an optional per-row `branchName` for files that already
  * separate rows by branch/warehouse.
  */
-export const SYNC_IMPORT_FIELDS: { key: FieldKey; label: string; required: boolean; aliases: string[] }[] = [
+export const SYNC_IMPORT_FIELDS: { key: FieldKey; label: string; required: boolean; aliases: string[]; exclude?: string[] }[] = [
   {
     key: "name",
     label: "Название",
@@ -21,6 +21,14 @@ export const SYNC_IMPORT_FIELDS: { key: FieldKey; label: string; required: boole
     label: "Цена",
     required: true,
     aliases: ["цена", "розничная цена", "стоимость", "price", "cost"],
+    // «Оптовая цена» тоже содержит слово «цена» — без этого обычная цена могла взяться из оптовой колонки.
+    exclude: ["опт", "wholesale"],
+  },
+  {
+    key: "wholesalePrice",
+    label: "Оптовая цена",
+    required: false,
+    aliases: ["оптовая цена", "опт", "цена опт", "оптом", "оптовая", "wholesale", "wholesale price"],
   },
   {
     key: "sku",

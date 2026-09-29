@@ -7,6 +7,13 @@ export function parsePrice(value: string): number {
   return Number.isFinite(parsed) ? parsed : NaN;
 }
 
+/** Необязательная цена (оптовая): пусто / мусор / ≤ 0 — просто нет значения, а не ошибка строки. */
+export function parseOptionalPrice(value: string): number | null {
+  if (!value.trim()) return null;
+  const parsed = parsePrice(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 function parseInStock(value: string): boolean {
   const text = value.trim().toLowerCase();
   if (!text) return true; // not specified — assume in stock, matches prior importer behavior
@@ -87,6 +94,7 @@ export function buildImportRows(
       product: {
         name,
         price,
+        wholesalePrice: parseOptionalPrice(get(row, "wholesalePrice")),
         sku,
         inStock: parseInStock(get(row, "inStock")),
         brand: get(row, "brand") || "Без бренда",
