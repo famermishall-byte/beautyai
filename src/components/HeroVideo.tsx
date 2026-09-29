@@ -13,15 +13,18 @@ export function HeroVideo({
   onToggleMute,
   onEnded,
   onFailed,
+  loop = false,
 }: {
   src: string;
   poster: string | null;
   active: boolean;
   muted: boolean;
   onToggleMute: () => void;
-  onEnded: () => void;
+  onEnded?: () => void;
   /** Ролик не запустился (play() отклонён) или не открылся (ошибка загрузки/кодека). */
   onFailed: () => void;
+  /** Зацикленный ролик (инлайн-баннер); у слайдера false — иначе нет события ended. */
+  loop?: boolean;
 }) {
   const t = useTranslations("home");
   const ref = useRef<HTMLVideoElement>(null);
@@ -53,6 +56,7 @@ export function HeroVideo({
         poster={poster ?? undefined}
         muted={muted}
         playsInline
+        loop={loop}
         preload="metadata"
         onEnded={onEnded}
         onError={onFailed}
