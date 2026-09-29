@@ -10,6 +10,7 @@ import { BannerGate } from "@/components/BannerInterstitial";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartCheckoutForm } from "@/components/cart/CartCheckoutForm";
 import { CartOrderSent, type SentOrder } from "@/components/cart/CartOrderSent";
+import { CartAddOns } from "@/components/cart/CartAddOns";
 import { usePathname } from "@/i18n/navigation";
 
 /** Открыть корзину из другого места (полоса опта под шапкой — WholesaleStrip). */
@@ -108,6 +109,8 @@ export function CartDrawer() {
                     <CartItemRow key={item.product.id} item={item} />
                   ))}
                 </div>
+
+                <CartAddOns />
 
                 <div className="border-t border-border pt-4">
                   <CartCheckoutForm onSent={setSent} />

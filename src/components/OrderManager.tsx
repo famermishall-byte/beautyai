@@ -116,8 +116,11 @@ function OrderRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<number[]>(order.items.map((i) => i.quantity));
   const tdl = useTranslations("delivery");
-  // Главная кнопка — первый доступный шаг (lib/delivery.ts): оплата, отправка, выдача или доставка; «Отменить» — в списке статусов.
-  const next = sellerActions(order).filter((a) => a !== "cancel")[0];
+  // Главная кнопка — первый доступный шаг (lib/delivery.ts): оплата, отправка, выдача или доставка.
+  // Отменить может только владелец/администратор — через список статусов (продавцу филиала «Отменён» не показывается).
+  const next = sellerActions(order)[0];
+  const { session } = useSession();
+  const statusOptions = session?.role === "branch_manager" ? ORDER_STATUSES.filter((s) => s !== "cancelled" || order.status === "cancelled") : ORDER_STATUSES;
   const issues = stockIssues(order);
   const reduced = isReduced(order.items);
 
@@ -324,7 +327,7 @@ function OrderRow({
               aria-label={t("changeStatus")}
               className="rounded-full bg-accent-soft text-accent text-xs px-3 py-2 outline-none disabled:opacity-50"
             >
-              {ORDER_STATUSES.map((status) => (
+              {statusOptions.map((status) => (
                 <option key={status} value={status}>
                   {getOrderStatusAdminLabel(ts, status)}
                 </option>

@@ -3,7 +3,8 @@ import { getOrderStatusLabel } from "@/lib/orderStatus";
 import { SellerExitLinks } from "@/components/SellerExitLinks";
 import { getTranslations } from "next-intl/server";
 
-const LINK_STATUSES = new Set(["confirmed", "paid", "shipped", "completed", "cancelled"]);
+// Без «cancelled»: по ссылке продавец заказ не отменяет (решение владельца 29.09).
+const LINK_STATUSES = new Set(["confirmed", "paid", "shipped", "completed"]);
 const LEGACY_STATUSES = new Set(["confirmed", "completed", "cancelled"]);
 
 function Result({ title, text }: { title: string; text: string }) {
