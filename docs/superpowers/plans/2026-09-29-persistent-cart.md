@@ -52,7 +52,7 @@
     `OrderLine = { name: string; brand: string; price: number; quantity: number; orderedQuantity: number; productId: string; sku: string }`
   - `type CartItem = { product: Product; quantity: number; selected: boolean }` (в `src/types.ts`)
 
-- [ ] **Step 1: Создать worktree**
+- [x] **Step 1: Создать worktree**
 
 ```powershell
 cd C:\Users\Admin\Desktop\BeautyAI
@@ -63,7 +63,7 @@ cd .claude/worktrees/persistent-cart; npm install
 
 Все дальнейшие пути — внутри worktree.
 
-- [ ] **Step 2: Добавить `selected` в `CartItem`** (`src/types.ts`)
+- [x] **Step 2: Добавить `selected` в `CartItem`** (`src/types.ts`)
 
 ```ts
 export type CartItem = {
@@ -74,7 +74,7 @@ export type CartItem = {
 };
 ```
 
-- [ ] **Step 3: Написать падающие тесты** — `src/lib/cart-logic.test.ts`
+- [x] **Step 3: Написать падающие тесты** — `src/lib/cart-logic.test.ts`
 
 ```ts
 import { test } from "node:test";
@@ -143,14 +143,14 @@ test("orderLinesFromCart uses only selected items and the (server-side) product 
 });
 ```
 
-- [ ] **Step 4: Добавить скрипт и убедиться, что тесты падают**
+- [x] **Step 4: Добавить скрипт и убедиться, что тесты падают**
 
 В `package.json` → `"scripts"` добавить: `"test": "tsx --test src/lib/cart-logic.test.ts"`.
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module './cart-logic'`.
 
-- [ ] **Step 5: Реализовать** — `src/lib/cart-logic.ts`
+- [x] **Step 5: Реализовать** — `src/lib/cart-logic.ts`
 
 ```ts
 import type { CartItem, Product } from "@/types";
@@ -238,12 +238,12 @@ export function orderLinesFromCart(items: CartItem[]): { lines: OrderLine[]; tot
 }
 ```
 
-- [ ] **Step 6: Тесты проходят**
+- [x] **Step 6: Тесты проходят**
 
 Run: `npm test`
 Expected: PASS, 9 tests, 0 fail. (Если `tsx` не разрешает `@/types` — импорт в `cart-logic.ts` только `import type`, он стирается; ошибки быть не должно.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add src/lib/cart-logic.ts src/lib/cart-logic.test.ts src/types.ts package.json
@@ -262,7 +262,7 @@ git commit -m "feat(cart): pure cart logic with tests" -m "Co-Authored-By: Claud
 **Interfaces:**
 - Produces: таблица `public.cart_items(user_id uuid, product_id uuid, quantity int > 0, selected bool default true, created_at, updated_at)`, PK `(user_id, product_id)`, RLS «только свои строки».
 
-- [ ] **Step 1: Написать миграцию** — `supabase/cart_items.sql`
+- [x] **Step 1: Написать миграцию** — `supabase/cart_items.sql`
 
 ```sql
 -- Корзина за аккаунтом (см. docs/superpowers/specs/2026-09-29-persistent-cart-design.md).
@@ -295,18 +295,18 @@ create policy cart_items_delete_own on public.cart_items
 grant select, insert, update, delete on public.cart_items to authenticated;
 ```
 
-- [ ] **Step 2: СПРОСИТЬ владельца** «Создаю таблицу корзины в живой базе?» — дальше только после «да».
+- [x] **Step 2: СПРОСИТЬ владельца** «Создаю таблицу корзины в живой базе?» — дальше только после «да».
 
-- [ ] **Step 3: Применить** через Supabase MCP `apply_migration` (project `nufmsvwkixnfjvzdabmz`, name `cart_items`, query = содержимое файла).
+- [x] **Step 3: Применить** через Supabase MCP `apply_migration` (project `nufmsvwkixnfjvzdabmz`, name `cart_items`, query = содержимое файла).
 
-- [ ] **Step 4: Проверить**
+- [x] **Step 4: Проверить**
 
 `list_tables` (schemas `["public"]`) → есть `cart_items`, `rls_enabled: true`.
 `execute_sql`: `select policyname from pg_policies where tablename = 'cart_items' order by 1;`
 Expected: 4 строки `cart_items_delete_own`, `cart_items_insert_own`, `cart_items_select_own`, `cart_items_update_own`.
 `get_advisors` (type `security`) — нет новых предупреждений про `cart_items`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add supabase/cart_items.sql
@@ -334,7 +334,7 @@ git commit -m "feat(db): cart_items table with own-rows RLS" -m "Co-Authored-By:
   - `POST /api/cart/merge` body `{ items: { productId: string; quantity: number }[] }` → `200 { ok: true }`
   - `POST /api/orders` body `{ branchId, customerName, customerPhone }` → `200 { ok, orderId, orderNumber, whatsappUrl }` | `400` пусто/нет данных | `404` филиал | `409` остатки
 
-- [ ] **Step 1: `src/lib/cart-server.ts`**
+- [x] **Step 1: `src/lib/cart-server.ts`**
 
 ```ts
 import type { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -386,7 +386,7 @@ export async function loadCart(
 }
 ```
 
-- [ ] **Step 2: `src/app/api/cart/route.ts`**
+- [x] **Step 2: `src/app/api/cart/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -475,7 +475,7 @@ export async function DELETE(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 3: `src/app/api/cart/merge/route.ts`**
+- [x] **Step 3: `src/app/api/cart/merge/route.ts`**
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
@@ -519,7 +519,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 4: Переписать `POST` в `src/app/api/orders/route.ts`** (GET не трогать)
+- [x] **Step 4: Переписать `POST` в `src/app/api/orders/route.ts`** (GET не трогать)
 
 Заменить строки 1–113 на:
 
@@ -643,13 +643,13 @@ export async function POST(request: NextRequest) {
 
 (`items_json` получает те же поля, что и раньше — `name, brand, price, quantity, orderedQuantity, productId, sku` — админка и `/o/<token>` читают его без изменений.)
 
-- [ ] **Step 5: Проверка типов по серверным файлам**
+- [x] **Step 5: Проверка типов по серверным файлам**
 
 Run: `npx tsc --noEmit 2>&1 | Select-String "api/cart|api/orders|cart-server|cart-logic"`
 Expected: пусто (оставшиеся ошибки — только в `cart-context.tsx`/`checkout`/`CartDrawer`, их чинят Task 4–5).
 Run: `npm test` → PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add src/lib/cart-server.ts src/app/api/cart src/app/api/orders/route.ts
@@ -681,7 +681,7 @@ git commit -m "feat(cart): account cart API; orders take selected cart rows with
   ```
   (`totalPrice` и `clearCart` удаляются — ими пользовалась только старая `/checkout`.)
 
-- [ ] **Step 1: Заменить файл**
+- [x] **Step 1: Заменить файл**
 
 ```tsx
 "use client";
@@ -852,12 +852,12 @@ export function useCart() {
 }
 ```
 
-- [ ] **Step 2: Линтер по файлу**
+- [x] **Step 2: Линтер по файлу**
 
 Run: `npx eslint src/lib/cart-context.tsx`
 Expected: 0 errors. Если сработает `react-hooks/set-state-in-effect` на `setItems([])` в ветке `!accountKey` — обернуть в `Promise.resolve().then(() => { … })`, как сделано в проекте для той же ситуации (см. PROJECT_CONTEXT.md, гидратационный баг 20.09).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add src/lib/cart-context.tsx
@@ -880,7 +880,7 @@ git commit -m "feat(cart): cart context backed by the account cart API" -m "Co-A
 - Consumes: `useCart()` (Task 4), `POST /api/orders` (Task 3), `GET /api/orders` → `{ orders: Order[] }` (`Order.customerName`, `Order.customerPhone`), `GET /api/branches` → `{ branches: Branch[] }`, `BannerGate` из `src/components/BannerInterstitial.tsx`, `unmarkAdded` из `src/lib/session-flags.ts`.
 - Produces: `type SentOrder = { orderNumber: string; whatsappUrl: string }` (экспорт из `CartOrderSent.tsx`).
 
-- [ ] **Step 1: Переводы.** В `messages/ru.json` → `"cart"` добавить:
+- [x] **Step 1: Переводы.** В `messages/ru.json` → `"cart"` добавить:
 
 ```json
     "select": "Отметить для заказа: {name}",
@@ -920,7 +920,7 @@ git commit -m "feat(cart): cart context backed by the account cart API" -m "Co-A
 ```
 и удалить тот же список ключей.
 
-- [ ] **Step 2: `src/components/cart/CartItemRow.tsx`**
+- [x] **Step 2: `src/components/cart/CartItemRow.tsx`**
 
 ```tsx
 "use client";
@@ -1002,7 +1002,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
 }
 ```
 
-- [ ] **Step 3: `src/components/cart/CartOrderSent.tsx`** (перенос экрана успеха со старой `/checkout`)
+- [x] **Step 3: `src/components/cart/CartOrderSent.tsx`** (перенос экрана успеха со старой `/checkout`)
 
 ```tsx
 "use client";
@@ -1050,7 +1050,7 @@ export function CartOrderSent({ order, onDone }: { order: SentOrder; onDone: () 
 }
 ```
 
-- [ ] **Step 4: `src/components/cart/CartCheckoutForm.tsx`**
+- [x] **Step 4: `src/components/cart/CartCheckoutForm.tsx`**
 
 ```tsx
 "use client";
@@ -1195,7 +1195,7 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
 
 (Проверить, что `Order` экспортируется из `src/types.ts` с полями `customerName`/`customerPhone` — да, `src/types.ts:85`; ключи `checkout.branch`, `noBranches`, `namePlaceholder`, `phonePlaceholder`, `sending`, `sendWhatsApp`, `failed`, `somethingWrong` остаются в messages.)
 
-- [ ] **Step 5: `src/components/CartDrawer.tsx`** — полная замена
+- [x] **Step 5: `src/components/CartDrawer.tsx`** — полная замена
 
 ```tsx
 "use client";
@@ -1318,7 +1318,7 @@ export function CartDrawer() {
 
 («Выбрать все» при всех отмеченных снимает все галочки — это переключатель. Ключ `cart.total`/`cart.checkout` становятся неиспользуемыми — удалить их из обоих messages-файлов.)
 
-- [ ] **Step 6: `src/app/[locale]/(app)/checkout/page.tsx`** — полная замена
+- [x] **Step 6: `src/app/[locale]/(app)/checkout/page.tsx`** — полная замена
 
 ```tsx
 import { redirect } from "next/navigation";
@@ -1331,7 +1331,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
 }
 ```
 
-- [ ] **Step 7: Полная проверка сборки**
+- [x] **Step 7: Полная проверка сборки**
 
 Run: `npx tsc --noEmit` → 0 ошибок.
 Run: `npx eslint src` → 0 errors (допускаются только 2 предсуществующих `react-hooks/exhaustive-deps` warning, упомянутых в PROJECT_CONTEXT.md).
@@ -1339,7 +1339,7 @@ Run: `npm test` → PASS.
 Run: `npm run build` → успешно.
 Run: `Grep` по `src` на `clearCart|totalPrice.*useCart|"/checkout"` → нет обращений к удалённому API (кроме комментария в `BannerInterstitial.tsx` — обновить его текст на «на /, /catalog и при открытии корзины»).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add src/components/cart src/components/CartDrawer.tsx "src/app/[locale]/(app)/checkout/page.tsx" src/components/BannerInterstitial.tsx messages/ru.json messages/ky.json
@@ -1354,11 +1354,11 @@ git commit -m "feat(cart): checkboxes and in-drawer checkout; unselected items s
 - Modify: `PROJECT_CONTEXT.md` (новая запись в конце + дата в шапке)
 - Modify: `docs/superpowers/plans/2026-09-29-persistent-cart.md` (галочки `[x]`)
 
-- [ ] **Step 1: Запустить dev-сервер в worktree** — `npm run dev` (фоном), открыть `http://localhost:3000` в Playwright, окно 390×844.
+- [x] **Step 1: Запустить dev-сервер в worktree** — `npm run dev` (фоном), открыть `http://localhost:3000` в Playwright, окно 390×844.
 
-- [ ] **Step 2: Тестовый аккаунт** — зарегистрировать `cart-test-<время>@example.com` через `/login`, пройти/пропустить первые экраны.
+- [x] **Step 2: Тестовый аккаунт** — зарегистрировать `cart-test-<время>@example.com` через `/login`, пройти/пропустить первые экраны.
 
-- [ ] **Step 3: Сценарии** (каждый — снимок экрана/проверка):
+- [x] **Step 3: Сценарии** (каждый — снимок экрана/проверка):
   1. Добавить 3 разных товара (один — с акцией, если есть в `promotions` активная; иначе любой). Открыть корзину: 3 строки, все с галочкой, «Отмечено 3 из 3».
   2. Два быстрых «+» на первом товаре → закрыть/открыть корзину (reload с сервера) → количество совпадает.
   3. Снять галочку со второго товара и СРАЗУ нажать «Отправить» (филиал, имя, телефон заполнить заранее) → экран «Заказ отправлен»; «Готово» → в корзине ровно 1 товар (снятый). В Supabase `execute_sql`: `select items_json, total_price from orders where customer_phone = '<тестовый>'` → 2 позиции, цены = каталожные/акционные, итог совпадает с показанным.
@@ -1367,11 +1367,11 @@ git commit -m "feat(cart): checkboxes and in-drawer checkout; unselected items s
   6. В DevTools (Playwright `browser_evaluate`) положить `localStorage.setItem("beautyai-cart", JSON.stringify([{product:{id:"<id товара>"},quantity:2}]))`, перезагрузить → товар добавился в корзину аккаунта, ключ `beautyai-cart` удалён.
   7. Открыть `/ru/checkout` → редирект на главную.
 
-- [ ] **Step 4: Уборка тестовых данных** — через Supabase MCP удалить тестовые заказы (`delete from orders where user_id = '<id>'`) и сам аккаунт (`delete from auth.users where email = '<тестовый>'` — `cart_items` уйдут каскадом). Проверить: `select count(*) from cart_items where user_id = '<id>'` → 0. (Удаление — после согласия владельца, если система разрешений спросит.)
+- [x] **Step 4: Уборка тестовых данных** — через Supabase MCP удалить тестовые заказы (`delete from orders where user_id = '<id>'`) и сам аккаунт (`delete from auth.users where email = '<тестовый>'` — `cart_items` уйдут каскадом). Проверить: `select count(*) from cart_items where user_id = '<id>'` → 0. (Удаление — после согласия владельца, если система разрешений спросит.)
 
-- [ ] **Step 5: Журнал** — добавить в конец `PROJECT_CONTEXT.md` запись «Корзина за аккаунтом + частичное оформление — 29.09»: что изменилось для клиента, таблица `cart_items`, новый `/api/cart`, что `/api/orders` больше не верит ценам клиента, `/checkout` → редирект, что проверено и что нет. Обновить строку «обновлено:» в шапке. Проставить `[x]` в этом плане.
+- [x] **Step 5: Журнал** — добавить в конец `PROJECT_CONTEXT.md` запись «Корзина за аккаунтом + частичное оформление — 29.09»: что изменилось для клиента, таблица `cart_items`, новый `/api/cart`, что `/api/orders` больше не верит ценам клиента, `/checkout` → редирект, что проверено и что нет. Обновить строку «обновлено:» в шапке. Проставить `[x]` в этом плане.
 
-- [ ] **Step 6: Commit** и доклад владельцу, вопрос «пуш?»
+- [x] **Step 6: Commit** и доклад владельцу, вопрос «пуш?»
 
 ```powershell
 git add PROJECT_CONTEXT.md docs/superpowers/plans/2026-09-29-persistent-cart.md
