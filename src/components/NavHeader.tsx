@@ -9,6 +9,7 @@ import { useGoBack } from "@/lib/use-go-back";
 import { getStoredCity } from "@/lib/city";
 import { switchViewMode } from "@/lib/view-mode";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { WholesaleStrip } from "@/components/WholesaleStrip";
 
 export function NavHeader() {
   const t = useTranslations("nav");
@@ -114,6 +115,7 @@ export function NavHeader() {
 
         <LanguageSwitcher compact className="-mr-2" />
       </div>
+      {!isAdmin && <WholesaleStrip />}
     </header>
   );
 }

@@ -28,7 +28,7 @@ test("wholesaleCandidate: percent rounds to whole som; per_product uses the prod
 test("below the threshold nothing changes and remaining is reported", () => {
   const { items, summary } = applyWholesale([item("a", 30000, 24000, 2)], 87500);
   assert.equal(items[0].product.price, 30000);
-  assert.deepEqual(summary, { threshold: 87500, qualifies: false, applied: false, retailTotal: 60000, savings: 0, remaining: 27500 });
+  assert.deepEqual(summary, { threshold: 87500, qualifies: false, applied: false, retailTotal: 60000, wholesaleTotal: 48000, savings: 0, remaining: 27500 });
 });
 
 test("exactly at the threshold wholesale applies to every selected item", () => {
@@ -53,7 +53,7 @@ test("a promo price cheaper than wholesale is kept; savings never go negative", 
 
 test("no threshold (wholesale off) → untouched, qualifies false", () => {
   const { summary } = applyWholesale([item("a", 100000, 50000)], null);
-  assert.deepEqual(summary, { threshold: null, qualifies: false, applied: false, retailTotal: 100000, savings: 0, remaining: 0 });
+  assert.deepEqual(summary, { threshold: null, qualifies: false, applied: false, retailTotal: 100000, wholesaleTotal: 100000, savings: 0, remaining: 0 });
 });
 
 test("mapWholesaleSettings reads DB numerics (strings) and defaults", () => {
@@ -80,4 +80,10 @@ test("parseWholesaleInput rejects what the form says it rejects", () => {
   assert.equal(parseWholesaleInput({ mode: "percent", percent: 20, thresholdUsd: 1000, usdRate: "" }).ok, false);
   assert.equal(parseWholesaleInput({ mode: "per_product", percent: null, thresholdUsd: 0, usdRate: 87.5 }).ok, false);
   assert.equal(parseWholesaleInput({ mode: "junk" }).ok, false);
+});
+
+test("wholesaleTotal previews the selected items at wholesale prices before the threshold is reached", () => {
+  const { summary } = applyWholesale([item("a", 1000, 800, 2), item("b", 500, null), item("c", 900, 950), item("d", 700, 500, 1, false)], 87500);
+  assert.equal(summary.retailTotal, 3400);
+  assert.equal(summary.wholesaleTotal, 1600 + 500 + 900);
 });

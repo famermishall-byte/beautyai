@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
@@ -12,6 +12,9 @@ import { CartCheckoutForm } from "@/components/cart/CartCheckoutForm";
 import { CartOrderSent, type SentOrder } from "@/components/cart/CartOrderSent";
 import { usePathname } from "@/i18n/navigation";
 
+/** Открыть корзину из другого места (полоса опта под шапкой — WholesaleStrip). */
+export const OPEN_CART_EVENT = "beautyai:open-cart";
+
 export function CartDrawer() {
   const t = useTranslations("cart");
   const { items, totalCount, selectedCount, setAllSelected, reload, saveFailed } = useCart();
@@ -19,6 +22,15 @@ export function CartDrawer() {
   const [sent, setSent] = useState<SentOrder | null>(null);
   const pathname = usePathname();
   const { isAdmin } = useSession();
+
+  useEffect(() => {
+    const open = () => {
+      setOpen(true);
+      reload().catch(() => {});
+    };
+    window.addEventListener(OPEN_CART_EVENT, open);
+    return () => window.removeEventListener(OPEN_CART_EVENT, open);
+  }, [reload]);
 
   // Admins/owners don't shop through their own account — see proxy.ts.
   if (isAdmin) return null;

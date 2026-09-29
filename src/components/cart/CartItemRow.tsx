@@ -10,9 +10,15 @@ import type { CartItem } from "@/types";
 /** Строка корзины: галочка «в заказ», количество, удаление. Снятая галочка — товар остаётся в корзине. */
 export function CartItemRow({ item }: { item: CartItem }) {
   const t = useTranslations("cart");
+  const tw = useTranslations("wholesale");
   const price = usePrice();
   const text = useProductText();
-  const { changeQuantity, removeItem, toggleSelected } = useCart();
+  const { changeQuantity, removeItem, toggleSelected, wholesale } = useCart();
+  // До порога опта — подсказка, какой будет цена за штуку по опту (после порога цена и так уже оптовая).
+  const wholesaleHint =
+    wholesale.threshold !== null && !wholesale.qualifies && item.product.wholesalePrice && item.product.wholesalePrice < item.product.price
+      ? item.product.wholesalePrice
+      : null;
   const name = text(item.product).name;
 
   return (
@@ -71,6 +77,9 @@ export function CartItemRow({ item }: { item: CartItem }) {
           <div className="text-xs text-muted line-through">{price(item.product.retailPrice * item.quantity)}</div>
         )}
         {price(item.product.price * item.quantity)}
+        {wholesaleHint !== null && (
+          <div className="text-[11px] font-sans font-semibold text-accent whitespace-nowrap mt-0.5">{tw("unitPrice", { amount: price(wholesaleHint) })}</div>
+        )}
       </div>
     </div>
   );

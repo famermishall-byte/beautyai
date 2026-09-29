@@ -26,6 +26,11 @@ export function WholesaleProgress({ summary }: { summary: WholesaleSummary }) {
   return (
     <div className="promo-sheen rounded-xl bg-accent-soft px-4 py-3">
       <div className="text-sm mb-2">{t("progress", { amount: price(summary.remaining) })}</div>
+      {summary.wholesaleTotal < summary.retailTotal && (
+        <div className="text-xs font-semibold text-accent-strong mb-2">
+          {t("wouldCost", { wholesale: price(summary.wholesaleTotal), retail: price(summary.retailTotal) })}
+        </div>
+      )}
       <div
         className="h-2 rounded-full bg-white overflow-hidden"
         role="progressbar"

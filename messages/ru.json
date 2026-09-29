@@ -1355,7 +1355,10 @@
     "progress": "До оптовых цен осталось {amount}",
     "applied": "Оптовые цены применены — вы экономите {amount}",
     "homeBanner": "Опт от {usd} $ (≈ {som}) — цены ниже",
-    "badge": "Опт"
+    "badge": "Опт",
+    "unitPrice": "Опт: {amount}/шт",
+    "wouldCost": "По оптовым ценам этот заказ — {wholesale} вместо {retail}",
+    "stripApplied": "Оптовые цены применены — экономия {amount}"
   },
   "adminWholesale": {
     "title": "Оптовые цены",
