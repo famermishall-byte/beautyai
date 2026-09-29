@@ -71,7 +71,7 @@ test("slideHref", () => {
   assert.equal(h("category", { category: "Уход за лицом" }), "/catalog?group=" + encodeURIComponent("Уход за лицом"));
   assert.equal(h("promo"), "/catalog?promo=1");
   assert.equal(h("new"), "/catalog?new=1");
-  assert.equal(h("catalog"), "/catalog?all=1");
+  assert.equal(h("catalog"), "/catalog");
 });
 
 test("slideRowFromBody", () => {

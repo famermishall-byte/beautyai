@@ -110,7 +110,7 @@ export function slideHref(s: Pick<HomeSlide, "action" | "productId" | "category"
     case "new":
       return "/catalog?new=1";
     case "catalog":
-      return "/catalog?all=1";
+      return "/catalog";
     default:
       return "/catalog?promo=1";
   }
