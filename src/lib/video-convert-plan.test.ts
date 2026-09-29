@@ -65,3 +65,10 @@ test("ffmpegArgs: -vf с чётными размерами", () => {
     "scale='if(gt(iw,ih),-2,trunc(min(720,iw)/2)*2)':'if(gt(iw,ih),trunc(min(720,ih)/2)*2,-2)'",
   );
 });
+
+test("ffmpegArgs: -fps_mode vfr сразу после -vf (без дублирования кадров у VFR-исходников)", () => {
+  const a = ffmpegArgs("i", "o", 120);
+  const i = a.indexOf("-fps_mode");
+  assert.equal(a[i + 1], "vfr");
+  assert.equal(i, a.indexOf("-vf") + 2);
+});

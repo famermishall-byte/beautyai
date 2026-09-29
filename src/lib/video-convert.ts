@@ -48,10 +48,42 @@ function splitName(name: string): { base: string; ext: string } {
   return { base: name.slice(0, dot), ext: name.slice(dot + 1).toLowerCase() };
 }
 
-export async function convertToMp4(
-  file: File,
-  opts: { onStage: (s: ConvertStage) => void; onProgress: (p: number) => void; signal: AbortSignal },
-): Promise<File> {
+type ConvertOpts = { onStage: (s: ConvertStage) => void; onProgress: (p: number) => void; signal: AbortSignal };
+
+// Очередь: вызовы выполняются строго по одному (общий экземпляр и фиксированные имена в FS).
+let queue: Promise<void> = Promise.resolve();
+
+// ждём своей очереди; отмена во время ожидания не трогает текущую конвертацию
+function waitTurn(prev: Promise<void>, signal: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => reject(new ConvertCancelled());
+    signal.addEventListener("abort", onAbort, { once: true });
+    void prev.then(() => {
+      signal.removeEventListener("abort", onAbort);
+      if (signal.aborted) reject(new ConvertCancelled());
+      else resolve();
+    });
+  });
+}
+
+export function convertToMp4(file: File, opts: ConvertOpts): Promise<File> {
+  if (opts.signal.aborted) return Promise.reject(new ConvertCancelled());
+  const prev = queue;
+  let release!: () => void;
+  const mine = new Promise<void>((r) => { release = r; });
+  queue = prev.then(() => mine);
+  return waitTurn(prev, opts.signal)
+    .then(() => runConvert(file, opts))
+    .finally(() => release());
+}
+
+// сбросить экземпляр: следующий вызов (в т.ч. «Попробовать снова») начнёт со свежего FFmpeg
+function dropInstance(ff: FFmpeg | null) {
+  ff?.terminate();
+  cached = null;
+}
+
+async function runConvert(file: File, opts: ConvertOpts): Promise<File> {
   const { onStage, onProgress, signal } = opts;
   if (signal.aborted) throw new ConvertCancelled();
 
@@ -59,6 +91,7 @@ export async function convertToMp4(
   const input = /^[a-z0-9]{1,8}$/.test(ext) ? `input.${ext}` : "input.mov";
 
   let ff: FFmpeg | null = null;
+  let dead = false; // воркер убит — FS чистить не нужно
   const logs: string[] = [];
   const onLog = ({ message }: { message: string }) => { logs.push(message); };
   const onProg = ({ progress }: { progress: number }) => {
@@ -67,8 +100,8 @@ export async function convertToMp4(
   };
   // отмена: убиваем воркер, экземпляр больше не годится
   const onAbort = () => {
-    ff?.terminate();
-    cached = null;
+    dead = true;
+    dropInstance(ff);
   };
   signal.addEventListener("abort", onAbort);
 
@@ -106,11 +139,16 @@ export async function convertToMp4(
     return new File([data as Uint8Array<ArrayBuffer>], `${base}.mp4`, { type: "video/mp4" });
   } catch (e) {
     if (signal.aborted) throw new ConvertCancelled();
+    // сбой ffmpeg мог сломать рантайм wasm — не переиспользуем экземпляр
+    if (!(e instanceof ConvertTooBig) && !(e instanceof ConvertLoadFailed)) {
+      dead = true;
+      dropInstance(ff);
+    }
     throw e;
   } finally {
     signal.removeEventListener("abort", onAbort);
     // чистим FS (после terminate воркера нет — ошибки игнорируем)
-    if (ff && !signal.aborted) {
+    if (ff && !dead) {
       await ff.deleteFile(input).catch(() => {});
       await ff.deleteFile(OUTPUT).catch(() => {});
     }
