@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -12,6 +12,7 @@ export function HeroVideo({
   muted,
   onToggleMute,
   onEnded,
+  onFailed,
 }: {
   src: string;
   poster: string | null;
@@ -19,16 +20,25 @@ export function HeroVideo({
   muted: boolean;
   onToggleMute: () => void;
   onEnded: () => void;
+  /** Ролик не запустился (play() отклонён) или не открылся (ошибка загрузки/кодека). */
+  onFailed: () => void;
 }) {
   const t = useTranslations("home");
   const ref = useRef<HTMLVideoElement>(null);
+
+  // AbortError — play() прерван нашим же pause() при перелистывании, это не поломка.
+  function reportIfFailed(err: unknown) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    onFailed();
+  }
+  const onPlayRejected = useEffectEvent(reportIfFailed);
 
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     if (active) {
-      // Автоплей может быть запрещён браузером — тогда просто остаётся постер.
-      v.play().catch(() => {});
+      // Автоплей может быть запрещён (iOS энергосбережение) — остаётся постер, слайдер листает по таймеру.
+      v.play().catch(onPlayRejected);
     } else {
       v.pause();
       v.currentTime = 0;
@@ -45,6 +55,7 @@ export function HeroVideo({
         playsInline
         preload="metadata"
         onEnded={onEnded}
+        onError={onFailed}
         className="absolute inset-0 w-full h-full object-cover"
       />
       <button
@@ -54,6 +65,9 @@ export function HeroVideo({
           e.preventDefault();
           e.stopPropagation();
           onToggleMute();
+          // Тап — пользовательский жест: запускаем ролик, если автоплей был заблокирован.
+          const v = ref.current;
+          if (v?.paused) v.play().catch(reportIfFailed);
         }}
         aria-label={muted ? t("soundOn") : t("soundOff")}
         className="absolute top-3 right-3 z-10 size-9 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm transition active:scale-95"

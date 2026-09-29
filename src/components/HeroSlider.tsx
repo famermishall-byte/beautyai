@@ -29,6 +29,8 @@ export function HeroSlider({ promo, products, isNew = false }: { promo: HomeSlid
   // Звук — один переключатель на все видео-слайды, по умолчанию выключен (иначе браузер не даст автоплей).
   const [muted, setMuted] = useState(true);
   const [addedId, setAddedId] = useState<string | null>(null);
+  // Видео, которые не запустились/не открылись: листаем их по обычному таймеру, иначе карусель встанет.
+  const [failedIds, setFailedIds] = useState<ReadonlySet<string>>(() => new Set());
 
   // Промо-слайды владельца идут первыми, затем товары.
   const items: Item[] = [
@@ -36,7 +38,12 @@ export function HeroSlider({ promo, products, isNew = false }: { promo: HomeSlid
     ...products.map((product) => ({ kind: "product" as const, product })),
   ];
   const count = items.length;
-  const currentIsVideo = isVideo(items[index]);
+  const current = items[index];
+  const currentIsVideo = isVideo(current) && current?.kind === "promo" && !failedIds.has(current.slide.id);
+
+  function markFailed(slideId: string) {
+    setFailedIds((prev) => (prev.has(slideId) ? prev : new Set(prev).add(slideId)));
+  }
 
   function goTo(i: number) {
     const el = trackRef.current;
@@ -112,6 +119,7 @@ export function HeroSlider({ promo, products, isNew = false }: { promo: HomeSlid
               muted={muted}
               onToggleMute={() => setMuted((m) => !m)}
               onEnded={handleVideoEnded}
+              onFailed={() => markFailed(item.slide.id)}
               added={addedId === item.slide.id}
               onAdd={handleAdd}
             />
@@ -165,6 +173,7 @@ function PromoSlide({
   muted,
   onToggleMute,
   onEnded,
+  onFailed,
   added,
   onAdd,
 }: {
@@ -173,6 +182,7 @@ function PromoSlide({
   muted: boolean;
   onToggleMute: () => void;
   onEnded: () => void;
+  onFailed: () => void;
   added: boolean;
   onAdd: (e: React.MouseEvent, slideId: string, product: Product) => void;
 }) {
@@ -185,7 +195,7 @@ function PromoSlide({
   return (
     <Link href={href} className="relative shrink-0 w-full snap-center aspect-[16/11] bg-accent-soft overflow-hidden">
       {slide.mediaType === "video" && slide.videoUrl ? (
-        <HeroVideo src={slide.videoUrl} poster={slide.imageUrl} active={active} muted={muted} onToggleMute={onToggleMute} onEnded={onEnded} />
+        <HeroVideo src={slide.videoUrl} poster={slide.imageUrl} active={active} muted={muted} onToggleMute={onToggleMute} onEnded={onEnded} onFailed={onFailed} />
       ) : slide.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={slide.imageUrl} alt={slide.title ?? ""} className="absolute inset-0 w-full h-full object-cover" />
