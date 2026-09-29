@@ -500,9 +500,12 @@
     "decrease": "Уменьшить количество: {name}",
     "increase": "Увеличить количество: {name}",
     "remove": "Удалить: {name}",
-    "total": "Итого",
-    "checkout": "Оформить заказ",
-    "paymentNote": "Оплата пока не подключена — заказ передаётся продавцу через WhatsApp."
+    "paymentNote": "Оплата пока не подключена — заказ передаётся продавцу через WhatsApp.",
+    "select": "Отметить для заказа: {name}",
+    "selectAll": "Выбрать все",
+    "selectedSummary": "Отмечено {selected} из {total}",
+    "unselectedStay": "Неотмеченные товары останутся в корзине.",
+    "saveFailed": "Не удалось сохранить изменение — проверьте интернет."
   },
   "buyAgain": {
     "title": "Не хотите купить снова?",
@@ -533,11 +536,6 @@
     }
   },
   "checkout": {
-    "steps": {
-      "branch": "Филиал",
-      "contact": "Контакты",
-      "review": "Подтверждение"
-    },
     "failed": "Не удалось оформить заказ.",
     "somethingWrong": "Что-то пошло не так. Попробуйте ещё раз.",
     "sentTitle": "Заказ отправлен",
@@ -545,24 +543,16 @@
     "sentHint": "Продавец свяжется с вами для подтверждения заказа и оформления доставки.",
     "sentWhatsappWarning": "Мы открыли WhatsApp с готовым текстом заказа — нажмите там «Отправить», иначе продавец его не увидит!",
     "reopenWhatsapp": "Открыть WhatsApp снова",
-    "backToCatalog": "Вернуться в каталог",
-    "loadingCart": "Загружаем корзину…",
-    "title": "Оформление заказа",
-    "chooseBranch": "Выберите удобный филиал",
     "noBranches": "Филиалы ещё не настроены магазином.",
-    "next": "Далее",
-    "back": "Назад",
-    "yourContacts": "Ваши контакты",
     "namePlaceholder": "Ваше имя",
     "phonePlaceholder": "Номер телефона",
-    "reviewTitle": "Проверьте заказ",
-    "products": "Товары",
-    "total": "Итого",
     "branch": "Филиал",
-    "contacts": "Контакты",
-    "change": "Изменить",
     "sending": "Отправляем…",
-    "sendWhatsApp": "Отправить заказ в WhatsApp"
+    "sendWhatsApp": "Отправить заказ в WhatsApp",
+    "branchPlaceholder": "Выберите филиал",
+    "totalSelected": "Итого ({count} шт.)",
+    "nothingSelected": "Отметьте хотя бы один товар",
+    "done": "Готово"
   },
   "orders": {
     "title": "Мои покупки",
