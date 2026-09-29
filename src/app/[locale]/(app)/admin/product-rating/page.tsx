@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Sparkle } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { usePrice } from "@/lib/use-price";
+import { ALL_CATEGORIES, categoryOptions, filterByCategory } from "@/lib/category-filter";
+import { CategorySelect } from "@/components/admin/CategorySelect";
 import type { Branch } from "@/types";
 
 // Тот же ключ, что и в /admin/stock — выбор филиала общий для обоих инструментов, владельцу
@@ -34,6 +36,10 @@ export default function AdminProductRatingPage() {
   const branchId = isBranchManager ? (session?.branchId ?? null) : pickedBranch;
 
   const [items, setItems] = useState<Item[]>([]);
+  const [category, setCategory] = useState<string>(ALL_CATEGORIES);
+  // Рейтинг внутри выбранной категории: места 1, 2, 3… считаются заново среди её товаров.
+  const categories = useMemo(() => categoryOptions(items), [items]);
+  const shown = useMemo(() => filterByCategory(items, category), [items, category]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -106,15 +112,17 @@ export default function AdminProductRatingPage() {
         </>
       )}
 
+      <CategorySelect value={category} options={categories} onChange={setCategory} />
+
       {error && <div className="rounded-xl bg-error-soft text-error text-sm px-4 py-3 mb-3">{error}</div>}
 
       {loading ? (
         <Loader2 className="size-5 animate-spin text-muted mx-auto my-8" aria-hidden />
-      ) : items.length === 0 ? (
+      ) : shown.length === 0 ? (
         <p className="text-sm text-muted py-8 text-center">{t("empty")}</p>
       ) : (
         <ol className="flex flex-col gap-2">
-          {items.map((item, i) => (
+          {shown.map((item, i) => (
             <li key={item.id} className="bg-card rounded-[var(--radius-card)] border border-border p-3 flex items-center gap-3">
               <span
                 className={[
