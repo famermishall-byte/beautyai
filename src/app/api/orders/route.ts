@@ -3,26 +3,34 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapOrder } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
 import { formatOrderNumber, buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
-import type { CartItem } from "@/types";
+import { loadCart } from "@/lib/cart-server";
+import { orderLinesFromCart } from "@/lib/cart-logic";
 
+// Товары заказа берутся НЕ из запроса, а из корзины аккаунта (только отмеченные галочкой), с ценами
+// из каталога и акциями — см. loadCart(). Заказанные строки потом удаляются из корзины; неотмеченные
+// остаются там, пока клиент сам их не удалит.
 export async function POST(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const branchId: string = body.branchId;
   const customerName: string = (body.customerName ?? "").trim();
   const customerPhone: string = (body.customerPhone ?? "").trim();
-  const items: CartItem[] = body.items ?? [];
 
-  if (!branchId || !customerName || !customerPhone || items.length === 0) {
+  if (!branchId || !customerName || !customerPhone) {
     return NextResponse.json({ error: "Не хватает данных для оформления заказа." }, { status: 400 });
   }
 
   try {
     const supabase = await createServerSupabaseClient();
+
+    const items = await loadCart(supabase, profile.userId, profile.storeId, { selectedOnly: true });
+    if (items.length === 0) {
+      return NextResponse.json({ error: "Отметьте в корзине хотя бы один товар." }, { status: 400 });
+    }
 
     const { data: branch } = await supabase
       .from("branches")
@@ -34,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Филиал не найден." }, { status: 404 });
     }
 
-    const totalPrice = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const { lines, total: totalPrice } = orderLinesFromCart(items);
 
     const { count: orderCount } = await supabase
       .from("orders")
@@ -44,18 +52,18 @@ export async function POST(request: NextRequest) {
 
     // Stock check in the chosen branch. Only what is certainly not there stops the order — a missing stock row
     // ("no data") is allowed, and the seller still has the last word.
-    const productIds = items.map((i) => i.product.id);
+    const productIds = lines.map((l) => l.productId);
     const { data: stockRows } = await supabase
       .from("product_branch_stock")
       .select("product_id, quantity")
       .eq("branch_id", branch.id)
       .in("product_id", productIds);
     const stockOf = new Map((stockRows ?? []).map((r) => [r.product_id as string, r.quantity as number]));
-    const problems = items
-      .filter((i) => stockOf.has(i.product.id) && stockOf.get(i.product.id)! < i.quantity)
-      .map((i) => {
-        const left = stockOf.get(i.product.id)!;
-        return left <= 0 ? `«${i.product.name}» — нет в этом филиале` : `«${i.product.name}» — осталось только ${left} шт.`;
+    const problems = lines
+      .filter((l) => stockOf.has(l.productId) && stockOf.get(l.productId)! < l.quantity)
+      .map((l) => {
+        const left = stockOf.get(l.productId)!;
+        return left <= 0 ? `«${l.name}» — нет в этом филиале` : `«${l.name}» — осталось только ${left} шт.`;
       });
     if (problems.length > 0) {
       return NextResponse.json(
@@ -63,16 +71,6 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-
-    const itemsForOrder = items.map((item) => ({
-      name: item.product.name,
-      brand: item.product.brand,
-      price: item.product.price,
-      quantity: item.quantity,
-      orderedQuantity: item.quantity,
-      productId: item.product.id,
-      sku: item.product.sku,
-    }));
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -85,12 +83,16 @@ export async function POST(request: NextRequest) {
         customer_phone: customerPhone,
         total_price: totalPrice,
         status: "sent",
-        items_json: itemsForOrder,
+        items_json: lines,
       })
       .select("id, status_token")
       .single();
 
     if (orderError) throw orderError;
+
+    // Заказ уже в базе — если убрать строки из корзины не получилось, заказ всё равно оформлен:
+    // клиент просто увидит эти товары в корзине и удалит их сам. Ошибку не возвращаем.
+    await supabase.from("cart_items").delete().eq("user_id", profile.userId).in("product_id", productIds);
 
     const message = buildOrderMessage({
       orderNumber,
