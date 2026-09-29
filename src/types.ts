@@ -36,6 +36,10 @@ export type Product = {
   /** Only present when /api/products was called with a branchId (see catalog/page.tsx). */
   branchQuantity?: number | null;
   availableAtOtherBranch?: boolean;
+  /** Cart only (server-computed): this product's wholesale unit price candidate; never sent by /api/products. */
+  wholesalePrice?: number | null;
+  /** Cart only: the regular price when `price` was replaced by the wholesale one (shown struck through). */
+  retailPrice?: number;
 };
 
 export type RecommendedProduct = Product & { reason: string };
