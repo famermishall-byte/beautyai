@@ -56,6 +56,19 @@ export function buildOrderMessage(order: OrderMessageInput): string {
   ].join("\n");
 }
 
+// Kyrgyz numbers are often typed as 0700123456 or 700123456 — wa.me needs the country code.
+export function whatsappDigits(phone: string): string {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 9) return `996${d}`;
+  if (d.length === 10 && d.startsWith("0")) return `996${d.slice(1)}`;
+  return d;
+}
+
+/** Чат с этим номером в WhatsApp (на телефоне открывает приложение); без номера — просто WhatsApp. */
+export function whatsappChatUrl(phone: string | null): string {
+  return `https://wa.me/${phone ? whatsappDigits(phone) : ""}`;
+}
+
 export function buildWhatsAppUrl(whatsappNumber: string, message: string): string {
   const phone = sanitizePhoneForWhatsApp(whatsappNumber);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
