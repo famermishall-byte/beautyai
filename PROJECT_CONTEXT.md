@@ -1454,3 +1454,10 @@ threshold_usd/usd_rate; products.wholesale_price; orders.is_wholesale). **Опт
 `update public.product_branch_stock s set quantity = b.quantity, updated_at = now() from backup.product_branch_stock_20260929 b where b.id = s.id;`
 затем `drop table backup.product_branch_stock_20260929;`. При запуске реального каталога остатки всё равно
 перезапишутся синхронизацией.
+
+## Корзина: подсказка оптовой цены до порога — 29.09
+
+Владелец: «в корзине надо указать, какая потом будет цена — клиент не видит цену оптом». Пока порог не набран, у
+каждого товара с оптовой ценой — строка «Опт: N сом/шт» (`CartItemRow`), а в полоске — «По оптовым ценам этот заказ —
+X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWholesale`, тест). После порога — как раньше
+(оптовая цена основная, обычная зачёркнута). В каталоге оптовая цена по-прежнему не показывается.

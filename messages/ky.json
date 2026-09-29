@@ -1355,7 +1355,9 @@
     "progress": "Дүң бааларга чейин {amount} калды",
     "applied": "Дүң баалар колдонулду — {amount} үнөмдөйсүз",
     "homeBanner": "{usd} $ баштап дүңүнөн (≈ {som}) — баалар арзаныраак",
-    "badge": "Дүң"
+    "badge": "Дүң",
+    "unitPrice": "Дүң: {amount}/даана",
+    "wouldCost": "Дүң баада бул буйрутма — {retail} ордуна {wholesale}"
   },
   "adminWholesale": {
     "title": "Дүң баалар",

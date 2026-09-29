@@ -5,8 +5,19 @@ import type { CartItem } from "@/types";
 
 export type WholesaleMode = "off" | "percent" | "per_product";
 export type WholesaleSettings = { mode: WholesaleMode; percent: number | null; thresholdUsd: number; usdRate: number | null };
-/** qualifies — порог набран; applied — хоть одна цена реально снижена (только тогда заказ помечается оптовым). */
-export type WholesaleSummary = { threshold: number | null; qualifies: boolean; applied: boolean; retailTotal: number; savings: number; remaining: number };
+/**
+ * qualifies — порог набран; applied — хоть одна цена реально снижена (только тогда заказ помечается оптовым);
+ * wholesaleTotal — сколько отмеченные стоили бы по оптовым ценам (подсказка в корзине до порога).
+ */
+export type WholesaleSummary = {
+  threshold: number | null;
+  qualifies: boolean;
+  applied: boolean;
+  retailTotal: number;
+  wholesaleTotal: number;
+  savings: number;
+  remaining: number;
+};
 
 const MODES: WholesaleMode[] = ["off", "percent", "per_product"];
 const num = (v: unknown): number | null => {
@@ -38,10 +49,15 @@ export function wholesaleCandidate(basePrice: number, ownWholesale: number | nul
 export function applyWholesale(items: CartItem[], threshold: number | null): { items: CartItem[]; summary: WholesaleSummary } {
   const retailTotal = items.filter((i) => i.selected).reduce((sum, i) => sum + i.product.price * i.quantity, 0);
   const qualifies = threshold !== null && retailTotal >= threshold;
+  const unitAtWholesale = (i: CartItem) => {
+    const w = i.product.wholesalePrice;
+    return threshold !== null && w !== null && w !== undefined && w < i.product.price ? w : i.product.price;
+  };
+  const wholesaleTotal = items.filter((i) => i.selected).reduce((sum, i) => sum + unitAtWholesale(i) * i.quantity, 0);
   if (!qualifies) {
     return {
       items,
-      summary: { threshold, qualifies: false, applied: false, retailTotal, savings: 0, remaining: threshold === null ? 0 : Math.max(0, threshold - retailTotal) },
+      summary: { threshold, qualifies: false, applied: false, retailTotal, wholesaleTotal, savings: 0, remaining: threshold === null ? 0 : Math.max(0, threshold - retailTotal) },
     };
   }
   let savings = 0;
@@ -51,7 +67,7 @@ export function applyWholesale(items: CartItem[], threshold: number | null): { i
     savings += (i.product.price - w) * i.quantity;
     return { ...i, product: { ...i.product, retailPrice: i.product.price, price: w } };
   });
-  return { items: priced, summary: { threshold, qualifies: true, applied: savings > 0, retailTotal, savings, remaining: 0 } };
+  return { items: priced, summary: { threshold, qualifies: true, applied: savings > 0, retailTotal, wholesaleTotal, savings, remaining: 0 } };
 }
 
 const positive = (v: unknown): number | null => {
