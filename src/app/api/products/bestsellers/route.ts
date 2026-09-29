@@ -29,8 +29,13 @@ export async function GET(request: NextRequest) {
     .order("name", { ascending: true });
   if (error) return NextResponse.json({ error: "База данных недоступна." }, { status: 500 });
 
+  // ?maxPrice=500&limit=20 — «Добавить к заказу» в корзине (lib/add-ons.ts): только недорогие.
+  const maxPrice = Number(request.nextUrl.searchParams.get("maxPrice")) || null;
+  const limit = Math.min(50, Number(request.nextUrl.searchParams.get("limit")) || LIMIT);
   const pool = (rows ?? []).filter(
-    (p) => categories.length === 0 || (typeof p.category === "string" && categories.includes(p.category.toLowerCase()))
+    (p) =>
+      (categories.length === 0 || (typeof p.category === "string" && categories.includes(p.category.toLowerCase()))) &&
+      (maxPrice === null || Number(p.price) <= maxPrice)
   );
 
   // If the RPC isn't installed yet this just errors — fall through to the fallback.
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
       return hit(b) - hit(a) || Number(Boolean(b.image_url)) - Number(Boolean(a.image_url));
     });
 
-  const picked = [...sold, ...filler].slice(0, LIMIT);
+  const picked = [...sold, ...filler].slice(0, limit);
 
   const { data: promoRows } = await supabase
     .from("promotions")

@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { MessageCircle, Store, Truck } from "lucide-react";
-import type { DeliveryMethod } from "@/lib/delivery";
+import { MessageCircle, Store, TriangleAlert, Truck } from "lucide-react";
+import { addressComplete, formatDeliveryAddress, type AddressParts, type DeliveryMethod } from "@/lib/delivery";
+import { getStoredCity } from "@/lib/city";
+
+// Адрес доставки по полям — только на этом телефоне, чтобы в следующий раз не вводить заново.
+const ADDRESS_STORAGE_KEY = "beautyai-delivery-address";
 import { usePrice } from "@/lib/use-price";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
@@ -31,11 +35,30 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
   const [phone, setPhone] = useState("");
   // Как получить заказ (docs/superpowers/specs/2026-09-29-order-delivery-design.md); проверка — parseDeliveryInput на сервере.
   const [method, setMethod] = useState<DeliveryMethod>("pickup");
-  const [address, setAddress] = useState("");
+  // Адрес по полям: город, улица, дом, квартира (просьба владельца 29.09); в заказ уходит одной строкой — formatDeliveryAddress.
+  const [addr, setAddr] = useState<AddressParts>({ city: "", street: "", house: "", flat: "" });
   const [time, setTime] = useState("");
   const [courierPhone, setCourierPhone] = useState("");
+  // После отправки продавцу заказ не изменить и не отменить — клиент подтверждает, что проверил (решение владельца 29.09).
+  const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const setAddrPart = (part: keyof AddressParts) => (e: React.ChangeEvent<HTMLInputElement>) => setAddr((a) => ({ ...a, [part]: e.target.value }));
+
+  useEffect(() => {
+    // Прошлый адрес с этого телефона (удобство, не обязательное хранение), иначе — город, выбранный в приложении.
+    let saved: AddressParts | null = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(ADDRESS_STORAGE_KEY) ?? "null");
+    } catch {
+      // недоступно или испорчено — просто без подстановки
+    }
+    const city = getStoredCity();
+    Promise.resolve().then(() =>
+      setAddr((a) => (a.city || a.street ? a : saved && typeof saved.city === "string" ? { ...a, ...saved } : { ...a, city: city ?? "" }))
+    );
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,12 +87,9 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         if (!last) return;
         setName((current) => current || last.customerName);
         setPhone((current) => current || last.customerPhone);
-        // Адрес — из последнего заказа с доставкой, чтобы не вводить его заново.
-        const lastDelivery = data.orders?.find((o) => o.deliveryMethod === "delivery" && o.deliveryAddress);
-        if (lastDelivery) {
-          setAddress((current) => current || lastDelivery.deliveryAddress!);
-          setCourierPhone((current) => current || lastDelivery.courierPhone || "");
-        }
+        // Телефон для курьера — из последнего заказа с доставкой.
+        const lastDelivery = data.orders?.find((o) => o.deliveryMethod === "delivery");
+        if (lastDelivery?.courierPhone) setCourierPhone((current) => current || lastDelivery.courierPhone || "");
       })
       .catch(() => {});
     return () => {
@@ -77,8 +97,8 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
     };
   }, []);
 
-  const addressMissing = method === "delivery" && address.trim().length < 5;
-  const canSubmit = selectedCount > 0 && !!branchId && !!name.trim() && !!phone.trim() && !addressMissing && !submitting;
+  const addressMissing = method === "delivery" && !addressComplete(addr);
+  const canSubmit = selectedCount > 0 && !!branchId && !!name.trim() && !!phone.trim() && !addressMissing && confirmed && !submitting;
 
   async function submit() {
     if (!canSubmit) return;
@@ -99,13 +119,20 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
           customerName: name,
           customerPhone: phone,
           deliveryMethod: method,
-          ...(method === "delivery" ? { deliveryAddress: address, deliveryTime: time, courierPhone } : {}),
+          ...(method === "delivery" ? { deliveryAddress: formatDeliveryAddress(addr), deliveryTime: time, courierPhone } : {}),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? t("failed"));
         return;
+      }
+      if (method === "delivery") {
+        try {
+          localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(addr));
+        } catch {
+          // недоступно — в следующий раз адрес просто не подставится
+        }
       }
       window.open(data.whatsappUrl, "_blank")?.focus();
       // Сервер уже убрал заказанные строки — подтягиваем корзину, в ней остаются неотмеченные.
@@ -170,18 +197,15 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
 
       {method === "delivery" && (
         <div className="flex flex-col gap-3 animate-rise-in">
-          <label className="block">
-            <span className="block text-xs font-medium text-muted mb-1.5">{t("addressLabel")}</span>
-            <textarea
-              className={`${inputClass} resize-none`}
-              rows={2}
-              placeholder={t("addressPlaceholder")}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              autoComplete="street-address"
-              maxLength={300}
-            />
-          </label>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="block text-xs font-medium text-muted mb-1.5">{t("addressLabel")}</legend>
+            <input className={inputClass} aria-label={t("cityLabel")} placeholder={t("cityLabel")} value={addr.city} onChange={setAddrPart("city")} autoComplete="address-level2" maxLength={60} />
+            <input className={inputClass} aria-label={t("streetLabel")} placeholder={t("streetPlaceholder")} value={addr.street} onChange={setAddrPart("street")} autoComplete="address-line1" maxLength={120} />
+            <div className="grid grid-cols-2 gap-2">
+              <input className={inputClass} aria-label={t("houseLabel")} placeholder={t("houseLabel")} value={addr.house} onChange={setAddrPart("house")} maxLength={30} />
+              <input className={inputClass} aria-label={t("flatLabel")} placeholder={t("flatLabel")} value={addr.flat} onChange={setAddrPart("flat")} autoComplete="address-line2" maxLength={30} />
+            </div>
+          </fieldset>
           <label className="block">
             <span className="block text-xs font-medium text-muted mb-1.5">{t("timeLabel")}</span>
             <input className={inputClass} placeholder={t("timePlaceholder")} value={time} onChange={(e) => setTime(e.target.value)} maxLength={100} />
@@ -210,6 +234,22 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       </div>
       <p className="text-xs text-muted -mt-1">{tCart("unselectedStay")}</p>
 
+      <div className="rounded-[var(--radius-card)] border border-warning/40 bg-warning-soft px-4 py-3 flex flex-col gap-2.5">
+        <div className="flex gap-2.5 text-warning">
+          <TriangleAlert className="size-5 shrink-0 mt-0.5" strokeWidth={2} aria-hidden />
+          <p className="text-sm font-semibold leading-snug">{t("finalWarning")}</p>
+        </div>
+        <label className="flex items-center gap-2.5 text-sm font-medium text-foreground min-h-11 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+            className="size-5 shrink-0 accent-[var(--accent)]"
+          />
+          {t("confirmChecked")}
+        </label>
+      </div>
+
       {error && <p className="rounded-xl bg-error-soft text-error text-sm px-4 py-3">{error}</p>}
 
       <button
@@ -219,7 +259,15 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         className="w-full rounded-full bg-[#25D366] text-white px-6 py-3.5 font-medium transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2"
       >
         <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
-        {submitting ? t("sending") : selectedCount === 0 ? t("nothingSelected") : addressMissing ? t("enterAddress") : t("sendWhatsApp")}
+        {submitting
+          ? t("sending")
+          : selectedCount === 0
+            ? t("nothingSelected")
+            : addressMissing
+              ? t("enterAddress")
+              : !confirmed
+                ? t("confirmFirst")
+                : t("sendWhatsApp")}
       </button>
     </div>
   );

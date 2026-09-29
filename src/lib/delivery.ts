@@ -26,20 +26,45 @@ export function parseDeliveryInput(body: Record<string, unknown>): { ok: true; d
   return { ok: true, delivery: { method: "delivery", address, time: time || null, courierPhone } };
 }
 
+/** Адрес доставки по полям (просьба владельца 29.09: город, улица, дом, квартира — так удобнее, чем одной строкой). */
+export type AddressParts = { city: string; street: string; house: string; flat: string };
+
+const withPrefix = (value: string, prefix: string, known: RegExp) => {
+  const v = value.trim().replace(/\s+/g, " ");
+  return !v ? "" : known.test(v) ? v : `${prefix} ${v}`;
+};
+
+/** «г. Бишкек, ул. Токтогула, д. 100, кв. 5»; то, что клиент уже написал сам («мкр», «ул.», «д.»), не дублируется. */
+export function formatDeliveryAddress(a: AddressParts): string {
+  return [
+    withPrefix(a.city, "г.", /^(г\.|г |город|с\.|село|пгт)/i),
+    withPrefix(a.street, "ул.", /^(ул\.|ул |улица|мкр|микрорайон|пр\.|пр |проспект|пер\.|переулок|бульвар|б-р|ж\/м|жм|кв-л|квартал|ж\.м\.)/i),
+    withPrefix(a.house, "д.", /^(д\.|д |дом)/i),
+    withPrefix(a.flat, "кв.", /^(кв\.|кв |квартира|офис|оф\.)/i),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function addressComplete(a: AddressParts): boolean {
+  return !!a.city.trim() && !!a.street.trim() && !!a.house.trim();
+}
+
 type OrderState = { status: string; deliveryMethod: DeliveryMethod; paidAt: string | null };
 
 /**
  * Кнопки продавца по порядку (первая — главная): paid «Оплата получена», ship «Отправлен», handedOver «Выдан клиенту»,
- * delivered «Доставлен», cancel «Отменить». Доставку можно отправить и до оплаты (оплата курьеру).
+ * delivered «Доставлен». Доставку можно отправить и до оплаты (оплата курьеру). Отменить заказ продавец не может
+ * (решение владельца 29.09) — только владелец/администратор в админке.
  */
-export type SellerAction = "paid" | "ship" | "handedOver" | "delivered" | "cancel";
+export type SellerAction = "paid" | "ship" | "handedOver" | "delivered";
 
 export function sellerActions(order: OrderState): SellerAction[] {
   const delivery = order.deliveryMethod === "delivery";
   switch (order.status) {
     case "sent":
     case "confirmed":
-      return delivery ? ["paid", "ship", "cancel"] : ["paid", "cancel"];
+      return delivery ? ["paid", "ship"] : ["paid"];
     case "paid":
       return delivery ? ["ship"] : ["handedOver"];
     case "shipped":
@@ -55,7 +80,6 @@ export const ACTION_STATUS: Record<SellerAction, string> = {
   ship: "shipped",
   handedOver: "completed",
   delivered: "completed",
-  cancel: "cancelled",
 };
 
 /** Продажа: оплачен или выполнен; «Отправлен» — только если оплату уже получили (иначе клиент платит курьеру). */

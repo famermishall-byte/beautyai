@@ -1,6 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildCourierMessage, isSale, mapsUrl, parseDeliveryInput, sellerActions } from "./delivery";
+import { addressComplete, buildCourierMessage, formatDeliveryAddress, isSale, mapsUrl, parseDeliveryInput, sellerActions } from "./delivery";
+
+test("formatDeliveryAddress joins city, street, house and flat; the flat is optional", () => {
+  assert.equal(formatDeliveryAddress({ city: " Бишкек ", street: "Токтогула", house: "100", flat: "5" }), "г. Бишкек, ул. Токтогула, д. 100, кв. 5");
+  assert.equal(formatDeliveryAddress({ city: "Ош", street: "мкр Анар", house: "12/3", flat: "" }), "г. Ош, мкр Анар, д. 12/3");
+  // what the customer already typed is not doubled
+  assert.equal(formatDeliveryAddress({ city: "г. Бишкек", street: "ул. Киевская", house: "д. 69", flat: "кв. 2" }), "г. Бишкек, ул. Киевская, д. 69, кв. 2");
+});
+
+test("addressComplete needs city, street and house", () => {
+  assert.equal(addressComplete({ city: "Бишкек", street: "Токтогула", house: "1", flat: "" }), true);
+  assert.equal(addressComplete({ city: "Бишкек", street: "Токтогула", house: " ", flat: "5" }), false);
+  assert.equal(addressComplete({ city: "", street: "Токтогула", house: "1", flat: "" }), false);
+});
 
 test("parseDeliveryInput: pickup needs nothing and drops stray delivery fields", () => {
   assert.deepEqual(parseDeliveryInput({ deliveryMethod: "pickup", deliveryAddress: "ул. Токтогула 1" }), {
@@ -30,15 +43,15 @@ test("parseDeliveryInput: delivery requires an address; time and courier phone a
 const o = (status: string, deliveryMethod: "pickup" | "delivery", paidAt: string | null = null) => ({ status, deliveryMethod, paidAt });
 
 test("sellerActions for pickup: pay → hand over", () => {
-  assert.deepEqual(sellerActions(o("sent", "pickup")), ["paid", "cancel"]);
-  assert.deepEqual(sellerActions(o("confirmed", "pickup")), ["paid", "cancel"]);
+  assert.deepEqual(sellerActions(o("sent", "pickup")), ["paid"]);
+  assert.deepEqual(sellerActions(o("confirmed", "pickup")), ["paid"]);
   assert.deepEqual(sellerActions(o("paid", "pickup", "t")), ["handedOver"]);
   assert.deepEqual(sellerActions(o("completed", "pickup", "t")), []);
   assert.deepEqual(sellerActions(o("cancelled", "pickup")), []);
 });
 
 test("sellerActions for delivery: can ship before or after payment, then delivered", () => {
-  assert.deepEqual(sellerActions(o("sent", "delivery")), ["paid", "ship", "cancel"]);
+  assert.deepEqual(sellerActions(o("sent", "delivery")), ["paid", "ship"]);
   assert.deepEqual(sellerActions(o("paid", "delivery", "t")), ["ship"]);
   assert.deepEqual(sellerActions(o("shipped", "delivery")), ["delivered"]);
   assert.deepEqual(sellerActions(o("shipped", "delivery", "t")), ["delivered"]);

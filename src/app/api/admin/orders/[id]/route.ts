@@ -22,6 +22,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!status || !isOrderStatus(status)) {
     return NextResponse.json({ error: "Некорректный статус заказа." }, { status: 400 });
   }
+  // Отменить заказ может только владелец/администратор (решение владельца 29.09).
+  if (status === "cancelled" && profile.role === "branch_manager") {
+    return NextResponse.json({ error: "Отменить заказ может только владелец или администратор магазина." }, { status: 403 });
+  }
 
   try {
     const supabase = await createServerSupabaseClient();

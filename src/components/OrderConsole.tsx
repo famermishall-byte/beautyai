@@ -264,17 +264,6 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             {t("writeToCustomer")}
           </a>
         )}
-        {actions.includes("cancel") && (
-          <button
-            onClick={() => {
-              if (confirm(t("cancelConfirm"))) call({ action: "status", status: "cancelled" }, t("cancelled"));
-            }}
-            disabled={busy}
-            className="text-sm text-muted underline py-2 disabled:opacity-50"
-          >
-            {t("cancelOrder")}
-          </button>
-        )}
       </div>
 
       <div className="mt-8 pt-6 border-t border-border">
