@@ -164,6 +164,7 @@ function BannerForm({
     title: form.title || t("titlePlaceholder"),
     subtitle: form.subtitle || null,
     imageUrl: form.imageUrl,
+    videoUrl: null,
     buttonText: form.buttonText || null,
     startAt: new Date().toISOString(),
     endAt: new Date(new Date().getTime() + 86400000).toISOString(),

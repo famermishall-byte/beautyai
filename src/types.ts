@@ -117,12 +117,27 @@ export type Order = {
   deliveredAt: string | null;
 };
 
+export type HomeSlide = {
+  id: string;
+  mediaType: "image" | "video";
+  imageUrl: string | null;
+  videoUrl: string | null;
+  title: string | null;
+  subtitle: string | null;
+  action: "cart" | "promo";
+  productId: string | null;
+  priority: number;
+  active: boolean;
+  product: Product | null;
+};
+
 export type Banner = {
   id: string;
   productId: string | null;
   title: string;
   subtitle: string | null;
   imageUrl: string | null;
+  videoUrl: string | null;
   buttonText: string | null;
   startAt: string;
   endAt: string;

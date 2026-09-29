@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase/config";
-import type { OrderItem } from "@/types";
+import type { HomeSlide, OrderItem, Product } from "@/types";
 
 // Клиент без авторизации пользователя — RLS теперь ограничивает доступ к данным
 // (products/branches/orders/stores) только авторизованным пользователям своего
@@ -111,6 +111,22 @@ export function mapNewArrival(
   };
 }
 
+export function mapHomeSlide(row: Record<string, unknown>, product: Product | null): HomeSlide {
+  return {
+    id: row.id as string,
+    mediaType: row.media_type as "image" | "video",
+    imageUrl: (row.image_url as string | null) ?? null,
+    videoUrl: (row.video_url as string | null) ?? null,
+    title: (row.title as string | null) ?? null,
+    subtitle: (row.subtitle as string | null) ?? null,
+    action: row.action as "cart" | "promo",
+    productId: (row.product_id as string | null) ?? null,
+    priority: row.priority as number,
+    active: row.active as boolean,
+    product,
+  };
+}
+
 export function mapBanner(
   row: Record<string, unknown> & { products?: Record<string, unknown> | null }
 ) {
@@ -121,6 +137,7 @@ export function mapBanner(
     title: row.title as string,
     subtitle: (row.subtitle as string | null) ?? null,
     imageUrl: (row.image_url as string | null) ?? null,
+    videoUrl: (row.video_url as string | null) ?? null,
     buttonText: (row.button_text as string | null) ?? null,
     startAt: row.start_at as string,
     endAt: row.end_at as string,
