@@ -109,6 +109,8 @@ export type Order = {
   editedAt: string | null;
   editedBy: string | null;
   items: OrderItem[];
+  /** Заказ забронировал остаток при оформлении (supabase/stock_reserve.sql). */
+  stockReserved: boolean;
   /** Самовывоз из филиала или доставка (адрес, желательное время, телефон для курьера — только у доставки). */
   deliveryMethod: "pickup" | "delivery";
   deliveryAddress: string | null;

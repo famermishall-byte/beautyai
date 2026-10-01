@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SyncRowOutcome, SyncSummary } from "./sync";
 import { summarizeSyncPlan } from "./sync";
+import { OPEN_ORDER_STATUSES, netStock, reservedByProductBranch } from "../stock-reserve";
 
 /**
  * Executes a sync plan's create/update/branch-stock/review-queue writes.
@@ -79,6 +80,21 @@ export async function executeSyncPlan(
   }
 
   if (stockWrites.length > 0) {
+    // Программа магазина не знает о невыданных заказах из приложения — их штуки вычитаем (spec 2026-10-01-stock-reserve).
+    const { data: openOrders } = await supabase
+      .from("orders")
+      .select("status, branch_id, items_json")
+      .eq("store_id", storeId)
+      .in("status", [...OPEN_ORDER_STATUSES]);
+    const reserved = reservedByProductBranch(
+      (openOrders ?? []).map((o) => ({
+        status: o.status as string,
+        branchId: (o.branch_id as string | null) ?? null,
+        items: (o.items_json ?? []) as { productId?: string; quantity: number }[],
+      }))
+    );
+    for (const w of stockWrites) w.quantity = netStock(w.quantity, reserved.get(`${w.productId}|${w.branchId}`) ?? 0);
+
     await supabase.from("product_branch_stock").upsert(
       stockWrites.map((w) => ({
         store_id: storeId,
