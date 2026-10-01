@@ -104,6 +104,15 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
+    // Вкладку под WhatsApp открываем СРАЗУ по нажатию: после сохранения заказа (секунды ожидания) браузер считает
+    // window.open уже не ответом на клик и молча блокирует его (жалоба владельца 01.10, компьютер).
+    let waTab: Window | null = null;
+    try {
+      waTab = window.open("", "_blank");
+    } catch {
+      waTab = null;
+    }
+    let sent = false;
     try {
       // Галочки/количества, изменённые секунду назад, должны дойти до сервера раньше заказа.
       // Если какое-то изменение не сохранилось, сервер оформил бы не то, что клиент видит, — стоп.
@@ -134,13 +143,22 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
           // недоступно — в следующий раз адрес просто не подставится
         }
       }
-      window.open(data.whatsappUrl, "_blank")?.focus();
+      sent = true;
+      if (waTab && !waTab.closed) {
+        waTab.location.href = data.whatsappUrl;
+        waTab.focus();
+      } else {
+        // вкладку не дали открыть — пробуем как раньше; если и это заблокировано, есть кнопка «Открыть WhatsApp снова»
+        window.open(data.whatsappUrl, "_blank")?.focus();
+      }
       // Сервер уже убрал заказанные строки — подтягиваем корзину, в ней остаются неотмеченные.
       await reload().catch(() => {});
       onSent({ orderNumber: data.orderNumber, whatsappUrl: data.whatsappUrl });
     } catch {
       setError(t("somethingWrong"));
     } finally {
+      // заказ не оформлен — пустая вкладка не нужна
+      if (!sent) waTab?.close();
       setSubmitting(false);
     }
   }

@@ -25,14 +25,16 @@ export function CartOrderSent({ order }: { order: SentOrder }) {
         <p className="text-sm font-medium leading-snug">{t("sentWhatsappWarning")}</p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => window.open(order.whatsappUrl, "_blank")?.focus()}
+      {/* обычная ссылка, не window.open — её браузеры не блокируют */}
+      <a
+        href={order.whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
         className="w-full rounded-full bg-[#25D366] text-white px-6 py-3 font-medium transition hover:opacity-90 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 flex items-center justify-center gap-2 mb-3"
       >
         <MessageCircle className="size-4.5" strokeWidth={2} aria-hidden />
         {t("reopenWhatsapp")}
-      </button>
+      </a>
       {/* Кнопки «Готово» нет по просьбе владельца 29.09 — вернуть, когда появится онлайн-оплата. Закрыть — крестиком в шапке. */}
     </div>
   );
