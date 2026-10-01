@@ -1,6 +1,6 @@
 # Автосписание остатков при заказе — план реализации
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Остаток филиала уменьшается сам при заказе, возвращается при отмене, обнуляется при уменьшении позиции продавцом; загрузка остатков вычитает брони открытых заказов.
 
@@ -43,7 +43,7 @@
   - `netStock(fileQty: number, reserved: number): number` = `max(0, fileQty − reserved)`
   - `availableForOrder(current: number | null, itemQty: number, stockReserved: boolean): number | null`
 
-- [ ] **Step 1: Write the failing test** — `src/lib/stock-reserve.test.ts`:
+- [x] **Step 1: Write the failing test** — `src/lib/stock-reserve.test.ts`:
 
 ```ts
 import { test } from "node:test";
@@ -84,9 +84,9 @@ test("availableForOrder adds back this order's own reservation", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npx tsx --test src/lib/stock-reserve.test.ts` — Expected: FAIL (module not found).
+- [x] **Step 2: Run** `npx tsx --test src/lib/stock-reserve.test.ts` — Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement** `src/lib/stock-reserve.ts`:
+- [x] **Step 3: Implement** `src/lib/stock-reserve.ts`:
 
 ```ts
 // Бронь остатков заказами (docs/superpowers/specs/2026-10-01-stock-reserve-design.md). Само списание/возврат делает
@@ -123,8 +123,8 @@ export function availableForOrder(current: number | null, itemQty: number, stock
 }
 ```
 
-- [ ] **Step 4: Run** `npx tsx --test src/lib/stock-reserve.test.ts` — Expected: 4 pass.
-- [ ] **Step 5: Commit** `git add src/lib/stock-reserve.ts src/lib/stock-reserve.test.ts && git commit -m "feat(stock): расчёты броней остатков"`
+- [x] **Step 4: Run** `npx tsx --test src/lib/stock-reserve.test.ts` — Expected: 4 pass.
+- [x] **Step 5: Commit** `git add src/lib/stock-reserve.ts src/lib/stock-reserve.test.ts && git commit -m "feat(stock): расчёты броней остатков"`
 
 ---
 
@@ -136,7 +136,7 @@ export function availableForOrder(current: number | null, itemQty: number, stock
 **Interfaces:**
 - Produces: колонка `orders.stock_reserved`; триггеры `orders_reserve_stock` (BEFORE INSERT), `orders_release_stock_update` (AFTER UPDATE OF status), `orders_release_stock_delete` (AFTER DELETE); новая версия `edit_order_by_token`.
 
-- [ ] **Step 1: Write** `supabase/stock_reserve.sql`:
+- [x] **Step 1: Write** `supabase/stock_reserve.sql`:
 
 ```sql
 -- АВТОСПИСАНИЕ ОСТАТКОВ ПРИ ЗАКАЗЕ (docs/superpowers/specs/2026-10-01-stock-reserve-design.md).
@@ -287,7 +287,7 @@ begin
 end $$;
 ```
 
-- [ ] **Step 2: Commit** `git add supabase/stock_reserve.sql && git commit -m "feat(stock): SQL — бронь остатков заказом, возврат при отмене"` (НЕ применять к базе — это Task 4).
+- [x] **Step 2: Commit** `git add supabase/stock_reserve.sql && git commit -m "feat(stock): SQL — бронь остатков заказом, возврат при отмене"` (НЕ применять к базе — это Task 4).
 
 ---
 
@@ -304,7 +304,7 @@ end $$;
 **Interfaces:**
 - Consumes: `reservedByProductBranch`, `netStock`, `availableForOrder`, `OPEN_ORDER_STATUSES` из Task 1.
 
-- [ ] **Step 1: API заказа** — заменить `if (orderError) throw orderError;` на:
+- [x] **Step 1: API заказа** — заменить `if (orderError) throw orderError;` на:
 
 ```ts
     // Нехватка, которую поймала база (заказ одновременно с другим клиентом) — supabase/stock_reserve.sql.
@@ -314,10 +314,10 @@ end $$;
     if (orderError) throw orderError;
 ```
 
-- [ ] **Step 2: `mapOrder`/тип** — в `mapOrder` добавить `stockReserved: row.stock_reserved === true,`; в `Order` (`src/types.ts`) добавить
+- [x] **Step 2: `mapOrder`/тип** — в `mapOrder` добавить `stockReserved: row.stock_reserved === true,`; в `Order` (`src/types.ts`) добавить
   `/** Заказ забронировал остаток при оформлении (supabase/stock_reserve.sql). */ stockReserved: boolean;`
 
-- [ ] **Step 3: `attachStock`** — строку 34 заменить на:
+- [x] **Step 3: `attachStock`** — строку 34 заменить на:
 
 ```ts
       const current = pid && o.branch ? (quantity.get(`${pid}|${o.branch.id}`) ?? null) : null;
@@ -326,7 +326,7 @@ end $$;
 ```
   и импорт `import { availableForOrder } from "@/lib/stock-reserve";`.
 
-- [ ] **Step 4: Админ-правка** — блок «What is now missing» заменить на:
+- [x] **Step 4: Админ-правка** — блок «What is now missing» заменить на:
 
 ```ts
     // Уменьшено (в т.ч. до 0) → в этом филиале товара больше нет: остаток 0. После update — триггер отмены мог вернуть остаток.
@@ -340,7 +340,7 @@ end $$;
 ```
   и обновить комментарий над `PATCH` («A reduced line also sets…»).
 
-- [ ] **Step 5: Загрузка остатков** — в `executeSync.ts` внутри `if (stockWrites.length > 0) {` перед upsert:
+- [x] **Step 5: Загрузка остатков** — в `executeSync.ts` внутри `if (stockWrites.length > 0) {` перед upsert:
 
 ```ts
     // Программа магазина не знает о невыданных заказах из приложения — их штуки вычитаем (spec 2026-10-01-stock-reserve).
@@ -356,14 +356,14 @@ end $$;
 ```
   и импорт `import { OPEN_ORDER_STATUSES, netStock, reservedByProductBranch } from "../stock-reserve";`.
 
-- [ ] **Step 6: Проверка** — `npm test`, `npx tsc --noEmit`, `npx eslint` по изменённым файлам, `npm run build`. Expected: всё чисто.
-- [ ] **Step 7: Commit** `git commit -am "feat(stock): API, админка и загрузка остатков учитывают брони"`
+- [x] **Step 6: Проверка** — `npm test`, `npx tsc --noEmit`, `npx eslint` по изменённым файлам, `npm run build`. Expected: всё чисто.
+- [x] **Step 7: Commit** `git commit -am "feat(stock): API, админка и загрузка остатков учитывают брони"`
 
 ---
 
 ### Task 4: Применить SQL, проверить вживую, влить
 
-- [ ] **Step 1:** Спросить владельца «да» на запуск `supabase/stock_reserve.sql` на живой базе; применить через Supabase MCP `apply_migration` (name `stock_reserve`).
-- [ ] **Step 2: Живая проверка (SQL, в транзакции с откатом где возможно):** взять товар с остатком в филиале; вставить тестовый заказ (`status 'sent'`, `items_json` с этим `productId`, qty 2) → остаток −2, `stock_reserved = true`; второй заказ из двух позиций, где второй не хватает → ошибка P0001 и остаток первой позиции не изменился (Review Focus 4); заказ отредактирован до 1, затем отменён → вернулась 1, а не исходное количество (Review Focus 2); отмена старого заказа с `stock_reserved = false` → остаток не изменился (Review Focus 3); `update status = 'cancelled'` → +2; заказ qty 3 → `edit_order_by_token(token, '[1]')` → остаток 0; удалить тестовые заказы и вернуть исходный остаток; сверить счётчик номеров заказов (`store_order_counters`) — вернуть, если тест его сдвинул.
-- [ ] **Step 3:** Merge `worktree-stock-reserve` → `main` `--no-ff`, push (владелец уже сказал «пуш»).
-- [ ] **Step 4:** Отметить чекбоксы этого плана `[x]`, добавить запись «Автосписание остатков — 01.10» в `PROJECT_CONTEXT.md`, коммит + push.
+- [x] **Step 1:** Спросить владельца «да» на запуск `supabase/stock_reserve.sql` на живой базе; применить через Supabase MCP `apply_migration` (name `stock_reserve`).
+- [x] **Step 2: Живая проверка (SQL, в транзакции с откатом где возможно):** взять товар с остатком в филиале; вставить тестовый заказ (`status 'sent'`, `items_json` с этим `productId`, qty 2) → остаток −2, `stock_reserved = true`; второй заказ из двух позиций, где второй не хватает → ошибка P0001 и остаток первой позиции не изменился (Review Focus 4); заказ отредактирован до 1, затем отменён → вернулась 1, а не исходное количество (Review Focus 2); отмена старого заказа с `stock_reserved = false` → остаток не изменился (Review Focus 3); `update status = 'cancelled'` → +2; заказ qty 3 → `edit_order_by_token(token, '[1]')` → остаток 0; удалить тестовые заказы и вернуть исходный остаток; сверить счётчик номеров заказов (`store_order_counters`) — вернуть, если тест его сдвинул.
+- [x] **Step 3:** Merge `worktree-stock-reserve` → `main` `--no-ff`, push (владелец уже сказал «пуш»).
+- [x] **Step 4:** Отметить чекбоксы этого плана `[x]`, добавить запись «Автосписание остатков — 01.10» в `PROJECT_CONTEXT.md`, коммит + push.
