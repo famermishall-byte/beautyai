@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, Send } from "lucide-react";
+import { Check, Copy, Minus, Plus, Send } from "lucide-react";
 import { buildCourierMessage, sellerActions } from "@/lib/delivery";
 import { DeliveryInfo } from "@/components/DeliveryInfo";
 import type { OrderItem } from "@/types";
@@ -49,9 +49,10 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
   const method = order.deliveryMethod ?? "pickup";
   const actions = sellerActions({ status: order.status, deliveryMethod: method, paidAt: order.paidAt ?? null });
   const canSendToCourier = method === "delivery" && order.status === "shipped" && !!order.courierToken && !!order.deliveryAddress;
-  // WhatsApp без номера: продавец сам выбирает курьера из контактов. Ссылка — адрес сайта известен только в браузере.
-  function sendToCourier() {
-    const text = buildCourierMessage({
+  const [copied, setCopied] = useState(false);
+  // Ссылка курьера — адрес сайта известен только в браузере.
+  function courierText() {
+    return buildCourierMessage({
       number: order.number,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
@@ -62,7 +63,31 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
       paid: !!order.paidAt,
       link: `${window.location.origin}/c/${order.courierToken}`,
     });
+  }
+  // Системное «Поделиться»: продавец выбирает WhatsApp → курьера. wa.me без номера во встроенном браузере WhatsApp
+  // просто возвращал в чат с клиентом, и курьеру пересылали сообщение со ссылкой продавца (жалоба владельца 01.10).
+  async function sendToCourier() {
+    const text = courierText();
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return; // продавец закрыл меню сам
+      }
+    }
+    // «Поделиться» нет (часть компьютеров) — как раньше, WhatsApp с выбором контакта
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  }
+  // Запасной путь: скопировать и вставить курьеру в чат вручную.
+  async function copyCourierText() {
+    try {
+      await navigator.clipboard.writeText(courierText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      setMessage({ ok: false, text: tdl("copyFailed") });
+    }
   }
   const changed = quantities.some((q, i) => q !== order.items[i].quantity);
   const newTotal = orderTotal(order.items, quantities);
@@ -244,6 +269,16 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
           >
             <Send className="size-4.5" strokeWidth={2} aria-hidden />
             {tdl("actions.sendToCourier")}
+          </button>
+        )}
+        {canSendToCourier && (
+          <button
+            type="button"
+            onClick={copyCourierText}
+            className="rounded-full border border-border bg-card py-3 text-sm font-medium flex items-center justify-center gap-2 transition active:scale-[0.98]"
+          >
+            {copied ? <Check className="size-4 text-success" strokeWidth={2.25} aria-hidden /> : <Copy className="size-4" strokeWidth={2} aria-hidden />}
+            {tdl(copied ? "actions.copied" : "actions.copyForCourier")}
           </button>
         )}
         {actions.includes("delivered") && (
