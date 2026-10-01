@@ -35,6 +35,12 @@ test("buildOrderMessage for pickup says the customer will pick the order up", ()
   assert.ok(!text.includes("Адрес доставки"));
 });
 
+test("buildOrderMessage does not promise the seller a cancel option (owner/admin only since 29.09)", () => {
+  const text = buildOrderMessage(orderBase);
+  assert.ok(!/отмен/i.test(text), "seller message must not mention cancelling");
+  assert.ok(text.includes("https://x.app/o/tok"));
+});
+
 test("buildOrderMessage for delivery lists the address, time and courier phone", () => {
   const text = buildOrderMessage({ ...orderBase, delivery: { method: "delivery", address: "мкр Асанбай 12", time: "после 18:00", courierPhone: "0555123456" } });
   for (const part of ["Доставка", "Адрес доставки: мкр Асанбай 12", "Желательное время: после 18:00", "Телефон для курьера: 0555123456"]) {
