@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapOrder } from "@/lib/supabase";
 import { getSessionProfile, isStaff } from "@/lib/auth";
+import { availableForOrder } from "@/lib/stock-reserve";
 
 type Client = Awaited<ReturnType<typeof createServerSupabaseClient>>;
 
@@ -31,7 +32,9 @@ async function attachStock(supabase: Client, storeId: string, orders: ReturnType
   for (const o of open) {
     for (const it of o.items) {
       const pid = productIdOf(it);
-      it.stock = { quantity: pid && o.branch ? (quantity.get(`${pid}|${o.branch.id}`) ?? null) : null };
+      const current = pid && o.branch ? (quantity.get(`${pid}|${o.branch.id}`) ?? null) : null;
+      // Забронированные штуки этого заказа в остатке уже не видны — показываем, сколько есть именно для него.
+      it.stock = { quantity: availableForOrder(current, it.quantity, o.stockReserved) };
     }
   }
 }

@@ -97,6 +97,10 @@ export async function POST(request: NextRequest) {
       .select("id, status_token, number")
       .single();
 
+    // Нехватка, которую поймала база (заказ одновременно с другим клиентом) — supabase/stock_reserve.sql.
+    if (orderError?.code === "P0001") {
+      return NextResponse.json({ error: `${orderError.message} Выберите другой филиал или уменьшите количество.` }, { status: 409 });
+    }
     if (orderError) throw orderError;
     // Номер (1, 2, 3 …) выдаёт база — триггер orders_assign_number, см. supabase/order_numbers.sql.
     const orderNumber = order.number as string;

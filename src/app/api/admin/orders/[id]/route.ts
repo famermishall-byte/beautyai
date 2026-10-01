@@ -62,8 +62,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // Reduce / remove lines of an order in the app ("нет в наличии" = 0). A branch manager may do it only until the
-// order is paid; after that only the owner / admin. A removed line also sets that product's stock in the order's
-// branch to 0, so nobody orders it again.
+// order is paid; after that only the owner / admin. A reduced or removed line also sets that product's stock in the
+// order's branch to 0, so nobody orders it again (supabase/stock_reserve.sql does the same for the WhatsApp link).
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
@@ -112,11 +112,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Не удалось изменить заказ. Возможно, владельцу нужно запустить SQL «order_edit» в Supabase." }, { status: 500 });
     }
 
-    // What is now missing → stock 0 in this branch.
-    const gone = items.filter((it, i) => quantities[i] === 0 && it.quantity > 0 && it.productId);
-    if (gone.length > 0 && order.branch_id) {
+    // Уменьшено (в т.ч. до 0) → в этом филиале товара больше нет: остаток 0. После update — триггер отмены мог вернуть остаток.
+    const reduced = items.filter((it, i) => quantities[i] < it.quantity && it.productId);
+    if (reduced.length > 0 && order.branch_id) {
       await supabase.from("product_branch_stock").upsert(
-        gone.map((it) => ({ store_id: profile.storeId, product_id: it.productId, branch_id: order.branch_id, quantity: 0, updated_at: new Date().toISOString() })),
+        reduced.map((it) => ({ store_id: profile.storeId, product_id: it.productId, branch_id: order.branch_id, quantity: 0, updated_at: new Date().toISOString() })),
         { onConflict: "product_id,branch_id" }
       );
     }
