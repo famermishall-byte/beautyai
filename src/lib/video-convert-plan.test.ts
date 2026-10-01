@@ -1,7 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { VIDEO_MAX_BYTES } from "./home-slides";
-import { SOURCE_MAX_BYTES, TARGET_BYTES, classifyVideo, targetBitrates, parseDuration, ffmpegArgs } from "./video-convert-plan";
+import { SOURCE_MAX_BYTES, TARGET_BYTES, classifyVideo, targetBitrates, parseDuration, ffmpegArgs, posterArgs } from "./video-convert-plan";
+
+test("posterArgs: один кадр 960×660 cover", () => {
+  const a = posterArgs("out.mp4", "poster.jpg");
+  assert.equal(a[a.indexOf("-i") + 1], "out.mp4");
+  assert.equal(a[a.length - 1], "poster.jpg");
+  assert.equal(a[a.indexOf("-frames:v") + 1], "1");
+  assert.equal(a[a.indexOf("-vf") + 1], "scale=960:660:force_original_aspect_ratio=increase,crop=960:660");
+});
 
 test("classifyVideo: все исходы", () => {
   assert.equal(classifyVideo({ type: "video/mp4", size: 1000 }, true), "upload");

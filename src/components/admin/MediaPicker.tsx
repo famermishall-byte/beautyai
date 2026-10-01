@@ -23,7 +23,7 @@ type Phase =
   | { kind: "convert"; stage: ConvertStage; progress: number }
   | { kind: "uploading" }
   | { kind: "done" }
-  | { kind: "error"; error: ErrorKey; retry: Retry | null };
+  | { kind: "error"; error: ErrorKey; retry: Retry | null; detail?: string | null };
 
 const CONFIRM_TEXT: Record<ConvertReason, "confirm.format" | "confirm.size" | "confirm.unplayable"> = {
   "convert-format": "confirm.format",
@@ -153,7 +153,7 @@ export function MediaPicker({ mediaType, imageUrl, videoUrl, onChange }: MediaVa
     try {
       // модуль с ffmpeg грузим только по согласию админа
       vc = await import("@/lib/video-convert");
-      mp4 = await vc.convertToMp4(file, {
+      const result = await vc.convertToMp4(file, {
         signal: ac.signal,
         onStage: (stage) => {
           if (current()) setPhase({ kind: "convert", stage, progress: 0 });
@@ -162,14 +162,16 @@ export function MediaPicker({ mediaType, imageUrl, videoUrl, onChange }: MediaVa
           if (current()) setPhase((p) => (p.kind === "convert" ? { ...p, progress } : p));
         },
       });
-      // обложка из готового MP4 — ещё этап «Оптимизируем…», отмена доступна
-      poster = await videoPoster(mp4);
+      mp4 = result.file;
+      // обложку обычно делает FFmpeg; запасной путь — кадр из <video>
+      poster = result.poster ?? (await videoPoster(mp4));
     } catch (e) {
       if (!current() || (vc && e instanceof vc.ConvertCancelled)) return;
       // модуль не скачался (нет сети) — та же ошибка, что и для FFmpeg
       const error: ErrorKey =
         !vc || e instanceof vc.ConvertLoadFailed ? "load" : e instanceof vc.ConvertTooBig ? "convertTooBig" : "convert";
-      setPhase({ kind: "error", error, retry: { step: "convert", file } });
+      const detail = e instanceof Error ? e.message.slice(0, 300) : null;
+      setPhase({ kind: "error", error, retry: { step: "convert", file }, detail });
       return;
     } finally {
       if (abortRef.current === ac) abortRef.current = null;
@@ -301,6 +303,8 @@ export function MediaPicker({ mediaType, imageUrl, videoUrl, onChange }: MediaVa
       {phase.kind === "error" && (
         <div role="alert" className="text-sm bg-error-soft text-error rounded-[var(--radius-control)] px-3 py-2 flex flex-col gap-2">
           <p>{t(`errors.${phase.error}`)}</p>
+          {/* техническая причина — чтобы по скриншоту понять, что сломалось */}
+          {phase.detail && <p className="text-xs opacity-75 break-words">{phase.detail}</p>}
           {phase.retry && (
             <div>
               <Button type="button" variant="secondary" size="sm" className="h-10!" onClick={() => phase.retry && retry(phase.retry)}>

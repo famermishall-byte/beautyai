@@ -2,7 +2,7 @@
 // Пакеты @ffmpeg/* грузятся только динамически — в клиентские бандлы покупателей не попадают.
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import { VIDEO_MAX_BYTES } from "./home-slides";
-import { ffmpegArgs, parseDuration } from "./video-convert-plan";
+import { ffmpegArgs, parseDuration, posterArgs } from "./video-convert-plan";
 
 export type ConvertStage = "preparing" | "converting" | "optimizing";
 export class ConvertCancelled extends Error {}
@@ -13,6 +13,9 @@ export class ConvertLoadFailed extends Error {} // FFmpeg не скачался
 // @ffmpeg/ffmpeg как classic (убирает type:"module") и ядро грузится через importScripts.
 const CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 const OUTPUT = "output.mp4";
+const POSTER = "poster.jpg";
+
+export type ConvertResult = { file: File; poster: Blob | null };
 
 // кэш экземпляра на время жизни вкладки
 let cached: Promise<FFmpeg> | null = null;
@@ -66,7 +69,7 @@ function waitTurn(prev: Promise<void>, signal: AbortSignal): Promise<void> {
   });
 }
 
-export function convertToMp4(file: File, opts: ConvertOpts): Promise<File> {
+export function convertToMp4(file: File, opts: ConvertOpts): Promise<ConvertResult> {
   if (opts.signal.aborted) return Promise.reject(new ConvertCancelled());
   const prev = queue;
   let release!: () => void;
@@ -83,7 +86,14 @@ function dropInstance(ff: FFmpeg | null) {
   cached = null;
 }
 
-async function runConvert(file: File, opts: ConvertOpts): Promise<File> {
+// хвост лога FFmpeg — в текст ошибки, чтобы по скриншоту было видно причину сбоя
+function withLogTail(e: unknown, logs: string[]): Error {
+  const msg = e instanceof Error ? e.message : String(e);
+  const tail = logs.filter((l) => l.trim()).slice(-3).join(" | ");
+  return new Error(tail ? `${msg} — ${tail}` : msg);
+}
+
+async function runConvert(file: File, opts: ConvertOpts): Promise<ConvertResult> {
   const { onStage, onProgress, signal } = opts;
   if (signal.aborted) throw new ConvertCancelled();
 
@@ -123,12 +133,15 @@ async function runConvert(file: File, opts: ConvertOpts): Promise<File> {
 
     onStage("converting");
     onProgress(0);
+    logs.length = 0;
     ff.on("progress", onProg);
+    ff.on("log", onLog);
     let code: number;
     try {
       code = await ff.exec(ffmpegArgs(input, OUTPUT, duration));
     } finally {
       ff.off("progress", onProg);
+      ff.off("log", onLog);
     }
     if (code !== 0) throw new Error(`FFmpeg завершился с кодом ${code}`);
 
@@ -136,21 +149,35 @@ async function runConvert(file: File, opts: ConvertOpts): Promise<File> {
     const data = await ff.readFile(OUTPUT);
     if (typeof data === "string") throw new Error("FFmpeg вернул текст вместо видео");
     if (data.byteLength > VIDEO_MAX_BYTES) throw new ConvertTooBig();
-    return new File([data as Uint8Array<ArrayBuffer>], `${base}.mp4`, { type: "video/mp4" });
+    const mp4 = new File([data as Uint8Array<ArrayBuffer>], `${base}.mp4`, { type: "video/mp4" });
+
+    // обложку делает сам FFmpeg: в Safari на iPhone кадр из <video> снимается ненадёжно
+    let poster: Blob | null = null;
+    try {
+      if ((await ff.exec(posterArgs(OUTPUT, POSTER))) === 0) {
+        const jpg = await ff.readFile(POSTER);
+        if (typeof jpg !== "string" && jpg.byteLength > 0) {
+          poster = new Blob([jpg as Uint8Array<ArrayBuffer>], { type: "image/jpeg" });
+        }
+      }
+    } catch {
+      poster = null; // не критично — MediaPicker снимет обложку сам
+    }
+    return { file: mp4, poster };
   } catch (e) {
     if (signal.aborted) throw new ConvertCancelled();
+    if (e instanceof ConvertTooBig || e instanceof ConvertLoadFailed) throw e;
     // сбой ffmpeg мог сломать рантайм wasm — не переиспользуем экземпляр
-    if (!(e instanceof ConvertTooBig) && !(e instanceof ConvertLoadFailed)) {
-      dead = true;
-      dropInstance(ff);
-    }
-    throw e;
+    dead = true;
+    dropInstance(ff);
+    throw withLogTail(e, logs);
   } finally {
     signal.removeEventListener("abort", onAbort);
     // чистим FS (после terminate воркера нет — ошибки игнорируем)
     if (ff && !dead) {
       await ff.deleteFile(input).catch(() => {});
       await ff.deleteFile(OUTPUT).catch(() => {});
+      await ff.deleteFile(POSTER).catch(() => {});
     }
   }
 }

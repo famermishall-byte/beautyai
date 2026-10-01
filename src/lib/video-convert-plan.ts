@@ -28,6 +28,17 @@ export function parseDuration(log: string): number | null {
   return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
 }
 
+// обложка 960×660 («cover», как toCoverJpeg) из кадра на 0.1 с
+export function posterArgs(input: string, output: string): string[] {
+  return [
+    "-ss", "0.1", "-i", input,
+    "-frames:v", "1",
+    "-vf", "scale=960:660:force_original_aspect_ratio=increase,crop=960:660",
+    "-q:v", "4",
+    output,
+  ];
+}
+
 export function ffmpegArgs(input: string, output: string, durationSec: number | null): string[] {
   const v = targetBitrates(durationSec).videoKbps;
   return [
