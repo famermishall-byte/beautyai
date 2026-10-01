@@ -547,6 +547,8 @@
     "sentHint": "Продавец свяжется с вами для подтверждения заказа и оформления доставки.",
     "sentWhatsappWarning": "Мы открыли WhatsApp с готовым текстом заказа — нажмите там «Отправить», иначе продавец его не увидит!",
     "reopenWhatsapp": "Открыть WhatsApp снова",
+    "openWhatsappApp": "Открыть в приложении WhatsApp",
+    "openWhatsappWeb": "Открыть в WhatsApp Web",
     "noBranches": "Филиалы ещё не настроены магазином.",
     "namePlaceholder": "Ваше имя",
     "phonePlaceholder": "Номер телефона",

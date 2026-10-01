@@ -81,6 +81,29 @@ export function whatsappChatUrl(phone: string | null): string {
   return `https://wa.me/${phone ? whatsappDigits(phone) : ""}`;
 }
 
+/** Телефон/планшет — там wa.me сразу открывает приложение; на компьютере — промежуточная страница WhatsApp. */
+export function isMobileUserAgent(ua: string): boolean {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+}
+
+/**
+ * Компьютер: промежуточная страница wa.me у части людей не открывает приложение (жалоба владельца 01.10) —
+ * открываем WhatsApp Desktop напрямую (whatsapp://) или WhatsApp Web. null — не ссылка wa.me.
+ */
+export function desktopWhatsAppUrls(waMeUrl: string): { app: string; web: string } | null {
+  let u: URL;
+  try {
+    u = new URL(waMeUrl);
+  } catch {
+    return null;
+  }
+  if (u.hostname !== "wa.me") return null;
+  const phone = u.pathname.replace(/\D/g, "");
+  const text = u.searchParams.get("text") ?? "";
+  const query = `phone=${phone}&text=${encodeURIComponent(text)}`;
+  return { app: `whatsapp://send?${query}`, web: `https://web.whatsapp.com/send?${query}` };
+}
+
 export function buildWhatsAppUrl(whatsappNumber: string, message: string): string {
   const phone = sanitizePhoneForWhatsApp(whatsappNumber);
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

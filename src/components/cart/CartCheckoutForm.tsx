@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { MessageCircle, Store, TriangleAlert, Truck } from "lucide-react";
 import { addressComplete, formatDeliveryAddress, type AddressParts, type DeliveryMethod } from "@/lib/delivery";
 import { getStoredCity } from "@/lib/city";
+import { desktopWhatsAppUrls, isMobileUserAgent } from "@/lib/whatsapp";
 
 // Адрес доставки по полям — только на этом телефоне, чтобы в следующий раз не вводить заново.
 const ADDRESS_STORAGE_KEY = "beautyai-delivery-address";
@@ -104,13 +105,17 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
-    // Вкладку под WhatsApp открываем СРАЗУ по нажатию: после сохранения заказа (секунды ожидания) браузер считает
-    // window.open уже не ответом на клик и молча блокирует его (жалоба владельца 01.10, компьютер).
+    // Телефон: вкладку под wa.me открываем СРАЗУ по нажатию — после сохранения заказа (секунды ожидания) браузер
+    // считает window.open уже не ответом на клик и блокирует его. Компьютер: вкладка не нужна — открываем
+    // приложение WhatsApp напрямую (страница wa.me на компьютере у части людей не срабатывает, жалоба 01.10).
+    const mobile = isMobileUserAgent(navigator.userAgent);
     let waTab: Window | null = null;
-    try {
-      waTab = window.open("", "_blank");
-    } catch {
-      waTab = null;
+    if (mobile) {
+      try {
+        waTab = window.open("", "_blank");
+      } catch {
+        waTab = null;
+      }
     }
     let sent = false;
     try {
@@ -144,7 +149,11 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         }
       }
       sent = true;
-      if (waTab && !waTab.closed) {
+      const desktop = mobile ? null : desktopWhatsAppUrls(data.whatsappUrl);
+      if (desktop) {
+        // браузер спросит «Открыть приложение WhatsApp?»; если не откроется — кнопки на экране «Заказ отправлен»
+        window.location.href = desktop.app;
+      } else if (waTab && !waTab.closed) {
         waTab.location.href = data.whatsappUrl;
         waTab.focus();
       } else {
