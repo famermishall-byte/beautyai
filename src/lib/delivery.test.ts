@@ -42,9 +42,9 @@ test("parseDeliveryInput: delivery requires an address; time and courier phone a
 
 const o = (status: string, deliveryMethod: "pickup" | "delivery", paidAt: string | null = null) => ({ status, deliveryMethod, paidAt });
 
-test("sellerActions for pickup: pay → hand over", () => {
-  assert.deepEqual(sellerActions(o("sent", "pickup")), ["paid"]);
-  assert.deepEqual(sellerActions(o("confirmed", "pickup")), ["paid"]);
+test("sellerActions for pickup: unpaid → one tap «выдан и оплачен» (main) or pay first; paid → hand over", () => {
+  assert.deepEqual(sellerActions(o("sent", "pickup")), ["handedOver", "paid"]);
+  assert.deepEqual(sellerActions(o("confirmed", "pickup")), ["handedOver", "paid"]);
   assert.deepEqual(sellerActions(o("paid", "pickup", "t")), ["handedOver"]);
   assert.deepEqual(sellerActions(o("completed", "pickup", "t")), []);
   assert.deepEqual(sellerActions(o("cancelled", "pickup")), []);

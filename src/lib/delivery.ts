@@ -54,7 +54,7 @@ type OrderState = { status: string; deliveryMethod: DeliveryMethod; paidAt: stri
 
 /**
  * Кнопки продавца по порядку (первая — главная): paid «Оплата получена», ship «Отправлен», handedOver «Выдан клиенту»,
- * delivered «Доставлен». Доставку можно отправить и до оплаты (оплата курьеру). Отменить заказ продавец не может
+ * delivered «Доставлен». Доставку можно отправить и до оплаты (оплата курьеру); самовывоз — выдать с оплатой на месте. Отменить заказ продавец не может
  * (решение владельца 29.09) — только владелец/администратор в админке.
  */
 export type SellerAction = "paid" | "ship" | "handedOver" | "delivered";
@@ -64,7 +64,8 @@ export function sellerActions(order: OrderState): SellerAction[] {
   switch (order.status) {
     case "sent":
     case "confirmed":
-      return delivery ? ["paid", "ship"] : ["paid"];
+      // самовывоз без предоплаты: обычно платят на месте — одна кнопка «Выдан и оплачен» (просьба владельца 01.10)
+      return delivery ? ["paid", "ship"] : ["handedOver", "paid"];
     case "paid":
       return delivery ? ["ship"] : ["handedOver"];
     case "shipped":

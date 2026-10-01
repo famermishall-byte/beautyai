@@ -200,11 +200,26 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             {busy ? t("saving") : t("saveChanges", { total: money(newTotal) })}
           </button>
         )}
+        {actions.includes("handedOver") && (
+          <button
+            onClick={() => {
+              if (!order.paidAt && !confirm(tdl("confirmPaidOnPickup", { total: money(order.totalPrice) }))) return;
+              call({ action: "status", status: "completed" }, tdl("ok.handedOver"));
+            }}
+            disabled={busy || changed}
+            className="rounded-full bg-accent text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
+          >
+            ✅ {tdl(order.paidAt ? "actions.handedOver" : "actions.handedOverAndPaid")}
+          </button>
+        )}
         {actions.includes("paid") && (
           <button
             onClick={() => call({ action: "status", status: "paid" }, t("paidOk"))}
             disabled={busy || changed}
-            className="rounded-full bg-success text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
+            className={[
+              "rounded-full py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40",
+              actions[0] === "paid" ? "bg-success text-white" : "border border-success text-success bg-card",
+            ].join(" ")}
           >
             💰 {t("paymentReceived")}
           </button>
@@ -219,15 +234,6 @@ export function OrderConsole({ token, initial }: { token: string; initial: Conso
             ].join(" ")}
           >
             🚚 {tdl(order.paidAt ? "actions.ship" : "actions.shipUnpaid")}
-          </button>
-        )}
-        {actions.includes("handedOver") && (
-          <button
-            onClick={() => call({ action: "status", status: "completed" }, tdl("ok.handedOver"))}
-            disabled={busy}
-            className="rounded-full bg-accent text-white py-3.5 text-base font-semibold transition active:scale-[0.98] disabled:opacity-40"
-          >
-            ✅ {tdl("actions.handedOver")}
           </button>
         )}
         {canSendToCourier && (

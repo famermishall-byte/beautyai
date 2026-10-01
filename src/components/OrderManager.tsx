@@ -288,6 +288,7 @@ function OrderRow({
               <button
                 onClick={() => {
                   if (next === "delivered" && !order.paidAt && !confirm(tdl("confirmPaidOnDelivery", { total: money(order.totalPrice) }))) return;
+                  if (next === "handedOver" && !order.paidAt && !confirm(tdl("confirmPaidOnPickup", { total: money(order.totalPrice) }))) return;
                   changeStatus(ACTION_STATUS[next]);
                 }}
                 disabled={saving}
@@ -297,7 +298,25 @@ function OrderRow({
                   ? t("saving")
                   : next === "paid"
                     ? ts("next.paid")
-                    : tdl(next === "ship" && !order.paidAt ? "actions.shipUnpaid" : next === "delivered" && !order.paidAt ? "actions.deliveredAndPaid" : `actions.${next}`)}
+                    : tdl(
+                        next === "ship" && !order.paidAt
+                          ? "actions.shipUnpaid"
+                          : next === "delivered" && !order.paidAt
+                            ? "actions.deliveredAndPaid"
+                            : next === "handedOver" && !order.paidAt
+                              ? "actions.handedOverAndPaid"
+                              : `actions.${next}`
+                      )}
+              </button>
+            )}
+            {/* самовывоз без оплаты: главная кнопка «Выдан и оплачен», рядом — только оплата (предоплата переводом) */}
+            {next === "handedOver" && !order.paidAt && (
+              <button
+                onClick={() => changeStatus("paid")}
+                disabled={saving}
+                className="rounded-full border border-accent text-accent-strong px-4 py-2 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-50"
+              >
+                {ts("next.paid")}
               </button>
             )}
             {next === "paid" && order.deliveryMethod === "delivery" && (
