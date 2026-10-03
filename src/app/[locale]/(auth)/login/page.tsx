@@ -7,7 +7,7 @@ import { markJustRegistered } from "@/lib/session-flags";
 import { PasswordInput } from "@/components/PasswordInput";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { safeNextPath } from "@/lib/safe-next";
 import { setSessionOnly } from "@/lib/session-only";
 import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
@@ -65,6 +65,7 @@ export default function LoginPage() {
   // «Чужое устройство — не запоминать вход»: по умолчанию вход запоминается (lib/session-only.ts)
   const [sessionOnly, setSessionOnlyChoice] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [consent, setConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +134,10 @@ export default function LoginPage() {
     }
     if (password !== confirmPassword) {
       setError(t("errors.passwordMismatch"));
+      return;
+    }
+    if (!consent) {
+      setError(t("errors.consentRequired"));
       return;
     }
 
@@ -377,6 +382,23 @@ export default function LoginPage() {
             onChange={setConfirmPassword}
             autoComplete="new-password"
           />
+          <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-0.5 size-5 shrink-0 accent-[var(--accent)]"
+            />
+            <span>
+              {t.rich("consent", {
+                link: (chunks) => (
+                  <Link href="/privacy" className="text-accent underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </span>
+          </label>
           <label className="flex items-start gap-2.5 text-sm cursor-pointer select-none">
             <input
               type="checkbox"
