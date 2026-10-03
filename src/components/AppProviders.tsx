@@ -32,7 +32,8 @@ export function AppProviders({
                 <AccessDeniedBanner />
               </Suspense>
               <NavHeader />
-              <div className="pb-20">{children}</div>
+              {/* overflow-x-clip здесь, а не на html/body: на корне страницы он ломает прикреплённые к низу элементы на iPhone */}
+              <div className="pb-20 overflow-x-clip">{children}</div>
               <CartDrawer />
               <BottomNav />
               <FirstRunFlow />
