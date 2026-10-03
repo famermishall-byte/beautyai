@@ -62,6 +62,8 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <img
             src={product.imageUrl}
             alt={productName}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
