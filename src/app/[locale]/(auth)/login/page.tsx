@@ -10,6 +10,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "@/i18n/navigation";
 import { safeNextPath } from "@/lib/safe-next";
 import { setSessionOnly } from "@/lib/session-only";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -126,7 +127,7 @@ export default function LoginPage() {
     setNotice(null);
     setRegisterResult(null);
 
-    if (password.length < 6) {
+    if (password.length < PASSWORD_MIN_LENGTH) {
       setError(t("errors.passwordShort"));
       return;
     }

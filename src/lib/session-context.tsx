@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { disablePush } from "@/lib/push";
 import { clearSessionOnly, sessionOnlyExpired } from "@/lib/session-only";
+import { clearPersonalDeviceData } from "@/lib/device-data";
 
 export type Session = {
   email: string | null;
@@ -92,6 +93,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     await disablePush();
     await supabase.auth.signOut();
     clearSessionOnly();
+    clearPersonalDeviceData();
     setSession(null);
     router.push("/login");
     router.refresh();

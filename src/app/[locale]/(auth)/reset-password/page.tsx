@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Link, useRouter } from "@/i18n/navigation";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
 
 export default function ResetPasswordPage() {
   const t = useTranslations("resetPassword");
@@ -32,7 +33,7 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 6) {
+    if (password.length < PASSWORD_MIN_LENGTH) {
       setError(t("passwordShort"));
       return;
     }

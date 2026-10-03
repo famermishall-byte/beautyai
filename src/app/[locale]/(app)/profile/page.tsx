@@ -36,6 +36,7 @@ import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 import { useCollapsed } from "@/lib/use-collapsed";
 import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -138,7 +139,7 @@ export default function ProfilePage() {
     setPasswordNotice(null);
     setPasswordError(null);
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
       setPasswordError(t("passwordShort"));
       return;
     }

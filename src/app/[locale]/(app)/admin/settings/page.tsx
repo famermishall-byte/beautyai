@@ -6,6 +6,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
 
 // Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
 const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
@@ -59,7 +60,7 @@ export default function AdminSettingsPage() {
     setPasswordNotice(null);
     setPasswordError(null);
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
       setPasswordError(t("passwordShort"));
       return;
     }
