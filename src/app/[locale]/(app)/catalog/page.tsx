@@ -6,7 +6,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles, type LucideIcon } from "lucide-react";
 import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
-import { ProductGridSkeleton } from "@/components/ui/Skeleton";
+import { ProductGridSkeleton, Skeleton } from "@/components/ui/Skeleton";
+import { useReservedBlock } from "@/lib/reserved-block";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadError } from "@/components/ui/LoadError";
 import { Button } from "@/components/ui/Button";
@@ -77,6 +78,9 @@ function CatalogContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [branches, setBranches] = useState<Branch[]>([]);
+  // строка филиалов появляется после ответа сервера — держим под неё место, чтобы плитки не съезжали
+  const [branchesLoaded, setBranchesLoaded] = useState(false);
+  const reserveBranches = useReservedBlock("catalog-branches", !branchesLoaded ? "loading" : branches.length > 1 ? "present" : "absent");
   const [branchId, setBranchId] = useState<string | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [newArrivalIds, setNewArrivalIds] = useState<Set<string> | null>(null);
@@ -126,7 +130,8 @@ function CatalogContent() {
         const valid = stored && list.some((b) => b.id === stored) ? stored : null;
         setBranchId(valid ?? (list.length === 1 ? list[0].id : null));
       })
-      .catch(() => setBranches([]));
+      .catch(() => setBranches([]))
+      .finally(() => setBranchesLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -289,6 +294,12 @@ function CatalogContent() {
       )}
       <h1 className="font-display text-3xl mb-4">{promo ? t("promo") : isNew ? t("newArrivals") : activeItem && activeGroup ? labels.subLabel(activeGroup, activeItem) : activeGroup && !browsing ? labels.groupTitle(activeGroup) : t("title")}</h1>
 
+      {reserveBranches && (
+        <div className="mb-4" aria-hidden>
+          <Skeleton className="h-4 w-20 mb-2" />
+          <Skeleton className="h-9 rounded-full" />
+        </div>
+      )}
       {branches.length > 1 && (
         <div className="mb-4 -mx-4 px-4 overflow-x-auto">
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted mb-2">

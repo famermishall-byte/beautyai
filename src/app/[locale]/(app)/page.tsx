@@ -12,7 +12,8 @@ import { InlineBanner } from "@/components/InlineBanner";
 import { WholesaleBanner } from "@/components/WholesaleBanner";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
-import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
+import { Skeleton, ProductGridSkeleton, ProductRailSkeleton } from "@/components/ui/Skeleton";
+import { useReservedBlock } from "@/lib/reserved-block";
 import { LoadError } from "@/components/ui/LoadError";
 import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
 import type { HomeSlide, Product } from "@/types";
@@ -53,7 +54,7 @@ function pickShowcase(all: Product[]): Product[] {
 export default function Home() {
   const t = useTranslations("home");
   const tSkin = useTranslations("skin");
-  const { session } = useSession();
+  const { session, loading: sessionLoading } = useSession();
   const skinLabel = skinTypeLabel(tSkin, session?.skinType ?? null);
   const skinType = session?.skinType as SkinType | null | undefined;
 
@@ -65,6 +66,9 @@ export default function Home() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [promoSlides, setPromoSlides] = useState<HomeSlide[]>([]);
+  // Блоки, которые появляются после ответа сервера: пока грузятся, под них держится место (lib/reserved-block.ts).
+  const [forYouLoaded, setForYouLoaded] = useState(false);
+  const [promoLoaded, setPromoLoaded] = useState(false);
   const [slidesLoading, setSlidesLoading] = useState(true);
 
   useEffect(() => {
@@ -96,14 +100,16 @@ export default function Home() {
         const chosen = fitting.length >= 10 ? fitting : ranked;
         setForYou(chosen.slice(0, FOR_YOU).map((r) => r.p));
       })
-      .catch(() => setForYou([]));
+      .catch(() => setForYou([]))
+      .finally(() => setForYouLoaded(true));
   }, [skinType]);
 
   useEffect(() => {
     fetch("/api/promotions")
       .then((res) => (res.ok ? res.json() : { products: [] }))
       .then((data: { products: Product[] }) => setPromoProducts(data.products ?? []))
-      .catch(() => setPromoProducts([]));
+      .catch(() => setPromoProducts([]))
+      .finally(() => setPromoLoaded(true));
   }, []);
 
   // Промо-слайды (фото/видео от owner/admin) — идут в верхнем слайдере перед товарами.
@@ -128,6 +134,12 @@ export default function Home() {
   const slides = newArrivals.length > 0 ? newArrivals.slice(0, NEW_ARRIVALS_HOME_COUNT) : showcase.slice(0, SLIDES);
   const popular = showcase.slice(0, POPULAR);
 
+  // «Специально для тебя»: лента есть только у тех, кто заполнил анкету, — место держим, если она была в прошлый раз.
+  const hasSkinRail = !!skinType && skinType in SKIN_TYPE_CATEGORIES;
+  const forYouState = sessionLoading || (hasSkinRail && !forYouLoaded) ? "loading" : forYou.length > 0 ? "present" : "absent";
+  const reserveForYou = useReservedBlock("for-you", forYouState, false);
+  const reservePromo = useReservedBlock("home-promo", !promoLoaded ? "loading" : promoProducts.length > 0 ? "present" : "absent", false);
+
   return (
     <main className="flex-1 pb-6">
       <MarketingGate page="home" promoIndex={0} />
@@ -142,7 +154,9 @@ export default function Home() {
         <WholesaleBanner />
 
         <Section title={t("forYou")} icon={Sparkles} hint={skinLabel ? t("skinHint", { type: skinLabel.toLowerCase() }) : undefined}>
-          {forYou.length > 0 ? (
+          {reserveForYou ? (
+            <ProductRailSkeleton />
+          ) : forYou.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {forYou.map((product) => (
                 <div key={product.id} className={PRODUCT_RAIL_ITEM}>
@@ -171,6 +185,11 @@ export default function Home() {
 
         <InlineBanner />
 
+        {reservePromo && (
+          <Section title={t("promoTitle")} icon={Flame}>
+            <ProductRailSkeleton />
+          </Section>
+        )}
         {promoProducts.length > 0 && (
           <Section title={t("promoTitle")} icon={Flame}>
             <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 scroll-pl-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

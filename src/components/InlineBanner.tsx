@@ -7,11 +7,15 @@ import { Link } from "@/i18n/navigation";
 import { HeroVideo } from "@/components/HeroVideo";
 import { slideHref } from "@/lib/home-slides";
 import type { HomeSlide } from "@/types";
+import { useReservedBlock } from "@/lib/reserved-block";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /** Одиночный баннер в ленте главной (не попап). Пока грузится, при ошибке или без слайда — ничего. */
 export function InlineBanner() {
   const t = useTranslations("home");
   const [slide, setSlide] = useState<HomeSlide | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const reserve = useReservedBlock("inline-banner", !loaded ? "loading" : slide ? "present" : "absent");
   const [inView, setInView] = useState(false);
   const [muted, setMuted] = useState(true);
   const ref = useRef<HTMLAnchorElement>(null);
@@ -21,7 +25,8 @@ export function InlineBanner() {
     fetch("/api/home-slides?placement=inline")
       .then((res) => (res.ok ? res.json() : { slides: [] }))
       .then((data: { slides: HomeSlide[] }) => setSlide(data.slides?.[0] ?? null))
-      .catch(() => setSlide(null));
+      .catch(() => setSlide(null))
+      .finally(() => setLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -32,7 +37,8 @@ export function InlineBanner() {
     return () => io.disconnect();
   }, [slide]);
 
-  if (!slide) return null;
+  // место под баннер, пока он грузится, — иначе «Популярные товары» съезжают вниз
+  if (!slide) return reserve ? <Skeleton className="aspect-[16/9] rounded-[var(--radius-card)]" /> : null;
   const isVideo = slide.mediaType === "video" && !!slide.videoUrl;
   const hasText = !!(slide.title || slide.subtitle);
 
