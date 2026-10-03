@@ -7,6 +7,10 @@ export async function GET() {
   if (!profile) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
+  // В настройках источника лежит адрес и доступ к таблице магазина — список только для владельца и администратора.
+  if (!isStoreManager(profile.role)) {
+    return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
+  }
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
