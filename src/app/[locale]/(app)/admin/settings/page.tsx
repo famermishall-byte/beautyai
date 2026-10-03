@@ -5,13 +5,15 @@ import { useTranslations } from "next-intl";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
 
 // Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
 const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
 
 export default function AdminSettingsPage() {
   const t = useTranslations("adminSettings");
-  const { session, isOwner, signOut } = useSession();
+  const { session, isOwner } = useSession();
+  const confirmSignOut = useConfirmSignOut();
   const router = useRouter();
 
   const [newEmail, setNewEmail] = useState("");
@@ -133,7 +135,7 @@ export default function AdminSettingsPage() {
       </p>
 
       <button
-        onClick={() => signOut()}
+        onClick={confirmSignOut}
         className="mb-6 rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {t("signOut")}

@@ -10,13 +10,15 @@ import { getStoredCity } from "@/lib/city";
 import { switchViewMode } from "@/lib/view-mode";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WholesaleStrip } from "@/components/WholesaleStrip";
+import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
 
 export function NavHeader() {
   const t = useTranslations("nav");
   const tMeta = useTranslations("meta");
   const tc = useTranslations("common");
   const pathname = usePathname();
-  const { session, isAdmin, isManager, signOut } = useSession();
+  const { session, isAdmin, isManager } = useSession();
+  const confirmSignOut = useConfirmSignOut();
   const [city, setCity] = useState<string | null>(null);
   const goBack = useGoBack(isAdmin ? "/admin" : "/");
 
@@ -108,7 +110,7 @@ export function NavHeader() {
               {t("toShop")}
             </button>
             <button
-              onClick={() => signOut()}
+              onClick={confirmSignOut}
               aria-label={t("signOut")}
               className="w-8 h-8 flex items-center justify-center rounded-full text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >

@@ -35,6 +35,7 @@ import { PromotionGate } from "@/components/PromotionInterstitial";
 import type { Product } from "@/types";
 import { Link } from "@/i18n/navigation";
 import { useCollapsed } from "@/lib/use-collapsed";
+import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   const tSkin = useTranslations("skin");
   const tHair = useTranslations("hair");
   const { session, loading, isManager, signOut, refresh } = useSession();
+  const confirmSignOut = useConfirmSignOut();
 
   const [city, setCity] = useState<string | null>(null);
   const [editing, setEditing] = useState<boolean | null>(null);
@@ -383,7 +385,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <Button variant="ghost" size="lg" fullWidth onClick={() => signOut()}>
+      <Button variant="ghost" size="lg" fullWidth onClick={confirmSignOut}>
         <LogOut className="size-4.5" strokeWidth={1.85} aria-hidden />
         {t("signOut")}
       </Button>

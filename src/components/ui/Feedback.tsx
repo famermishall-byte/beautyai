@@ -23,6 +23,8 @@ type ConfirmOptions = {
   description?: string;
   /** Подпись опасной кнопки; по умолчанию «Удалить». */
   confirmLabel?: string;
+  /** Подпись безопасной кнопки; по умолчанию «Отменить». */
+  cancelLabel?: string;
 };
 
 type FeedbackValue = {
@@ -145,7 +147,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             {ask.description && <p className="text-sm text-muted mt-1.5 leading-relaxed">{ask.description}</p>}
             <div className="flex gap-2 mt-5">
               <Button type="button" variant="ghost" className="flex-1" autoFocus onClick={() => answer(false)}>
-                {t("cancel")}
+                {ask.cancelLabel ?? t("cancel")}
               </Button>
               <Button type="button" variant="danger" className="flex-1" onClick={() => answer(true)}>
                 {ask.confirmLabel ?? t("delete")}
