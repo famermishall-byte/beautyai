@@ -46,6 +46,7 @@ function measure(): Info {
     "100lvh / 100svh / 100dvh": `${heights.lvh} / ${heights.svh} / ${heights.dvh}`,
     "safe-area top / bottom": `${safeTop} / ${safeBottom}`,
     "нижнее меню: верх / низ (px от верха окна)": navRect ? `${r(navRect.top)} / ${r(navRect.bottom)}` : "меню не найдено",
+    "применённый сдвиг (--vv-shift)": document.documentElement.style.getPropertyValue("--vv-shift") || "нет",
     "высота меню": r(navRect?.height),
     "разрыв: innerHeight − низ меню": navRect ? r(window.innerHeight - navRect.bottom) : "—",
     "разрыв: screen.height − низ меню": navRect ? r(screen.height - navRect.bottom) : "—",

@@ -246,7 +246,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
       <div
         className="sticky z-30 bg-card/95 backdrop-blur-xl border-t border-border px-4 py-3.5 flex items-center gap-3"
-        style={{ bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom))" }}
+        style={{ bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) - var(--vv-shift, 0px))" }}
       >
         {inCart ? (
           <div className="flex items-center gap-3 rounded-full bg-accent-soft px-2 py-1.5 flex-1 justify-between max-w-[9rem]">

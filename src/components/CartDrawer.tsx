@@ -73,8 +73,8 @@ export function CartDrawer() {
       <button
         onClick={openDrawer}
         aria-label={t("open")}
-        style={onProduct ? { bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 5.5rem)" } : undefined}
-        className={["fixed right-4 z-40", onProduct ? "" : "bottom-24"].join(" ") + " rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
+        style={{ bottom: onProduct ? "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 5.5rem - var(--vv-shift, 0px))" : "calc(6rem - var(--vv-shift, 0px))" }}
+        className={["fixed right-4 z-40"].join(" ") + " rounded-full bg-accent text-white shadow-[var(--shadow-float)] pl-4 pr-3.5 py-3.5 flex items-center gap-2 transition hover:bg-accent-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"}
       >
         <ShoppingBag className="size-4.5" strokeWidth={2} aria-hidden />
         <span className="text-sm font-medium">{t("title")}</span>
