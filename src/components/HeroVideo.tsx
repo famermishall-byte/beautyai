@@ -57,8 +57,8 @@ export function HeroVideo({
         muted={muted}
         playsInline
         loop={loop}
-        // ролик не качается, пока слайд не на экране: до этого видна обложка, загрузку запускает play()
-        preload="none"
+        // ролики сжаты до 0,4–0,6 МБ, поэтому грузим заранее: слайд стартует сразу (с "none" задержка 0,4–1,3 с и больше)
+        preload="auto"
         onEnded={onEnded}
         onError={onFailed}
         className="absolute inset-0 w-full h-full object-cover"
