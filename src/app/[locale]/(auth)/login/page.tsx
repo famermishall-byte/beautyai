@@ -93,6 +93,12 @@ export default function LoginPage() {
     });
   }, [router]);
 
+  // Ссылка из письма не сработала (устарела или уже открыта) — объясняем, а не оставляем пустую форму.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("confirm") !== "failed") return;
+    void Promise.resolve().then(() => setError(t("errors.confirmFailed")));
+  }, [t]);
+
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
