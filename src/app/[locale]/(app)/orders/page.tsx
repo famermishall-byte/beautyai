@@ -6,6 +6,7 @@ import { usePrice } from "@/lib/use-price";
 import type { Order } from "@/types";
 import { getOrderStatusLabel } from "@/lib/orderStatus";
 import { Link } from "@/i18n/navigation";
+import { LoadError } from "@/components/ui/LoadError";
 
 export default function OrdersPage() {
   const t = useTranslations("orders");
@@ -13,15 +14,21 @@ export default function OrdersPage() {
   const locale = useLocale();
   const price = usePrice();
   const [orders, setOrders] = useState<Order[] | null>(null);
+  // первая загрузка не удалась; сбои фонового обновления не показываем — на экране остаётся прежний список
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     // The seller may change the order (or mark it paid) while the customer has this page open — re-read every
     // 20 s and when the tab comes back into focus, so the new list and total appear without a manual refresh.
     const load = () =>
       fetch("/api/orders")
-        .then((res) => res.json())
-        .then((data) => setOrders(data.orders ?? []))
-        .catch(() => {});
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data) => {
+          setOrders(data.orders ?? []);
+          setLoadFailed(false);
+        })
+        .catch(() => setLoadFailed(true));
     load();
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") load();
@@ -32,14 +39,23 @@ export default function OrdersPage() {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [reloadKey]);
 
   return (
     <main className="flex-1 px-4 py-12 max-w-2xl mx-auto w-full">
       <h1 className="font-display text-3xl mb-2">{t("title")}</h1>
       <p className="text-muted mb-8">{t("subtitle")}</p>
 
-      {orders === null && <p className="text-muted text-sm">{t("loading")}</p>}
+      {orders === null && !loadFailed && <p className="text-muted text-sm">{t("loading")}</p>}
+
+      {orders === null && loadFailed && (
+        <LoadError
+          onRetry={() => {
+            setLoadFailed(false);
+            setReloadKey((k) => k + 1);
+          }}
+        />
+      )}
 
       {orders !== null && orders.length === 0 && (
         <div className="text-center py-12">

@@ -18,6 +18,7 @@ import { BuyAgainModal } from "@/components/BuyAgainModal";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadError } from "@/components/ui/LoadError";
 import { Link } from "@/i18n/navigation";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
@@ -37,6 +38,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  // сбой сети или сервера — не то же самое, что «товара нет»
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [showBuyAgain, setShowBuyAgain] = useState(false);
 
   useEffect(() => {
@@ -49,16 +53,22 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const qs = branchId ? `?branchId=${encodeURIComponent(branchId)}` : "";
     // Fetching data on mount — see the same pattern/rationale in BranchManager.tsx.
     fetch(`/api/products/${id}${qs}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((res) => {
+        if (res.status === 404) setNotFound(true);
+        return res.ok ? res.json() : Promise.reject();
+      })
       .then((data: { product: Product }) => {
         setProduct(data.product);
-        return fetch(`/api/products?category=${encodeURIComponent(data.product.category)}`);
+        setLoadFailed(false);
+        // похожие товары — дополнение: их сбой страницу товара не ломает
+        fetch(`/api/products?category=${encodeURIComponent(data.product.category)}`)
+          .then((res) => (res.ok ? res.json() : { products: [] }))
+          .then((d: { products: Product[] }) => setRelated((d.products ?? []).filter((p) => p.id !== id).slice(0, 6)))
+          .catch(() => {});
       })
-      .then((res) => (res.ok ? res.json() : { products: [] }))
-      .then((data: { products: Product[] }) => setRelated((data.products ?? []).filter((p) => p.id !== id).slice(0, 6)))
-      .catch(() => setNotFound(true))
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, reloadKey]);
 
   const purchaseCount = countOf(id);
   useEffect(() => {
@@ -79,6 +89,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <Skeleton className="h-6 w-4/5" />
           <Skeleton className="h-8 w-32" />
         </div>
+      </main>
+    );
+  }
+
+  if (!product && loadFailed && !notFound) {
+    return (
+      <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full">
+        <LoadError
+          onRetry={() => {
+            setLoadFailed(false);
+            setLoading(true);
+            setReloadKey((k) => k + 1);
+          }}
+        />
       </main>
     );
   }

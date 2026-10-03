@@ -13,6 +13,7 @@ import { WholesaleBanner } from "@/components/WholesaleBanner";
 import { BuyAgainPrompt } from "@/components/BuyAgainPrompt";
 import { MarketingGate } from "@/components/MarketingGate";
 import { Skeleton, ProductGridSkeleton } from "@/components/ui/Skeleton";
+import { LoadError } from "@/components/ui/LoadError";
 import { NEW_ARRIVALS_HOME_COUNT } from "@/lib/new-arrivals";
 import type { HomeSlide, Product } from "@/types";
 import { Link } from "@/i18n/navigation";
@@ -61,17 +62,22 @@ export default function Home() {
   const [forYou, setForYou] = useState<Product[]>([]);
   const [promoProducts, setPromoProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [promoSlides, setPromoSlides] = useState<HomeSlide[]>([]);
   const [slidesLoading, setSlidesLoading] = useState(true);
 
   useEffect(() => {
     // Fetching data on mount — see the same pattern/rationale in BranchManager.tsx.
     fetch("/api/products")
-      .then((res) => (res.ok ? res.json() : { products: [] }))
-      .then((data: { products: Product[] }) => setShowcase(pickShowcase(data.products ?? [])))
-      .catch(() => {})
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: { products: Product[] }) => {
+        setShowcase(pickShowcase(data.products ?? []));
+        setLoadFailed(false);
+      })
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     if (!skinType || !(skinType in SKIN_TYPE_CATEGORIES)) return;
@@ -180,6 +186,13 @@ export default function Home() {
         <Section title={t("popular")} action={{ href: "/catalog", label: t("wholeCatalog") }}>
           {loading ? (
             <ProductGridSkeleton count={4} />
+          ) : loadFailed ? (
+            <LoadError
+              onRetry={() => {
+                setLoading(true);
+                setReloadKey((k) => k + 1);
+              }}
+            />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
               {popular.map((product) => (

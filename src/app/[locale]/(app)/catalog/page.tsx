@@ -8,6 +8,7 @@ import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadError } from "@/components/ui/LoadError";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CATEGORIES, CATEGORY_GROUPS, CATEGORY_KEYS, groupCategoryFilter, subKey, type CategoryGroup, type CatalogSub } from "@/lib/categories";
@@ -71,6 +72,8 @@ function CatalogContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -168,11 +171,18 @@ function CatalogContent() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/products?${params.toString()}`)
-      .then((res) => (res.ok ? res.json() : { products: [] }))
-      .then((data: { products: Product[] }) => setProducts(data.products ?? []))
-      .catch(() => setProducts([]))
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: { products: Product[] }) => {
+        setProducts(data.products ?? []);
+        setLoadFailed(false);
+      })
+      .catch(() => {
+        // сбой сети или сервера — не выдаём его за «ничего не найдено»
+        setProducts([]);
+        setLoadFailed(true);
+      })
       .finally(() => setLoading(false));
-  }, [query, category, budget, branchId]);
+  }, [query, category, budget, branchId, reloadKey]);
 
   // Brand/in-stock/sort apply client-side over the fetched page — the
   // catalog is small (tens of items per store), so a second network
@@ -369,11 +379,13 @@ function CatalogContent() {
       </div>
 
       <div className="text-sm text-muted mb-4">
-        {loading ? t("searching") : t("productCount", { count: visible.length })}
+        {loading ? t("searching") : loadFailed ? null : t("productCount", { count: visible.length })}
       </div>
 
       {loading ? (
         <ProductGridSkeleton />
+      ) : loadFailed ? (
+        <LoadError onRetry={() => setReloadKey((k) => k + 1)} />
       ) : visible.length === 0 ? (
         <EmptyState
           icon={PackageSearch}
