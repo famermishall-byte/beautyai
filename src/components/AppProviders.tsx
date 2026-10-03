@@ -13,6 +13,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { FirstRunFlow } from "@/components/FirstRunFlow";
 import { PushSync } from "@/components/PushSync";
 import { FeedbackProvider } from "@/components/ui/Feedback";
+import { IosStandaloneShell } from "@/components/IosStandaloneShell";
 
 export function AppProviders({
   children,
@@ -23,6 +24,7 @@ export function AppProviders({
 }) {
   return (
     <SessionProvider>
+      <IosStandaloneShell />
       <FeedbackProvider>
       <CartProvider>
         <MyBagProvider>

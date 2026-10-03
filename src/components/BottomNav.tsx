@@ -20,7 +20,7 @@ export function BottomNav() {
   if (isAdmin) return null;
 
   return (
-    <nav style={{ bottom: "calc(-1 * var(--vv-shift, 0px))" }} className="fixed inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="max-w-5xl mx-auto grid grid-cols-4" style={{ height: "var(--bottom-nav-h)" }}>
         {ITEMS.map(({ href, match, labelKey, icon: Icon }) => {
           const active = match === "/" ? pathname === "/" : pathname.startsWith(match);

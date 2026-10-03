@@ -76,6 +76,18 @@ body {
   touch-action: manipulation;
 }
 
+/* iPhone, приложение с иконки «Домой» (класс ставит IosStandaloneShell): прокручивается внутренняя область, а не вся
+   страница. Иначе iOS 26 сдвигает видимую область после прокрутки, и нижнее меню зависает выше края экрана. */
+html.ios-shell {
+  height: 100dvh;
+  overflow: hidden;
+}
+html.ios-shell body {
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: none;
+}
+
 /* Только iPhone/iPad: поле ввода со шрифтом меньше 16px Safari при нажатии увеличивает вместе со всей
    страницей и обратно не уменьшает. 16px — порог, с которого он этого не делает. */
 @supports (-webkit-touch-callout: none) {
