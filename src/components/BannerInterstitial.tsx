@@ -94,7 +94,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
     // Предпросмотр без товара (форма ещё не сохранена) — не кликабельно.
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
+        <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
         {body}
       </div>
     );
@@ -105,8 +105,8 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   const href = banner.productId ? `/product/${banner.productId}` : "/catalog?promo=1";
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
-      <Link href={href} onClick={onClose} className="contents">
+      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+      <Link href={href} onClick={onClose} className="block w-full max-w-sm">
         {body}
       </Link>
     </div>

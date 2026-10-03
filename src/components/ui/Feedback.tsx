@@ -133,7 +133,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
       {ask && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={() => answer(false)} />
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => answer(false)} />
           <div
             role="alertdialog"
             aria-modal="true"

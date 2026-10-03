@@ -39,7 +39,7 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
       <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl p-5 animate-rise-in">
         <button
           onClick={onClose}

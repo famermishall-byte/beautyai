@@ -23,8 +23,8 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]" onClick={onClose} />
-      <Link href={`/product/${product.id}`} onClick={onClose} className="contents">
+      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+      <Link href={`/product/${product.id}`} onClick={onClose} className="block w-full max-w-sm">
         <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
           <button
             onClick={(e) => {
