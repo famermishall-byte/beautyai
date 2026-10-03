@@ -83,8 +83,22 @@ via `@theme inline`.
 (1.75–2 for static icons, 2.25+ for an active/selected state), no emoji
 standing in for an icon anywhere in the redesigned surfaces (nav,
 buttons, cards, headers, empty states, menu rows). `Sparkle` is the
-product-photo placeholder mark; category tiles use `Droplet` /
-`Palette` / `Scissors` (`src/lib/categories.ts`).
+product-photo placeholder mark.
+
+## Category tiles
+
+Catalog category tiles (and «Новинки») are flat `--accent-soft` tiles — no
+border, no shadow — with a photoreal product render on the right: 100px
+tall, at most 46% of the tile wide, anchored bottom-right and running 8px
+past the bottom edge (the tile clips it). The owner picked this look
+(03.10) after a «Подружка» reference; a drawn vector set was rejected.
+Pictures are generated outside the project in the logo palette (raspberry
+`#C8135F`, deep raspberry, soft pink, white; no text on packaging), dropped
+into `design/category-art/` and cut out by
+`node scripts/build-category-art.mjs` into `public/brand/categories/`.
+The key → file map is `CATEGORY_PHOTOS` in `catalog/page.tsx`; a category
+without a picture falls back to its Lucide icon on a white rounded square.
+Tile size, grid and labels are unchanged.
 
 ## Patterns this system commits to
 

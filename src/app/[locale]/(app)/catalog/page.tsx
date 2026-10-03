@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles, type LucideIcon } from "lucide-react";
 import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
@@ -530,6 +530,50 @@ function CatalogContent() {
 const TILE_BASE =
   "tile-sheen relative h-28 overflow-hidden rounded-[22px] p-3.5 transition active:scale-[0.98] hover:shadow-[var(--shadow-float)]";
 
+// Плитка категории: мягкая розовая заливка, фото товара справа, чуть уходит за нижний край.
+const TILE_CATEGORY = `${TILE_BASE} bg-accent-soft`;
+
+// Фото плиток: public/brand/categories/<имя>.webp, делаются из design/category-art/ скриптом
+// scripts/build-category-art.mjs. Ключ — CategoryGroup.key; `new` — плитка «Новинки».
+const CATEGORY_PHOTOS: Record<string, string> = {
+  new: "new",
+  Smile: "face",
+  PersonStanding: "body",
+  Scissors: "hair",
+  Brush: "makeup",
+  SprayCan: "perfume",
+  FlaskConical: "pharmacy",
+  Heart: "lingerie",
+  Droplets: "soap",
+  House: "home",
+  Baby: "kids",
+  Gem: "accessories",
+  Shirt: "merch",
+  Gift: "gifts",
+};
+
+/** Картинка плитки: фото, а пока его нет — прежний значок. Декоративная: название стоит рядом текстом. */
+function TileArt({ artKey, icon: Icon }: { artKey: string; icon: LucideIcon }) {
+  const photo = CATEGORY_PHOTOS[artKey];
+  if (!photo) {
+    return (
+      <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-card text-accent">
+        <Icon className="size-8" strokeWidth={1.6} aria-hidden />
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/brand/categories/${photo}.webp`}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className="absolute right-2.5 -bottom-2 h-[100px] w-[46%] object-contain object-right-bottom"
+    />
+  );
+}
+
 function sheenDelay(i: number) {
   return { ["--sheen-delay" as string]: `${(i % 6) * 0.7}s` } as React.CSSProperties;
 }
@@ -544,25 +588,16 @@ function CategoryTiles() {
           <span className="relative text-[15px] font-semibold leading-tight">{t("allProducts")}</span>
           <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
         </Link>
-        <Link href="/catalog?new=1" className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`} style={sheenDelay(1)}>
+        <Link href="/catalog?new=1" className={TILE_CATEGORY} style={sheenDelay(1)}>
+          <TileArt artKey="new" icon={Sparkles} />
           <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{t("newArrivals")}</span>
-          <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
-            <Sparkles className="size-8" strokeWidth={1.6} aria-hidden />
-          </span>
         </Link>
         {CATEGORY_GROUPS.map((group, i) => {
-          const { name, icon: Icon } = group;
+          const { name } = group;
           return (
-          <Link
-            key={name}
-            href={`/catalog?group=${encodeURIComponent(name)}`}
-            className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
-            style={sheenDelay(i + 2)}
-          >
+          <Link key={name} href={`/catalog?group=${encodeURIComponent(name)}`} className={TILE_CATEGORY} style={sheenDelay(i + 2)}>
+            <TileArt artKey={group.key} icon={group.icon} />
             <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{labels.groupTitle(group)}</span>
-            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
-              <Icon className="size-8" strokeWidth={1.6} aria-hidden />
-            </span>
           </Link>
           );
         })}
