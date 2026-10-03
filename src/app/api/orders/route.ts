@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import { mapOrder } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
 import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
@@ -76,7 +77,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: order, error: orderError } = await supabase
+    // Заказ записывает сам сервер (сервисным ключом): состав и цены посчитаны выше из корзины и каталога.
+    // Покупателю прямая запись в таблицу заказов закрыта (supabase/orders_insert_server_only.sql) — иначе заказ
+    // с любой суммой можно было бы создать в обход сайта. Пока ключа нет на сервере — по-старому, от имени покупателя.
+    const writer = createServiceSupabaseClient() ?? supabase;
+    const { data: order, error: orderError } = await writer
       .from("orders")
       .insert({
         store_id: profile.storeId,
