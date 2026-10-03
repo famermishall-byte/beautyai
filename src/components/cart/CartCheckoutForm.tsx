@@ -35,6 +35,7 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
   const [branches, setBranches] = useState<Branch[]>([]);
   // список филиалов не загрузился — это не «филиалы не настроены»
   const [branchesFailed, setBranchesFailed] = useState(false);
+  const [branchesLoaded, setBranchesLoaded] = useState(false);
   const [branchesKey, setBranchesKey] = useState(0);
   const [branchId, setBranchId] = useState("");
   const [name, setName] = useState(session?.displayName ?? "");
@@ -74,6 +75,7 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         if (cancelled) return;
         const list = data.branches ?? [];
         setBranches(list);
+        setBranchesLoaded(true);
         setBranchesFailed(false);
         let stored: string | null = null;
         try {
@@ -239,7 +241,10 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       )}
       <label className={branchesFailed ? "hidden" : "block"}>
         <span className="block text-xs font-medium text-muted mb-1.5">{t("branch")}</span>
-        {branches.length === 0 ? (
+        {!branchesLoaded ? (
+          // пока список грузится — заготовка высотой с поле, чтобы форма не дёргалась
+          <span className="skeleton block h-[46px] rounded-[var(--radius-control)]" aria-hidden />
+        ) : branches.length === 0 ? (
           <p className="text-sm text-muted">{t("noBranches")}</p>
         ) : (
           <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className={inputClass}>

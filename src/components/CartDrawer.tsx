@@ -42,6 +42,15 @@ export function CartDrawer() {
     return () => window.removeEventListener(OPEN_CART_EVENT, open);
   }, [refresh]);
 
+  // Пока корзина открыта, страница под ней стоит на месте (раньше она прокручивалась вместе с корзиной).
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   // Admins/owners don't shop through their own account — see proxy.ts.
   if (isAdmin) return null;
   // A product page has its own sticky "add to cart" bar above the bottom nav — float the cart above that bar.
@@ -103,7 +112,7 @@ export function CartDrawer() {
                 <EmptyState icon={ShoppingBag} title={t("empty")} description={t("emptyHint")} />
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4 flex flex-col gap-4">
                 <div className="flex items-center justify-between text-sm">
                   <button
                     type="button"

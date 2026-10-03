@@ -8,6 +8,8 @@ import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { ADD_ON_MAX_PRICE, pickAddOns } from "@/lib/add-ons";
 import type { Product } from "@/types";
+import { useReservedBlock } from "@/lib/reserved-block";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /**
  * «Добавить к заказу» над оформлением: недорогие популярные товары, в корзину одним нажатием (сразу с галочкой).
@@ -19,6 +21,7 @@ export function CartAddOns() {
   const text = useProductText();
   const { items, addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,14 +30,31 @@ export function CartAddOns() {
       .then((data: { products?: Product[] }) => {
         if (!cancelled) setProducts(data.products ?? []);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
 
   const shown = pickAddOns(products, new Set(items.map((i) => i.product.id)));
-  if (shown.length === 0) return null;
+  // Блок приходит с сервера позже корзины и сдвигал форму заказа вниз — держим под него место.
+  const reserve = useReservedBlock("cart-add-ons", !loaded ? "loading" : shown.length > 0 ? "present" : "absent");
+  if (shown.length === 0) {
+    if (!reserve) return null;
+    return (
+      <div className="-mx-5" aria-hidden>
+        <Skeleton className="mx-5 h-5 w-36 mb-2" />
+        <div className="flex gap-2.5 overflow-hidden px-5 pb-1">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="shrink-0 w-28 h-[12.35rem] rounded-[var(--radius-card)]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section aria-labelledby="cart-add-ons" className="-mx-5">
