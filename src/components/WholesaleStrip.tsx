@@ -6,6 +6,7 @@ import { useCart } from "@/lib/cart-context";
 import { usePrice } from "@/lib/use-price";
 import { usePathname } from "@/i18n/navigation";
 import { OPEN_CART_EVENT } from "@/components/CartDrawer";
+import { useReservedBlock } from "@/lib/reserved-block";
 
 /**
  * Полоса «До оптовых цен осталось N» под шапкой в каталоге и на странице товара — клиенту не нужно открывать
@@ -20,10 +21,16 @@ export function WholesaleStrip() {
   const { wholesale, selectedCount, hydrated } = useCart();
 
   const onShoppingPage = pathname.startsWith("/catalog") || pathname.startsWith("/product/");
-  if (!onShoppingPage || !hydrated || wholesale.threshold === null || selectedCount === 0) return null;
-  if (wholesale.qualifies && !wholesale.applied) return null;
+  const visible = hydrated && wholesale.threshold !== null && selectedCount > 0 && !(wholesale.qualifies && !wholesale.applied);
+  // Полоса появляется после загрузки корзины и сдвигала экран вниз: если в прошлый раз она была —
+  // держим под неё место (у большинства корзина пуста, поэтому «по умолчанию» место не держим).
+  const reserve = useReservedBlock("wholesale-strip", !hydrated ? "loading" : visible ? "present" : "absent", false);
+  if (!onShoppingPage) return null;
+  if (!visible) return reserve ? <div className="h-12 border-t-2 border-accent bg-gradient-to-r from-accent/15 to-accent/25" aria-hidden /> : null;
+  // после проверок выше порог точно задан
+  const threshold = wholesale.threshold ?? 1;
 
-  const share = Math.min(100, Math.round((wholesale.retailTotal / wholesale.threshold) * 100));
+  const share = Math.min(100, Math.round((wholesale.retailTotal / threshold) * 100));
   return (
     <button
       type="button"
