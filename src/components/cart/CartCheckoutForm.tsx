@@ -14,6 +14,7 @@ import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
 import type { SentOrder } from "@/components/cart/CartOrderSent";
 import { WholesaleProgress } from "@/components/cart/WholesaleProgress";
+import { Button } from "@/components/ui/Button";
 import type { Branch, Order } from "@/types";
 
 // Тот же ключ, что в каталоге и на странице товара, — филиал, выбранный там, подставляется сюда.
@@ -26,11 +27,15 @@ const inputClass =
 export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => void }) {
   const t = useTranslations("checkout");
   const tCart = useTranslations("cart");
+  const tCommon = useTranslations("common");
   const price = usePrice();
   const { selectedCount, selectedTotal, flush, reload, wholesale } = useCart();
   const { session } = useSession();
 
   const [branches, setBranches] = useState<Branch[]>([]);
+  // список филиалов не загрузился — это не «филиалы не настроены»
+  const [branchesFailed, setBranchesFailed] = useState(false);
+  const [branchesKey, setBranchesKey] = useState(0);
   const [branchId, setBranchId] = useState("");
   const [name, setName] = useState(session?.displayName ?? "");
   const [phone, setPhone] = useState("");
@@ -64,11 +69,12 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
   useEffect(() => {
     let cancelled = false;
     fetch("/api/branches")
-      .then((res) => (res.ok ? res.json() : { branches: [] }))
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data: { branches?: Branch[] }) => {
         if (cancelled) return;
         const list = data.branches ?? [];
         setBranches(list);
+        setBranchesFailed(false);
         let stored: string | null = null;
         try {
           stored = localStorage.getItem(BRANCH_STORAGE_KEY);
@@ -78,7 +84,16 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         const preset = stored && list.some((b) => b.id === stored) ? stored : list.length === 1 ? list[0].id : "";
         setBranchId((current) => current || preset);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setBranchesFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [branchesKey]);
+
+  useEffect(() => {
+    let cancelled = false;
     // Контакты из последнего заказа — клиенту не нужно вводить телефон каждый раз.
     fetch("/api/orders")
       .then((res) => (res.ok ? res.json() : { orders: [] }))
@@ -117,6 +132,25 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
         waTab = null;
       }
     }
+    // Заказ мог сохраниться, а ответ — потеряться по дороге (обрыв связи): прежде чем показать ошибку,
+    // спрашиваем сервер, нет ли только что оформленного заказа в этот филиал на эту сумму.
+    const expectedTotal = selectedTotal;
+    const findPlacedOrder = async (): Promise<SentOrder | null> => {
+      try {
+        const res = await fetch(`/api/orders/recent?branchId=${encodeURIComponent(branchId)}&total=${expectedTotal}`);
+        if (!res.ok) return null;
+        const data = (await res.json()) as { order?: SentOrder | null };
+        return data.order ?? null;
+      } catch {
+        return null;
+      }
+    };
+    const showRecovered = async (placed: SentOrder) => {
+      sent = true;
+      if (waTab && !waTab.closed) waTab.location.href = placed.whatsappUrl;
+      await reload().catch(() => {});
+      onSent(placed);
+    };
     let sent = false;
     try {
       // Галочки/количества, изменённые секунду назад, должны дойти до сервера раньше заказа.
@@ -138,6 +172,12 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       });
       const data = await res.json();
       if (!res.ok) {
+        // 400 «отметьте товар» при непустом выборе на экране — признак того, что прошлая попытка всё же прошла
+        const placed = res.status === 400 ? await findPlacedOrder() : null;
+        if (placed) {
+          await showRecovered(placed);
+          return;
+        }
         setError(data.error ?? t("failed"));
         return;
       }
@@ -164,7 +204,9 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
       await reload().catch(() => {});
       onSent({ orderNumber: data.orderNumber, whatsappUrl: data.whatsappUrl });
     } catch {
-      setError(t("somethingWrong"));
+      const placed = await findPlacedOrder();
+      if (placed) await showRecovered(placed);
+      else setError(t("somethingWrong"));
     } finally {
       // заказ не оформлен — пустая вкладка не нужна
       if (!sent) waTab?.close();
@@ -174,7 +216,28 @@ export function CartCheckoutForm({ onSent }: { onSent: (order: SentOrder) => voi
 
   return (
     <div className="flex flex-col gap-3 pt-2">
-      <label className="block">
+      {/* не внутри <label>: кнопка в label получила бы его текст как своё название */}
+      {branchesFailed && (
+        <div>
+          <span className="block text-xs font-medium text-muted mb-1.5">{t("branch")}</span>
+          <div role="alert" className="flex items-center justify-between gap-3 rounded-xl bg-error-soft text-error text-sm px-4 py-2.5">
+            {t("branchesFailed")}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="shrink-0 h-10!"
+              onClick={() => {
+                setBranchesFailed(false);
+                setBranchesKey((k) => k + 1);
+              }}
+            >
+              {tCommon("retry")}
+            </Button>
+          </div>
+        </div>
+      )}
+      <label className={branchesFailed ? "hidden" : "block"}>
         <span className="block text-xs font-medium text-muted mb-1.5">{t("branch")}</span>
         {branches.length === 0 ? (
           <p className="text-sm text-muted">{t("noBranches")}</p>

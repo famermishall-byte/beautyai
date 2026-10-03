@@ -514,7 +514,9 @@
     "selectAll": "Баарын тандоо",
     "selectedSummary": "{total} ичинен {selected} белгиленди",
     "unselectedStay": "Белгиленбеген товарлар себетте калат.",
-    "saveFailed": "Өзгөртүүнү сактоо мүмкүн болбоду — интернетти текшериңиз."
+    "saveFailed": "Өзгөртүүнү сактоо мүмкүн болбоду — интернетти текшериңиз.",
+    "loadFailed": "Себетти жүктөө мүмкүн болгон жок",
+    "loading": "Себет жүктөлүүдө…"
   },
   "buyAgain": {
     "title": "Дагы сатып алгыңыз келеби?",
@@ -555,6 +557,7 @@
     "openWhatsappApp": "WhatsApp тиркемесинде ачуу",
     "openWhatsappWeb": "WhatsApp Web'де ачуу",
     "noBranches": "Дүкөн филиалдарды дагы орното элек.",
+    "branchesFailed": "Филиалдарды жүктөө мүмкүн болгон жок.",
     "namePlaceholder": "Атыңыз",
     "phonePlaceholder": "Телефон номери",
     "branch": "Филиал",

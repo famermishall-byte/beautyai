@@ -149,6 +149,6 @@ export async function GET() {
 
     return NextResponse.json({ orders: orders.map(mapOrder) });
   } catch {
-    return NextResponse.json({ orders: [], error: "База данных недоступна." });
+    return NextResponse.json({ orders: [], error: "База данных недоступна." }, { status: 500 });
   }
 }

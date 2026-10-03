@@ -514,7 +514,9 @@
     "selectAll": "Выбрать все",
     "selectedSummary": "Отмечено {selected} из {total}",
     "unselectedStay": "Неотмеченные товары останутся в корзине.",
-    "saveFailed": "Не удалось сохранить изменение — проверьте интернет."
+    "saveFailed": "Не удалось сохранить изменение — проверьте интернет.",
+    "loadFailed": "Не удалось загрузить корзину",
+    "loading": "Загружаем корзину…"
   },
   "buyAgain": {
     "title": "Не хотите купить снова?",
@@ -555,6 +557,7 @@
     "openWhatsappApp": "Открыть в приложении WhatsApp",
     "openWhatsappWeb": "Открыть в WhatsApp Web",
     "noBranches": "Филиалы ещё не настроены магазином.",
+    "branchesFailed": "Не удалось загрузить филиалы.",
     "namePlaceholder": "Ваше имя",
     "phonePlaceholder": "Номер телефона",
     "branch": "Филиал",

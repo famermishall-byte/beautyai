@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useSession } from "@/lib/session-context";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadError } from "@/components/ui/LoadError";
 import { BannerGate } from "@/components/BannerInterstitial";
 import { CartItemRow } from "@/components/cart/CartItemRow";
 import { CartCheckoutForm } from "@/components/cart/CartCheckoutForm";
@@ -18,7 +19,15 @@ export const OPEN_CART_EVENT = "beautyai:open-cart";
 
 export function CartDrawer() {
   const t = useTranslations("cart");
-  const { items, totalCount, selectedCount, setAllSelected, reload, saveFailed } = useCart();
+  const { items, totalCount, selectedCount, setAllSelected, reload, saveFailed, hydrated } = useCart();
+  // последняя попытка перечитать корзину не удалась (важно, пока корзина ни разу не загрузилась)
+  const [reloadFailed, setReloadFailed] = useState(false);
+  const refresh = useCallback(() => {
+    setReloadFailed(false);
+    reload()
+      .then((ok) => setReloadFailed(!ok))
+      .catch(() => setReloadFailed(true));
+  }, [reload]);
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState<SentOrder | null>(null);
   const pathname = usePathname();
@@ -27,11 +36,11 @@ export function CartDrawer() {
   useEffect(() => {
     const open = () => {
       setOpen(true);
-      reload().catch(() => {});
+      refresh();
     };
     window.addEventListener(OPEN_CART_EVENT, open);
     return () => window.removeEventListener(OPEN_CART_EVENT, open);
-  }, [reload]);
+  }, [refresh]);
 
   // Admins/owners don't shop through their own account — see proxy.ts.
   if (isAdmin) return null;
@@ -42,7 +51,7 @@ export function CartDrawer() {
   function openDrawer() {
     setOpen(true);
     // Корзина могла измениться на другом устройстве.
-    reload().catch(() => {});
+    refresh();
   }
 
   function close() {
@@ -85,6 +94,10 @@ export function CartDrawer() {
 
             {sent ? (
               <CartOrderSent order={sent} />
+            ) : !hydrated ? (
+              <div className="flex-1 flex items-center justify-center">
+                {reloadFailed ? <LoadError title={t("loadFailed")} onRetry={refresh} /> : <p className="text-sm text-muted">{t("loading")}</p>}
+              </div>
             ) : items.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <EmptyState icon={ShoppingBag} title={t("empty")} description={t("emptyHint")} />

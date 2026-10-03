@@ -1,4 +1,5 @@
-import type { CartItem } from "@/types";
+/** Строка заказа в сообщении — подходит и позиция корзины, и сохранённая строка заказа. */
+type MessageItem = { product: { name: string; price: number }; quantity: number };
 import type { Delivery } from "./delivery";
 
 function sanitizePhoneForWhatsApp(phone: string): string {
@@ -7,7 +8,7 @@ function sanitizePhoneForWhatsApp(phone: string): string {
 
 type OrderMessageInput = {
   orderNumber: string;
-  items: CartItem[];
+  items: MessageItem[];
   totalPrice: number;
   customerName: string;
   customerPhone: string;

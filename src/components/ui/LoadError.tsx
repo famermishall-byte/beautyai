@@ -9,12 +9,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
  * Сообщение о сбое с кнопкой «Повторить».
  * `load` — не пришли данные (сеть, сервер); `crash` — упала сама страница.
  */
-export function LoadError({ onRetry, kind = "load" }: { onRetry: () => void; kind?: "load" | "crash" }) {
+export function LoadError({ onRetry, kind = "load", title }: { onRetry: () => void; kind?: "load" | "crash"; title?: string }) {
   const t = useTranslations("common");
   return (
     <EmptyState
       icon={kind === "crash" ? TriangleAlert : WifiOff}
-      title={t(kind === "crash" ? "crashTitle" : "loadFailedTitle")}
+      title={title ?? t(kind === "crash" ? "crashTitle" : "loadFailedTitle")}
       description={t(kind === "crash" ? "crashHint" : "loadFailedHint")}
       tone="error"
       action={
