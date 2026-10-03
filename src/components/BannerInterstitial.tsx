@@ -6,6 +6,7 @@ import { Volume2, VolumeX, X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
 import { useCloseOnNavigate } from "@/lib/use-close-on-navigate";
+import { fadeClasses, useFadeClose } from "@/lib/use-fade-close";
 import { wasAdShown, markAdShown, type AdPage } from "@/lib/session-flags";
 import type { Banner } from "@/types";
 
@@ -21,7 +22,8 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   const tHome = useTranslations("home");
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const closeAfterNavigation = useCloseOnNavigate(onClose);
+  const { closing, requestClose } = useFadeClose(onClose);
+  const closeAfterNavigation = useCloseOnNavigate(requestClose);
 
   const body = (
     <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
@@ -29,7 +31,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          onClose();
+          requestClose();
         }}
         aria-label={t("close")}
         className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
@@ -95,8 +97,8 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   if (previewOnly && !banner.productId) {
     // Предпросмотр без товара (форма ещё не сохранена) — не кликабельно.
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+      <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${fadeClasses(closing)}`}>
+        <div className="absolute inset-0 bg-foreground/40" onClick={requestClose} />
         {body}
       </div>
     );
@@ -106,8 +108,8 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   // должен быть кликабелен для покупателя, раз в нём есть кнопка-призыв вроде «купи меня»).
   const href = banner.productId ? `/product/${banner.productId}` : "/catalog?promo=1";
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+    <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${fadeClasses(closing)}`}>
+      <div className="absolute inset-0 bg-foreground/40" onClick={requestClose} />
       <Link href={href} onClick={closeAfterNavigation} className="block w-full max-w-sm">
         {body}
       </Link>

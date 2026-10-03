@@ -7,6 +7,7 @@ import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/types";
+import { fadeClasses, useFadeClose } from "@/lib/use-fade-close";
 
 /** «Не хотите купить снова?» — товар, который клиент уже покупал 2+ раза. */
 export function BuyAgainModal({ productId, onClose }: { productId: string; onClose: () => void }) {
@@ -15,6 +16,7 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
   const text = useProductText();
   const { addItem } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
+  const { closing, requestClose } = useFadeClose(onClose);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,15 +36,15 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
   function handleBuyAgain() {
     if (!product) return;
     addItem(product);
-    onClose();
+    requestClose();
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+    <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 ${fadeClasses(closing)}`}>
+      <div className="absolute inset-0 bg-foreground/40" onClick={requestClose} />
       <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl p-5 animate-rise-in">
         <button
-          onClick={onClose}
+          onClick={requestClose}
           aria-label={t("close")}
           className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
         >
@@ -70,7 +72,7 @@ export function BuyAgainModal({ productId, onClose }: { productId: string; onClo
 
         <div className="flex gap-2">
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="flex-1 rounded-full border border-black/10 px-4 py-3 text-sm font-medium transition hover:bg-black/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {t("dismiss")}
