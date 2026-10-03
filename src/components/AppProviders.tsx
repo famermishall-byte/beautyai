@@ -13,7 +13,6 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { FirstRunFlow } from "@/components/FirstRunFlow";
 import { PushSync } from "@/components/PushSync";
 import { FeedbackProvider } from "@/components/ui/Feedback";
-import { useVisualViewportShift } from "@/lib/use-visual-viewport-shift";
 
 export function AppProviders({
   children,
@@ -22,7 +21,6 @@ export function AppProviders({
   children: ReactNode;
   splashAlreadyShown: boolean;
 }) {
-  useVisualViewportShift();
   return (
     <SessionProvider>
       <FeedbackProvider>

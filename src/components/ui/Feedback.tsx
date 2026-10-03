@@ -110,7 +110,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       <div
         aria-live="polite"
         className="fixed inset-x-0 z-[60] flex justify-center px-4 pointer-events-none"
-        style={{ bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 0.75rem - var(--vv-shift, 0px))" }}
+        style={{ bottom: "calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         {offer && (
           <div
