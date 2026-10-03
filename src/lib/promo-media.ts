@@ -42,6 +42,11 @@ export async function photoToJpeg(file: File): Promise<Blob> {
 // iOS Safari: не грузит кадры (loadeddata не приходит) у видео вне страницы и без play(),
 // поэтому видео кладём в DOM невидимым, шагаем по loadedmetadata, а если кадр не пришёл — play() без звука.
 export function videoPoster(file: Blob): Promise<Blob> {
+  return videoPosterInfo(file).then((info) => info.poster);
+}
+
+// То же + длина ролика в секундах (null, если браузер её не сообщил).
+export function videoPosterInfo(file: Blob): Promise<{ poster: Blob; durationSec: number | null }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const video = document.createElement("video");
@@ -88,8 +93,9 @@ export function videoPoster(file: Blob): Promise<Blob> {
         return;
       }
       capturing = true;
+      const durationSec = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : null;
       toCoverJpeg(video, video.videoWidth, video.videoHeight).then(
-        (blob) => finish(() => resolve(blob)),
+        (poster) => finish(() => resolve({ poster, durationSec })),
         () => finish(() => reject(new Error("unplayable")))
       );
     };

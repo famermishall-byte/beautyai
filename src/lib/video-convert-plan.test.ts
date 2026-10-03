@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { VIDEO_MAX_BYTES } from "./home-slides";
-import { SOURCE_MAX_BYTES, TARGET_BYTES, classifyVideo, targetBitrates, parseDuration, ffmpegArgs, posterArgs } from "./video-convert-plan";
+import { AUDIO_KBPS, HEAVY_KBPS, MAX_VIDEO_KBPS, SOURCE_MAX_BYTES, TARGET_BYTES, classifyVideo, isHeavy, targetBitrates, parseDuration, ffmpegArgs, posterArgs } from "./video-convert-plan";
 
 test("posterArgs: один кадр 960×660 cover", () => {
   const a = posterArgs("out.mp4", "poster.jpg");
@@ -30,16 +30,43 @@ test("classifyVideo: границы и приоритет", () => {
   assert.equal(classifyVideo({ type: "video/avi", size: SOURCE_MAX_BYTES + 1 }, true), "too-big");
 });
 
+test("isHeavy: тяжёлый — поток выше порога; без длины ролика не судим", () => {
+  // ролики владельца с главной (03.10): 2,79 МБ за 4,16 с и 2,48 МБ за 7,4 с
+  assert.equal(isHeavy(2790003, 4.16), true);
+  assert.equal(isHeavy(2482056, 7.405), true);
+  assert.equal(isHeavy((HEAVY_KBPS * 1000 * 10) / 8, 10), false);
+  assert.equal(isHeavy((HEAVY_KBPS * 1000 * 10) / 8 + 1, 10), true);
+  assert.equal(isHeavy(5_000_000, null), false);
+  assert.equal(isHeavy(5_000_000, 0), false);
+  assert.equal(isHeavy(5_000_000, Infinity), false);
+  assert.equal(isHeavy(5_000_000, NaN), false);
+});
+
+test("classifyVideo: тяжёлый MP4 сжимается, лёгкий загружается как есть", () => {
+  assert.equal(classifyVideo({ type: "video/mp4", size: 2790003 }, true, 4.16), "compress");
+  assert.equal(classifyVideo({ type: "video/mp4", size: 500_000 }, true, 4.16), "upload");
+  assert.equal(classifyVideo({ type: "video/mp4", size: 2790003 }, true, null), "upload");
+  // остальные причины важнее
+  assert.equal(classifyVideo({ type: "video/quicktime", size: 2790003 }, true, 4.16), "convert-format");
+  assert.equal(classifyVideo({ type: "video/mp4", size: VIDEO_MAX_BYTES + 1 }, true, 4.16), "convert-size");
+  assert.equal(classifyVideo({ type: "video/mp4", size: 2790003 }, false, 4.16), "convert-unplayable");
+});
+
+test("сжатый ролик не считается тяжёлым повторно", () => {
+  const { videoKbps, audioKbps } = targetBitrates(10);
+  assert.equal(isHeavy(((videoKbps + audioKbps) * 1000 * 10) / 8, 10), false);
+});
+
 test("targetBitrates", () => {
-  assert.equal(targetBitrates(null).videoKbps, 1500);
-  assert.equal(targetBitrates(0).videoKbps, 1500);
-  assert.equal(targetBitrates(-5).videoKbps, 1500);
-  assert.equal(targetBitrates(1).videoKbps, 2500);
+  assert.equal(targetBitrates(null).videoKbps, MAX_VIDEO_KBPS);
+  assert.equal(targetBitrates(0).videoKbps, MAX_VIDEO_KBPS);
+  assert.equal(targetBitrates(-5).videoKbps, MAX_VIDEO_KBPS);
+  assert.equal(targetBitrates(1).videoKbps, MAX_VIDEO_KBPS);
   assert.equal(targetBitrates(600).videoKbps, 400);
-  assert.equal(targetBitrates(120).audioKbps, 128);
-  const v = targetBitrates(120).videoKbps;
-  assert.equal(v, Math.floor((TARGET_BYTES * 8) / 1000 / 120) - 128);
-  assert.ok(v > 400 && v < 2500);
+  assert.equal(targetBitrates(120).audioKbps, AUDIO_KBPS);
+  const v = targetBitrates(200).videoKbps;
+  assert.equal(v, Math.floor((TARGET_BYTES * 8) / 1000 / 200) - AUDIO_KBPS);
+  assert.ok(v > 400 && v < MAX_VIDEO_KBPS);
 });
 
 test("parseDuration", () => {
@@ -58,12 +85,13 @@ test("ffmpegArgs", () => {
   assert.ok(a.includes("libx264"));
   assert.ok(a.includes("aac"));
   assert.ok(a.includes("yuv420p"));
-  assert.equal(a[a.indexOf("-b:v") + 1], `${v}k`);
+  assert.ok(!a.includes("-b:v"));
+  assert.equal(a[a.indexOf("-crf") + 1], "26");
   assert.equal(a[a.indexOf("-maxrate") + 1], `${v}k`);
   assert.equal(a[a.indexOf("-bufsize") + 1], `${v * 2}k`);
-  assert.equal(a[a.indexOf("-b:a") + 1], "128k");
+  assert.equal(a[a.indexOf("-b:a") + 1], `${AUDIO_KBPS}k`);
   assert.ok(!a.includes("-map"));
-  assert.equal(ffmpegArgs("i", "o", null)[ffmpegArgs("i", "o", null).indexOf("-b:v") + 1], "1500k");
+  assert.equal(ffmpegArgs("i", "o", null)[ffmpegArgs("i", "o", null).indexOf("-maxrate") + 1], `${MAX_VIDEO_KBPS}k`);
 });
 
 test("ffmpegArgs: -vf с чётными размерами", () => {

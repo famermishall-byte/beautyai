@@ -4,21 +4,33 @@ import { VIDEO_MAX_BYTES } from "./home-slides";
 export const SOURCE_MAX_BYTES = 209715200; // 200 МБ — предел исходника
 export const TARGET_BYTES = 28 * 1024 * 1024; // бюджет результата (< 30 МБ)
 
-export type VideoDecision = "upload" | "convert-format" | "convert-size" | "convert-unplayable" | "too-big";
+// выше этого потока (видео + звук) ролик считается тяжёлым для телефона и сжимается перед загрузкой
+export const HEAVY_KBPS = 2000;
+// потолок потока видео после сжатия: короткая сторона 720 при показе шириной ~350 пикселей
+export const MAX_VIDEO_KBPS = 1500;
+export const AUDIO_KBPS = 96;
 
-// playable: удалось ли браузеру открыть файл (снять обложку)
-export function classifyVideo(f: { type: string; size: number }, playable: boolean): VideoDecision {
+export type VideoDecision = "upload" | "compress" | "convert-format" | "convert-size" | "convert-unplayable" | "too-big";
+
+export function isHeavy(sizeBytes: number, durationSec: number | null): boolean {
+  if (durationSec == null || !Number.isFinite(durationSec) || durationSec <= 0) return false;
+  return (sizeBytes * 8) / 1000 / durationSec > HEAVY_KBPS;
+}
+
+// playable: удалось ли браузеру открыть файл (снять обложку); durationSec — длина ролика, если известна
+export function classifyVideo(f: { type: string; size: number }, playable: boolean, durationSec: number | null = null): VideoDecision {
   if (f.size > SOURCE_MAX_BYTES) return "too-big";
   if (f.type !== "video/mp4") return "convert-format";
   if (f.size > VIDEO_MAX_BYTES) return "convert-size";
   if (!playable) return "convert-unplayable";
+  if (isHeavy(f.size, durationSec)) return "compress";
   return "upload";
 }
 
-export function targetBitrates(durationSec: number | null): { videoKbps: number; audioKbps: 128 } {
-  if (durationSec == null || !(durationSec > 0)) return { videoKbps: 1500, audioKbps: 128 };
-  const v = Math.floor((TARGET_BYTES * 8) / 1000 / durationSec) - 128;
-  return { videoKbps: Math.min(2500, Math.max(400, v)), audioKbps: 128 };
+export function targetBitrates(durationSec: number | null): { videoKbps: number; audioKbps: typeof AUDIO_KBPS } {
+  if (durationSec == null || !(durationSec > 0)) return { videoKbps: MAX_VIDEO_KBPS, audioKbps: AUDIO_KBPS };
+  const v = Math.floor((TARGET_BYTES * 8) / 1000 / durationSec) - AUDIO_KBPS;
+  return { videoKbps: Math.min(MAX_VIDEO_KBPS, Math.max(400, v)), audioKbps: AUDIO_KBPS };
 }
 
 // "Duration: 00:01:02.50" → 62.5; "N/A" → null
@@ -48,8 +60,9 @@ export function ffmpegArgs(input: string, output: string, durationSec: number | 
     // не дублировать кадры у VFR-исходников (webm из MediaRecorder, таймбейз 1k)
     "-fps_mode", "vfr",
     "-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
-    "-b:v", `${v}k`, "-maxrate", `${v}k`, "-bufsize", `${v * 2}k`,
-    "-c:a", "aac", "-b:a", "128k",
+    // постоянное качество с потолком потока: простые ролики выходят легче потолка, сложные в него упираются
+    "-crf", "26", "-maxrate", `${v}k`, "-bufsize", `${v * 2}k`,
+    "-c:a", "aac", "-b:a", `${AUDIO_KBPS}k`,
     "-movflags", "+faststart",
     output,
   ];

@@ -5,14 +5,14 @@ import { useTranslations } from "next-intl";
 import { Check, ImageOff, Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
-import { photoToJpeg, uploadPromoFile, videoExt, videoPoster } from "@/lib/promo-media";
+import { photoToJpeg, uploadPromoFile, videoExt, videoPoster, videoPosterInfo } from "@/lib/promo-media";
 import { classifyVideo, SOURCE_MAX_BYTES, type VideoDecision } from "@/lib/video-convert-plan";
 import type { ConvertStage } from "@/lib/video-convert";
 
 export type MediaValue = { mediaType: "image" | "video"; imageUrl: string | null; videoUrl: string | null };
 
 type ErrorKey = "photoType" | "tooBig" | "load" | "convert" | "convertTooBig" | "upload";
-type ConvertReason = Exclude<VideoDecision, "upload" | "too-big">;
+type ConvertReason = Exclude<VideoDecision, "upload" | "compress" | "too-big">;
 // «Попробовать снова»: с конвертации или (обычный MP4) сразу с загрузки
 type Retry = { step: "convert"; file: File } | { step: "upload"; file: File; poster: Blob };
 
@@ -37,7 +37,8 @@ const uploadClass =
   "inline-flex h-10 items-center gap-1.5 rounded-full bg-accent-soft px-4 text-sm font-medium text-accent-strong transition cursor-pointer hover:bg-accent hover:text-white focus-within:ring-2 focus-within:ring-accent";
 
 /** Фото или видео для промо-слайда/баннера: загрузка в Storage, обложка видео — первый кадр.
- *  Не-MP4 и «проблемные» MP4 можно конвертировать в браузере (ffmpeg.wasm) перед загрузкой. */
+ *  Не-MP4 и «проблемные» MP4 можно конвертировать в браузере (ffmpeg.wasm) перед загрузкой;
+ *  тяжёлый MP4 сжимается под телефон сам, а если сжать не вышло — загружается как есть. */
 export function MediaPicker({
   mediaType,
   imageUrl,
@@ -136,23 +137,27 @@ export function MediaPicker({
     setPhase({ kind: "checking" });
     // открылось ли видео в браузере: обложка снялась — значит, играет
     let poster: Blob | null = null;
+    let durationSec: number | null = null;
     try {
-      poster = await videoPoster(file);
+      ({ poster, durationSec } = await videoPosterInfo(file));
     } catch {
       poster = null;
     }
     if (run !== runRef.current) return;
-    const decision = classifyVideo(file, poster !== null);
+    const decision = classifyVideo(file, poster !== null, durationSec);
     if (decision === "too-big") {
       setPhase({ kind: "error", error: "tooBig", retry: null });
     } else if (decision === "upload") {
       if (poster) void uploadOriginal(file, poster);
+    } else if (decision === "compress") {
+      if (poster) void convert(file, poster);
     } else {
       setPhase({ kind: "confirm", file, reason: decision });
     }
   }
 
-  async function convert(file: File) {
+  // originalPoster задан — это сжатие исправного MP4: при любой неудаче загружаем исходный файл
+  async function convert(file: File, originalPoster?: Blob) {
     const run = newRun();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -178,6 +183,10 @@ export function MediaPicker({
       poster = result.poster ?? (await videoPoster(mp4));
     } catch (e) {
       if (!current() || (vc && e instanceof vc.ConvertCancelled)) return;
+      if (originalPoster) {
+        void uploadOriginal(file, originalPoster);
+        return;
+      }
       // модуль не скачался (нет сети) — та же ошибка, что и для FFmpeg
       const error: ErrorKey =
         !vc || e instanceof vc.ConvertLoadFailed ? "load" : e instanceof vc.ConvertTooBig ? "convertTooBig" : "convert";
@@ -188,6 +197,11 @@ export function MediaPicker({
       if (abortRef.current === ac) abortRef.current = null;
     }
     if (!current()) return;
+    // сжатие не уменьшило файл — оставляем исходный
+    if (originalPoster && mp4.size >= file.size) {
+      void uploadOriginal(file, originalPoster);
+      return;
+    }
     try {
       await uploadVideo(run, mp4, poster, "mp4");
     } catch {
