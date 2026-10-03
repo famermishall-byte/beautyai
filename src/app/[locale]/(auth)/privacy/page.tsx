@@ -10,7 +10,6 @@ export default async function PrivacyPage() {
   const missing = t("missing");
   const rows: [string, string][] = [
     [t("operator"), LEGAL.operatorName.trim() || missing],
-    [t("address"), LEGAL.address.trim() || missing],
     [t("contact"), LEGAL.contact.trim() || missing],
   ];
 
