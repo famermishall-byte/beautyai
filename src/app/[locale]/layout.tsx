@@ -32,6 +32,11 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
 
 export const viewport: Viewport = {
   themeColor: "#c8135f",
+  width: "device-width",
+  initialScale: 1,
+  // iPhone сам увеличивал страницу при нажатии на поле ввода и оставлял её увеличенной: экран съезжал вбок,
+  // нижнее меню и кнопки «плавали». Ограничение масштаба это отключает (см. также правило для полей в globals.css).
+  maximumScale: 1,
 };
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {

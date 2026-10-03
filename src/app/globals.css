@@ -68,6 +68,25 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Экран не должен ездить вбок и увеличиваться сам по себе (жалоба владельца 03.10, iPhone):
+   - страница не шире экрана, даже если какой-то блок вылез;
+   - двойное касание не увеличивает страницу. */
+html,
+body {
+  overflow-x: clip;
+  touch-action: manipulation;
+}
+
+/* Только iPhone/iPad: поле ввода со шрифтом меньше 16px Safari при нажатии увеличивает вместе со всей
+   страницей и обратно не уменьшает. 16px — порог, с которого он этого не делает. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Headings, prices and names use font-display; in one sans family they need
    real weight to read as headings. Lives in the base layer so any explicit
    font-* utility on the element still wins. */
