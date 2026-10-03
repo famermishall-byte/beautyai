@@ -40,6 +40,36 @@ function measure(): Info {
   };
 }
 
+// D: нижнее меню не «fixed», а «sticky» внизу страницы (лежит в прокручиваемой области, а не в закреплённом слое)
+function applySticky(on: boolean) {
+  const nav = document.querySelector("nav.fixed, nav[data-dbg-sticky]") as HTMLElement | null;
+  if (!nav) return;
+  if (on) {
+    nav.setAttribute("data-dbg-sticky", "1");
+    nav.style.setProperty("position", "sticky");
+    nav.style.setProperty("bottom", "0px");
+  } else {
+    nav.removeAttribute("data-dbg-sticky");
+    nav.style.removeProperty("position");
+    nav.style.setProperty("bottom", "calc(-1 * var(--vv-shift, 0px))");
+  }
+}
+
+// E: сама страница не прокручивается, прокручивается внутренняя область (как «оболочка приложения»)
+function applyShell(on: boolean) {
+  const html = document.documentElement;
+  const body = document.body;
+  if (on) {
+    html.style.setProperty("height", "100dvh");
+    html.style.setProperty("overflow", "hidden");
+    body.style.setProperty("height", "100dvh");
+    body.style.setProperty("overflow-y", "auto");
+    body.style.setProperty("overscroll-behavior", "none");
+  } else {
+    for (const el of [html, body]) for (const prop of ["height", "overflow", "overflow-y", "overscroll-behavior"]) el.style.removeProperty(prop);
+  }
+}
+
 function ToggleButton({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
   return (
     <button
@@ -61,6 +91,8 @@ export default function DebugViewportPage() {
   const [clip, setClip] = useState(false);
   const [maxScale, setMaxScale] = useState(true);
   const [shift, setShift] = useState(false);
+  const [sticky, setSticky] = useState(false);
+  const [shell, setShell] = useState(false);
   const shiftCleanup = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -76,8 +108,22 @@ export default function DebugViewportPage() {
       document.documentElement.style.removeProperty("overflow-x");
       document.body.style.removeProperty("overflow-x");
       document.documentElement.style.removeProperty("--vv-shift");
+      applySticky(false);
+      applyShell(false);
     };
   }, []);
+
+  function toggleSticky() {
+    const next = !sticky;
+    setSticky(next);
+    applySticky(next);
+  }
+
+  function toggleShell() {
+    const next = !shell;
+    setShell(next);
+    applyShell(next);
+  }
 
   function toggleClip() {
     const next = !clip;
@@ -130,6 +176,8 @@ export default function DebugViewportPage() {
         <ToggleButton on={clip} onClick={toggleClip} label="A. overflow-x: clip на html и body (так было с 3 октября)" />
         <ToggleButton on={maxScale} onClick={toggleMaxScale} label="B. maximum-scale=1 в настройках экрана" />
         <ToggleButton on={shift} onClick={toggleShift} label="C. ручной сдвиг меню по visualViewport" />
+        <ToggleButton on={sticky} onClick={toggleSticky} label="D. меню sticky внизу страницы вместо fixed" />
+        <ToggleButton on={shell} onClick={toggleShell} label="E. прокручивается внутренняя область, а не вся страница" />
       </div>
 
       <dl className="flex flex-col gap-2 text-sm">
