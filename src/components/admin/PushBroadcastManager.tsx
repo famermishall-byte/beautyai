@@ -124,6 +124,7 @@ export function PushBroadcastManager() {
     setUntil(b.valid_until ? isoDateToInput(b.valid_until) : "");
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    document.body.scrollTo({ top: 0, behavior: "smooth" }); // в приложении с иконки «Домой» прокручивается body
   }
 
   async function submit(e: FormEvent) {

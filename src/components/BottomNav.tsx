@@ -20,10 +20,7 @@ export function BottomNav() {
   if (isAdmin) return null;
 
   return (
-    // after:… — «подложка» под меню: Safari на iPhone держит прикреплённые к низу панели выше своей панели
-    // вкладок, и под меню было видно продолжение страницы. Подложка цвета меню закрывает этот просвет;
-    // когда меню стоит у самого края экрана, она за его пределами и не видна.
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)] after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-[50vh] after:bg-card">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="max-w-5xl mx-auto grid grid-cols-4" style={{ height: "var(--bottom-nav-h)" }}>
         {ITEMS.map(({ href, match, labelKey, icon: Icon }) => {
           const active = match === "/" ? pathname === "/" : pathname.startsWith(match);
