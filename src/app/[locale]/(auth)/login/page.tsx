@@ -252,6 +252,9 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="flex flex-col gap-3">
           <input
             type="email"
+            name="email"
+            autoComplete="username"
+            inputMode="email"
             required
             placeholder="Email"
             className={inputClass}
@@ -331,6 +334,9 @@ export default function LoginPage() {
         <form onSubmit={handleRegister} className="flex flex-col gap-3">
           <input
             type="email"
+            name="email"
+            autoComplete="username"
+            inputMode="email"
             required
             placeholder="Email"
             className={inputClass}
@@ -367,6 +373,9 @@ export default function LoginPage() {
         <form onSubmit={handleForgotPassword} className="flex flex-col gap-3">
           <input
             type="email"
+            name="email"
+            autoComplete="username"
+            inputMode="email"
             required
             placeholder="Email"
             className={inputClass}
