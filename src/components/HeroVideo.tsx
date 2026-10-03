@@ -57,7 +57,8 @@ export function HeroVideo({
         muted={muted}
         playsInline
         loop={loop}
-        preload="metadata"
+        // ролик не качается, пока слайд не на экране: до этого видна обложка, загрузку запускает play()
+        preload="none"
         onEnded={onEnded}
         onError={onFailed}
         className="absolute inset-0 w-full h-full object-cover"
