@@ -83,8 +83,20 @@ via `@theme inline`.
 (1.75–2 for static icons, 2.25+ for an active/selected state), no emoji
 standing in for an icon anywhere in the redesigned surfaces (nav,
 buttons, cards, headers, empty states, menu rows). `Sparkle` is the
-product-photo placeholder mark; category tiles use `Droplet` /
-`Palette` / `Scissors` (`src/lib/categories.ts`).
+product-photo placeholder mark.
+
+## Category art
+
+Catalog category tiles (and the «Новинки» tile) carry an illustration, not
+a Lucide icon: `src/components/CategoryArt.tsx`, one drawing per
+`CategoryGroup.key` plus `new`. One collection, logo colours only:
+`--accent`, `--accent-strong`, `--accent-soft`, `--background`, white, and
+the in-between tints declared at the top of that file. Every drawing shares
+the same pale disc, the same soft shadow under the object, light from the
+top-left (white highlight on the left side), and two materials — raspberry
+gloss and white "porcelain" with a pink edge. A new category gets a new
+drawing in the same file under these rules; no stock pictures, no colours
+outside the logo palette. The tile itself (size, grid, label) is unchanged.
 
 ## Patterns this system commits to
 
