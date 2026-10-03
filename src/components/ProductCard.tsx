@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
@@ -9,7 +10,11 @@ import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
 import { LOW_STOCK_MAX } from "@/lib/stock";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+
+// Заготовка страницы товара общая для всех товаров: достаточно подгрузить её один раз за сеанс (первой
+// показанной карточкой), и любой товар открывается по нажатию мгновенно — без запроса на каждую карточку.
+let productRouteWarmed = false;
 
 /** Width + snap for a ProductCard inside a horizontal rail — the same everywhere (home, catalog). */
 export const PRODUCT_RAIL_ITEM = "w-40 shrink-0 snap-start";
@@ -20,6 +25,12 @@ export function ProductCard({ product, eager = false }: { product: Product | Rec
   const price = usePrice();
   const text = useProductText();
   const productName = text(product).name;
+  const router = useRouter();
+  useEffect(() => {
+    if (productRouteWarmed) return;
+    productRouteWarmed = true;
+    router.prefetch(`/product/${product.id}`);
+  }, [router, product.id]);
   const { items, addItem, removeItem } = useCart();
   const { toggle, isSaved } = useMyBag();
   const { countOf } = usePurchaseHistory();
@@ -55,6 +66,8 @@ export function ProductCard({ product, eager = false }: { product: Product | Rec
   return (
     <Link
       href={`/product/${product.id}`}
+      // без фоновой подгрузки: в списке сотни карточек, запрос на каждую — лишняя нагрузка на сервер
+      prefetch={false}
       className="group h-full bg-card rounded-[var(--radius-card)] border border-border overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="relative aspect-[4/5] bg-accent-soft overflow-hidden">
