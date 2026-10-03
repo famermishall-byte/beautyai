@@ -16,6 +16,7 @@ import {
   KeyRound,
   Pencil,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -307,7 +308,8 @@ export default function ProfilePage() {
         <MenuRow href="/branches" icon={Store} label={t("menu.stores")} hint={t("menu.storesHint")} />
         <MenuRow href="/mybag" icon={Heart} label={t("menu.myBag")} hint={t("menu.myBagHint")} />
         <MenuRow href="/orders" icon={ShoppingBag} label={t("menu.orders")} hint={t("menu.ordersHint")} />
-        <MenuRow href="/feedback" icon={MessageCircle} label={t("menu.feedback")} last={!isManager} />
+        <MenuRow href="/feedback" icon={MessageCircle} label={t("menu.feedback")} />
+        <MenuRow href="/privacy" icon={ShieldCheck} label={t("menu.privacy")} hint={t("menu.privacyHint")} last={!isManager} />
         {isManager && (
           <>
             <MenuRow href="/admin" icon={LayoutDashboard} label={t("menu.adminPanel")} />
