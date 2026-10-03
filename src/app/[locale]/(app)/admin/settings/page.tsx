@@ -7,6 +7,7 @@ import { useSession } from "@/lib/session-context";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useConfirmSignOut } from "@/lib/use-confirm-sign-out";
 import { PASSWORD_MIN_LENGTH } from "@/lib/password-rules";
+import { Button } from "@/components/ui/Button";
 
 // Errors raised by the transfer_store_ownership SQL function; shown from messages: adminSettings.transferErrors.<code>
 const TRANSFER_ERROR_CODES = ["not_owner", "target_not_registered", "cannot_transfer_to_self", "not_authenticated"];
@@ -28,9 +29,39 @@ export default function AdminSettingsPage() {
   const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupError, setBackupError] = useState<string | null>(null);
+
   const [transferEmail, setTransferEmail] = useState("");
   const [transferSubmitting, setTransferSubmitting] = useState(false);
   const [transferError, setTransferError] = useState<string | null>(null);
+
+  // Файл скачивается через fetch, а не ссылкой: так ошибку сервера (нет доступа, сбой) видно на экране.
+  async function handleBackup() {
+    setBackupBusy(true);
+    setBackupError(null);
+    try {
+      const res = await fetch("/api/admin/backup");
+      if (!res.ok) {
+        setBackupError(t("backupFailed"));
+        return;
+      }
+      const blob = await res.blob();
+      const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "beauty-backup.json";
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch {
+      setBackupError(t("backupFailed"));
+    } finally {
+      setBackupBusy(false);
+    }
+  }
 
   async function handleChangeEmail(e: FormEvent) {
     e.preventDefault();
@@ -200,6 +231,18 @@ export default function AdminSettingsPage() {
           </button>
         </form>
       </div>
+
+      {isOwner && (
+        <div className="bg-card rounded-2xl border border-black/5 p-6 mb-6">
+          <h2 className="font-medium mb-1">{t("backupTitle")}</h2>
+          <p className="text-sm text-muted mb-2">{t("backupHint")}</p>
+          <p className="text-xs text-muted mb-4">{t("backupNote")}</p>
+          {backupError && <p className="text-sm bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-3">{backupError}</p>}
+          <Button type="button" variant="secondary" size="sm" loading={backupBusy} onClick={() => void handleBackup()}>
+            {backupBusy ? t("backupPreparing") : t("backupButton")}
+          </Button>
+        </div>
+      )}
 
       {isOwner && (
         <div className="bg-card rounded-2xl border border-black/5 p-6">
