@@ -7,7 +7,7 @@ export function Chip({ label, active, onClick }: { label: string; active: boolea
       onClick={onClick}
       aria-pressed={active}
       className={[
-        "rounded-full px-3.5 py-2 text-sm font-medium transition active:scale-95",
+        "shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition active:scale-95",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active ? "bg-accent text-white" : "bg-accent-soft text-accent hover:bg-accent hover:text-white",
       ].join(" ")}

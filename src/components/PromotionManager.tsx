@@ -119,7 +119,7 @@ function PromotionForm({
 
       <div>
         <div className="text-xs text-muted mb-1.5">{t("fields.discountType")}</div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["percent", "fixed", "special_price"] as DiscountType[]).map((type) => (
             <Chip key={type} label={t(`discountType.${type}`)} active={form.discountType === type} onClick={() => setForm({ ...form, discountType: type, showOldPrice: type !== "special_price" })} />
           ))}
@@ -319,7 +319,7 @@ export function PromotionManager() {
                   </span>
                   <span className="text-[11px] text-muted line-through">{price(promotion.oldPrice)}</span>
                   <span className="text-[11px] font-medium text-accent">{price(promotion.newPrice)}</span>
-                  <span className="text-[11px] text-muted">
+                  <span className="text-[11px] text-muted whitespace-nowrap">
                     {new Date(promotion.startAt).toLocaleDateString(locale)} – {new Date(promotion.endAt).toLocaleDateString(locale)}
                   </span>
                 </div>

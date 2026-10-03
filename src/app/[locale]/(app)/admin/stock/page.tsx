@@ -349,7 +349,7 @@ function StockRow({ item, onSave, savedFlash }: { item: Item; onSave: (item: Ite
             commit("0");
           }}
           disabled={saving || item.quantity === 0}
-          className="text-[11px] font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
+          className="-my-2 min-h-9 px-1 text-[11px] font-medium text-error hover:underline disabled:opacity-40 disabled:no-underline"
         >
           {t("zeroOut")}
         </button>

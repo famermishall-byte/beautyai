@@ -46,7 +46,11 @@ export function NavHeader() {
         <div className="min-w-0 flex-1 flex flex-col justify-center">
           <Link
             href={isAdmin ? "/admin" : "/"}
-            className="text-sm tracking-[0.3em] uppercase font-medium leading-tight rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent truncate"
+            className={[
+              "uppercase font-medium leading-tight rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+              // в админке справа ещё «В магазин» и выход — названию остаётся мало места, поэтому мельче и в две строки
+              isAdmin ? "text-[11px] tracking-[0.2em] line-clamp-2 sm:text-sm sm:tracking-[0.3em]" : "text-sm tracking-[0.3em] truncate",
+            ].join(" ")}
           >
             {session?.storeName || tMeta("title")}
           </Link>
@@ -82,12 +86,12 @@ export function NavHeader() {
         )}
 
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/admin"
               aria-current={pathname.startsWith("/admin") ? "page" : undefined}
               className={[
-                "px-3 py-1.5 rounded-full text-sm font-medium transition",
+                "hidden sm:inline-flex px-3 py-1.5 rounded-full text-sm font-medium transition",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 pathname.startsWith("/admin")
                   ? "bg-accent-soft text-accent"
@@ -98,7 +102,7 @@ export function NavHeader() {
             </Link>
             <button
               onClick={() => switchViewMode("shop")}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium text-muted transition hover:text-foreground hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <ShoppingBag className="size-4" strokeWidth={1.85} aria-hidden />
               {t("toShop")}

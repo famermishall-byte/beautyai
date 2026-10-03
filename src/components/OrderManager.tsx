@@ -713,7 +713,7 @@ export function OrderManager() {
           <h2 className="font-medium">{t("title")}</h2>
           <button
             onClick={toggleSound}
-            className={["flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition", soundOn ? "bg-success-soft text-success" : "bg-accent-soft text-accent"].join(" ")}
+            className={["shrink-0 flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 min-h-9 text-xs font-medium transition", soundOn ? "bg-success-soft text-success" : "bg-accent-soft text-accent"].join(" ")}
           >
             {soundOn ? <Volume2 className="size-3.5" aria-hidden /> : <VolumeX className="size-3.5" aria-hidden />}
             {soundOn ? t("soundOn") : t("soundOff")}
@@ -766,7 +766,7 @@ export function OrderManager() {
               <select
                 value={newestFirst ? "new" : "old"}
                 onChange={(e) => setNewestFirst(e.target.value === "new")}
-                className="rounded-lg border border-black/10 bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
+                className="min-w-0 flex-1 max-w-[70%] rounded-lg border border-black/10 bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="new">{t("newestFirst")}</option>
                 <option value="old">{t("oldestFirst")}</option>
@@ -803,7 +803,7 @@ export function OrderManager() {
 
             {(group === "action" || group === "problems") && visibleOpenIds.length > 1 && (
               <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
-                <button onClick={() => setSelected(new Set(visibleOpenIds))} className="text-accent underline">
+                <button onClick={() => setSelected(new Set(visibleOpenIds))} className="min-h-9 text-accent underline">
                   {t("selectAll")}
                 </button>
                 {selectedIds.length > 0 && (

@@ -186,15 +186,16 @@ function BannerForm({
 
       {error && <p className="text-sm text-error">{error}</p>}
 
-      <div className="flex gap-2 pt-1">
-        <Button type="button" variant="ghost" onClick={() => setPreview(true)}>
+      {/* на телефоне три кнопки в ряд не помещаются: «Предпросмотр» — отдельной строкой, ниже «Отмена» и «Сохранить» */}
+      <div className="grid grid-cols-2 gap-2 pt-1 sm:flex">
+        <Button type="button" variant="ghost" className="col-span-2" onClick={() => setPreview(true)}>
           <Eye className="size-4" strokeWidth={2} aria-hidden />
           {t("preview")}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel}>
           {t("cancel")}
         </Button>
-        <Button type="submit" loading={saving} disabled={mediaBusy} className="ml-auto">
+        <Button type="submit" loading={saving} disabled={mediaBusy} className="sm:ml-auto">
           {t("save")}
         </Button>
       </div>
@@ -344,12 +345,12 @@ export function BannerManager() {
               <div className="min-w-0 flex-1">
                 <div className="font-medium truncate">{banner.title}</div>
                 <div className="text-xs text-muted truncate">{banner.product?.name ?? t("noProduct")}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[11px] rounded-full bg-accent-soft text-accent px-2 py-0.5">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                  <span className="text-[11px] rounded-full bg-accent-soft text-accent px-2 py-0.5 whitespace-nowrap">
                     {t(`status.${STATE_LABEL_KEY[effectiveState(banner)]}`)}
                   </span>
-                  <span className="text-[11px] text-muted">{t("priorityShort", { n: banner.priority })}</span>
-                  <span className="text-[11px] text-muted">
+                  <span className="text-[11px] text-muted whitespace-nowrap">{t("priorityShort", { n: banner.priority })}</span>
+                  <span className="text-[11px] text-muted whitespace-nowrap">
                     {new Date(banner.startAt).toLocaleDateString(locale)} – {new Date(banner.endAt).toLocaleDateString(locale)}
                   </span>
                 </div>

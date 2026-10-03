@@ -78,8 +78,8 @@ export default function AdminHome() {
               accent ? "bg-accent text-white" : "bg-card border border-border shadow-[var(--shadow-card)]",
             ].join(" ")}
           >
-            <span className="relative block max-w-[65%] text-base font-semibold leading-tight">{label}</span>
-            <span className={["relative block max-w-[65%] text-xs mt-1", accent ? "text-white/85" : "text-muted"].join(" ")}>{hint}</span>
+            <span className={["relative text-base font-semibold leading-tight line-clamp-2", badge ? "max-w-[80%]" : ""].join(" ")}>{label}</span>
+            <span className={["relative max-w-[58%] text-xs mt-1 line-clamp-2", accent ? "text-white/85" : "text-muted"].join(" ")}>{hint}</span>
             <span
               className={[
                 "absolute bottom-3 right-3 flex items-center justify-center size-14 rounded-2xl",
