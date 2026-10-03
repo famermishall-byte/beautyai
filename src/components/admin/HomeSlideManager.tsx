@@ -57,10 +57,12 @@ function SlideForm({
   const [form, setForm] = useState(initial);
   const radioName = useId(); // создание и правка могут быть открыты одновременно
   const [saving, setSaving] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mediaBusy) return;
     if (form.mediaType === "video" ? !form.videoUrl : !form.imageUrl) {
       setError(t("needMedia"));
       return;
@@ -93,6 +95,7 @@ function SlideForm({
           imageUrl={form.imageUrl}
           videoUrl={form.videoUrl}
           onChange={(m) => setForm((f) => ({ ...f, ...m }))}
+          onBusyChange={setMediaBusy}
         />
       </div>
 
@@ -157,7 +160,7 @@ function SlideForm({
         <Button type="button" variant="ghost" onClick={onCancel}>
           {t("cancel")}
         </Button>
-        <Button type="submit" loading={saving} className="ml-auto">
+        <Button type="submit" loading={saving} disabled={mediaBusy} className="ml-auto">
           {t("save")}
         </Button>
       </div>

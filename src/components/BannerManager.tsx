@@ -84,11 +84,13 @@ function BannerForm({
   const t = useTranslations("bannerManager");
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mediaBusy) return;
     if (!form.title.trim() || !form.startAt || !form.endAt) {
       setError(t("missing"));
       return;
@@ -139,6 +141,7 @@ function BannerForm({
           imageUrl={form.imageUrl}
           videoUrl={form.videoUrl}
           onChange={(m) => setForm((f) => ({ ...f, ...m }))}
+          onBusyChange={setMediaBusy}
         />
       </div>
 
@@ -190,7 +193,7 @@ function BannerForm({
         <Button type="button" variant="ghost" onClick={onCancel}>
           {t("cancel")}
         </Button>
-        <Button type="submit" loading={saving} className="ml-auto">
+        <Button type="submit" loading={saving} disabled={mediaBusy} className="ml-auto">
           {t("save")}
         </Button>
       </div>

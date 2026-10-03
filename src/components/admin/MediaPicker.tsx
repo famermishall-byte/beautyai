@@ -38,7 +38,13 @@ const uploadClass =
 
 /** Фото или видео для промо-слайда/баннера: загрузка в Storage, обложка видео — первый кадр.
  *  Не-MP4 и «проблемные» MP4 можно конвертировать в браузере (ffmpeg.wasm) перед загрузкой. */
-export function MediaPicker({ mediaType, imageUrl, videoUrl, onChange }: MediaValue & { onChange: (v: MediaValue) => void }) {
+export function MediaPicker({
+  mediaType,
+  imageUrl,
+  videoUrl,
+  onChange,
+  onBusyChange,
+}: MediaValue & { onChange: (v: MediaValue) => void; onBusyChange?: (busy: boolean) => void }) {
   const t = useTranslations("homeSlides.media");
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   // номер текущего запуска: результаты отменённых/устаревших запусков игнорируем
@@ -59,6 +65,11 @@ export function MediaPicker({ mediaType, imageUrl, videoUrl, onChange }: MediaVa
   }, []);
 
   const busy = phase.kind === "checking" || phase.kind === "convert" || phase.kind === "uploading";
+
+  // форма блокирует «Сохранить», пока файл проверяется, конвертируется или загружается
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
 
   function newRun(): number {
     if (doneTimer.current) {
