@@ -313,9 +313,7 @@ export default function ProfilePage() {
         {isManager && (
           <>
             <MenuRow href="/admin" icon={LayoutDashboard} label={t("menu.adminPanel")} />
-            <MenuRow href="/admin/settings" icon={Settings} label={t("menu.storeSettings")} />
-            {/* ВРЕМЕННО (04.10): диагностика экрана iPhone, удалить вместе со страницей debug-viewport */}
-            <MenuRow href="/debug-viewport" icon={Settings} label="Диагностика экрана (временно)" last />
+            <MenuRow href="/admin/settings" icon={Settings} label={t("menu.storeSettings")} last />
           </>
         )}
       </div>
