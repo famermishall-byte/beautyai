@@ -8,7 +8,7 @@ import { useProductText } from "@/lib/product-text";
 import { Link } from "@/i18n/navigation";
 import { useCloseOnNavigate } from "@/lib/use-close-on-navigate";
 import { fadeClasses, useFadeClose } from "@/lib/use-fade-close";
-import { wasPromoAdShown, markPromoAdShown, type PromoAdPage } from "@/lib/session-flags";
+import { wasPromoAdShown, markPromoAdShown, markSkipBuyAgain, type PromoAdPage } from "@/lib/session-flags";
 import type { Product } from "@/types";
 
 /**
@@ -28,7 +28,10 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
   return (
     <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${fadeClasses(closing)}`}>
       <div className="absolute inset-0 bg-foreground/40" onClick={requestClose} />
-      <Link href={`/product/${product.id}`} onClick={closeAfterNavigation} className="block w-full max-w-sm">
+      <Link href={`/product/${product.id}`} onClick={() => {
+          markSkipBuyAgain(product.id);
+          closeAfterNavigation();
+        }} className="block w-full max-w-sm">
         <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
           <button
             onClick={(e) => {

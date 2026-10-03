@@ -9,7 +9,7 @@ import type { Product } from "@/types";
 import { useCart } from "@/lib/cart-context";
 import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
-import { wasProductPromptShown, markProductPromptShown } from "@/lib/session-flags";
+import { wasProductPromptShown, markProductPromptShown, consumeSkipBuyAgain } from "@/lib/session-flags";
 import { useGoBack } from "@/lib/use-go-back";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { ProductCard } from "@/components/ProductCard";
@@ -77,6 +77,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   useEffect(() => {
     Promise.resolve().then(() => {
       if (purchaseCount >= 2 && !wasProductPromptShown(id)) {
+        // пришли из всплывающей акции/баннера с этим товаром — второе окно подряд не показываем
+        if (consumeSkipBuyAgain(id)) return;
         markProductPromptShown(id);
         setShowBuyAgain(true);
       }

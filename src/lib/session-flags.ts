@@ -54,6 +54,24 @@ export function markProductPromptShown(productId: string) {
   writeSet(PRODUCT_PROMPT_KEY, ids);
 }
 
+// Пришли на товар из всплывающего баннера/акции — окно «купить снова» на нём в этот раз не показываем
+// (жалоба владельца 04.10: два затемнённых окна подряд). Пометка одноразовая; в остальных случаях окно работает как раньше.
+const SKIP_BUY_AGAIN_KEY = "beautyai-skip-buyagain";
+
+export function markSkipBuyAgain(productId: string) {
+  const ids = readSet(SKIP_BUY_AGAIN_KEY);
+  ids.add(productId);
+  writeSet(SKIP_BUY_AGAIN_KEY, ids);
+}
+
+/** true, если для этого товара стояла пометка (и она снимается). */
+export function consumeSkipBuyAgain(productId: string): boolean {
+  const ids = readSet(SKIP_BUY_AGAIN_KEY);
+  if (!ids.delete(productId)) return false;
+  writeSet(SKIP_BUY_AGAIN_KEY, ids);
+  return true;
+}
+
 // Всплывающий рекламный баннер — не чаще одного раза за посещение на каждый из входов:
 // главная, каталог, оформление заказа.
 const AD_KEYS = {

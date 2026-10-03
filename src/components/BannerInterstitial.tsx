@@ -7,7 +7,7 @@ import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
 import { useCloseOnNavigate } from "@/lib/use-close-on-navigate";
 import { fadeClasses, useFadeClose } from "@/lib/use-fade-close";
-import { wasAdShown, markAdShown, type AdPage } from "@/lib/session-flags";
+import { wasAdShown, markAdShown, markSkipBuyAgain, type AdPage } from "@/lib/session-flags";
 import type { Banner } from "@/types";
 
 /**
@@ -110,7 +110,10 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   return (
     <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${fadeClasses(closing)}`}>
       <div className="absolute inset-0 bg-foreground/40" onClick={requestClose} />
-      <Link href={href} onClick={closeAfterNavigation} className="block w-full max-w-sm">
+      <Link href={href} onClick={() => {
+          if (banner.productId) markSkipBuyAgain(banner.productId);
+          closeAfterNavigation();
+        }} className="block w-full max-w-sm">
         {body}
       </Link>
     </div>
