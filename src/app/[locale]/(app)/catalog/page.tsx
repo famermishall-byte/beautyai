@@ -554,6 +554,7 @@ const CATEGORY_PHOTOS: Record<string, string> = {
   Brush: "makeup",
   SprayCan: "perfume",
   FlaskConical: "pharmacy",
+  ShieldCheck: "hygiene",
   Heart: "lingerie",
   Droplets: "soap",
   House: "home",

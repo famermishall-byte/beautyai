@@ -11,6 +11,8 @@ const HEIGHT = 360;
 // Фон — почти белые и бесцветные точки, связанные с краем кадра (белые крышки внутри предмета не трогаем).
 const WHITE_MIN = 236;
 const MAX_TINT = 14;
+// Для цветного (не белого) фона — насколько точка может отличаться от цвета углов.
+const TINTED_TOLERANCE = 14;
 
 async function cutOut(file) {
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -20,8 +22,14 @@ async function cutOut(file) {
     return false;
   })();
   if (!hasAlpha) {
+    // Цвет фона берём из углов кадра: генератор иногда даёт не белый, а кремовый фон.
+    const corner = (x, y) => [0, 1, 2].map((c) => data[(y * w + x) * 4 + c]);
+    const corners = [corner(4, 4), corner(w - 5, 4), corner(4, h - 5), corner(w - 5, h - 5)];
+    const bg = [0, 1, 2].map((c) => Math.round(corners.reduce((sum, px) => sum + px[c], 0) / corners.length));
+    const tinted = Math.min(...bg) < 245;
     const isBg = (p) => {
       const r = data[p * 4], g = data[p * 4 + 1], b = data[p * 4 + 2];
+      if (tinted) return Math.abs(r - bg[0]) <= TINTED_TOLERANCE && Math.abs(g - bg[1]) <= TINTED_TOLERANCE && Math.abs(b - bg[2]) <= TINTED_TOLERANCE;
       return Math.min(r, g, b) >= WHITE_MIN && Math.max(r, g, b) - Math.min(r, g, b) <= MAX_TINT;
     };
     const seen = new Uint8Array(w * h);
