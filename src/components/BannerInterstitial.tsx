@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Volume2, VolumeX, X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
+import { useCloseOnNavigate } from "@/lib/use-close-on-navigate";
 import { wasAdShown, markAdShown, type AdPage } from "@/lib/session-flags";
 import type { Banner } from "@/types";
 
@@ -20,6 +21,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   const tHome = useTranslations("home");
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const closeAfterNavigation = useCloseOnNavigate(onClose);
 
   const body = (
     <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
@@ -106,7 +108,7 @@ export function BannerInterstitial({ banner, onClose, previewOnly = false }: { b
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <Link href={href} onClick={onClose} className="block w-full max-w-sm">
+      <Link href={href} onClick={closeAfterNavigation} className="block w-full max-w-sm">
         {body}
       </Link>
     </div>

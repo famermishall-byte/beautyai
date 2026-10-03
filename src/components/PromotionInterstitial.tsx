@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { Link } from "@/i18n/navigation";
+import { useCloseOnNavigate } from "@/lib/use-close-on-navigate";
 import { wasPromoAdShown, markPromoAdShown, type PromoAdPage } from "@/lib/session-flags";
 import type { Product } from "@/types";
 
@@ -18,13 +19,14 @@ export function PromotionInterstitial({ product, onClose }: { product: Product; 
   const t = useTranslations("promotionInterstitial");
   const price = usePrice();
   const text = useProductText();
+  const closeAfterNavigation = useCloseOnNavigate(onClose);
   const oldPrice = product.attributes?.oldPrice;
   const discount = oldPrice && oldPrice > product.price ? Math.round((1 - product.price / oldPrice) * 100) : 0;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <Link href={`/product/${product.id}`} onClick={onClose} className="block w-full max-w-sm">
+      <Link href={`/product/${product.id}`} onClick={closeAfterNavigation} className="block w-full max-w-sm">
         <div className="tile-sheen relative w-full max-w-sm overflow-hidden rounded-[28px] bg-card border border-black/5 shadow-xl animate-rise-in">
           <button
             onClick={(e) => {
