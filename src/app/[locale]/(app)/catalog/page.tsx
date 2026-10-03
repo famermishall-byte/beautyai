@@ -3,9 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, PackageSearch, ShoppingBag, Percent, ChevronRight, LayoutGrid, Sparkles } from "lucide-react";
 import { ProductCard, PRODUCT_RAIL_ITEM } from "@/components/ProductCard";
-import { CategoryArt, CategoryArtDefs } from "@/components/CategoryArt";
 import { MarketingGate } from "@/components/MarketingGate";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -519,9 +518,6 @@ function CatalogContent() {
 const TILE_BASE =
   "tile-sheen relative h-28 overflow-hidden rounded-[22px] p-3.5 transition active:scale-[0.98] hover:shadow-[var(--shadow-float)]";
 
-// Картинка категории выступает за правый нижний угол плитки (плитка обрезает её по скруглению).
-const TILE_ART = "absolute -right-1.5 -bottom-2 size-[98px]";
-
 function sheenDelay(i: number) {
   return { ["--sheen-delay" as string]: `${(i % 6) * 0.7}s` } as React.CSSProperties;
 }
@@ -531,18 +527,19 @@ function CategoryTiles() {
   const labels = useCatalogLabels();
   return (
     <div className="flex flex-col gap-3">
-      <CategoryArtDefs />
       <div className="grid grid-cols-2 gap-3">
         <Link href="/catalog?all=1" className={`${TILE_BASE} bg-accent text-white`} style={sheenDelay(0)}>
           <span className="relative text-[15px] font-semibold leading-tight">{t("allProducts")}</span>
           <ShoppingBag className="absolute -bottom-1 -right-1 size-20 text-white/25" strokeWidth={1.5} aria-hidden />
         </Link>
         <Link href="/catalog?new=1" className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`} style={sheenDelay(1)}>
-          <CategoryArt name="new" className={TILE_ART} />
           <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{t("newArrivals")}</span>
+          <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+            <Sparkles className="size-8" strokeWidth={1.6} aria-hidden />
+          </span>
         </Link>
         {CATEGORY_GROUPS.map((group, i) => {
-          const { name } = group;
+          const { name, icon: Icon } = group;
           return (
           <Link
             key={name}
@@ -550,8 +547,10 @@ function CategoryTiles() {
             className={`${TILE_BASE} bg-card border border-border shadow-[var(--shadow-card)]`}
             style={sheenDelay(i + 2)}
           >
-            <CategoryArt name={group.key} className={TILE_ART} />
             <span className="relative block max-w-[60%] text-[15px] font-semibold leading-tight">{labels.groupTitle(group)}</span>
+            <span className="absolute bottom-2.5 right-2.5 flex items-center justify-center size-14 rounded-2xl bg-accent-soft text-accent">
+              <Icon className="size-8" strokeWidth={1.6} aria-hidden />
+            </span>
           </Link>
           );
         })}
