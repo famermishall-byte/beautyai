@@ -1735,3 +1735,21 @@ X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWho
 - Образец и весь набор показаны владельцу на странице https://claude.ai/artifact/653gx5DQfbeYdyFmwLcVaY.
 - Проверено: tsc, ESLint, build; каталог открыт локально на 390 px (RU и KY), тестовый аккаунт удалён.
 - Открыто: правка скорости №2 (ленивая загрузка фото) всё ещё ждёт решения владельца — см. `docs/perf.md`.
+
+## 03.10 — картинки категорий: владелец выбрала фотореалистичный стиль (в работе, НЕ запушено)
+- Рисованный набор (`CategoryArt.tsx`, локальный коммит) владельцу НЕ понравился. Её пример — каталог «Подружки»:
+  крупные фотореалистичные 3D-предметы без кружка-фона, уходящие за нижний край плитки.
+- Договорились: картинки она генерирует сама во внешнем генераторе по моим запросам (малиновый `#C8135F`, без
+  надписей, прозрачный/белый фон), я вырезаю фон и ставлю в плитки. Генератора изображений в этой среде нет.
+- Получено 7 из 15: `new`, `face`, `body`, `hair`, `makeup`, `perfume`, `pharmacy`. Исходники —
+  `design/category-art/*.jpg`; `node scripts/build-category-art.mjs` вырезает белый фон (заливка от краёв кадра)
+  и кладёт `public/brand/categories/<имя>.webp` (высота 360 px, 9–26 КБ).
+- Осталось 8: `hygiene`, `lingerie`, `soap`, `home`, `kids`, `accessories`, `merch`, `gifts` — пришлёт завтра.
+  Соответствие ключам `CategoryGroup.key`: Smile=face, PersonStanding=body, Scissors=hair, Brush=makeup,
+  SprayCan=perfume, FlaskConical=pharmacy, ShieldCheck=hygiene, Heart=lingerie, Droplets=soap, House=home,
+  Baby=kids, Gem=accessories, Shirt=merch, Gift=gifts.
+- Дальше: когда набор полный — заменить рисунки в `CategoryArt.tsx` на `<img>` (в плитке: справа, высота 100 px,
+  ширина 46 %, `object-contain`, низ −8 px), обновить раздел «Category art» в `DESIGN.md`, показать и только потом пуш.
+- Ждут ответа владельца: фон плиток (белый или розовый `--accent-soft`); надписи на 4 картинках (hair, new, face,
+  body — «RASPBERRY», «LUMIÈRE») — оставить или перегенерировать без текста; правка скорости №2.
+- Предпросмотр: https://claude.ai/artifact/653gx5DQfbeYdyFmwLcVaY
