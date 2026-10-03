@@ -5,6 +5,7 @@ import { Check, Minus, Plus, Trash2 } from "lucide-react";
 import { usePrice } from "@/lib/use-price";
 import { useProductText } from "@/lib/product-text";
 import { useCart } from "@/lib/cart-context";
+import { useFeedback } from "@/components/ui/Feedback";
 import type { CartItem } from "@/types";
 
 /** Строка корзины: галочка «в заказ», количество, удаление. Снятая галочка — товар остаётся в корзине. */
@@ -13,7 +14,14 @@ export function CartItemRow({ item }: { item: CartItem }) {
   const tw = useTranslations("wholesale");
   const price = usePrice();
   const text = useProductText();
-  const { changeQuantity, removeItem, toggleSelected, wholesale } = useCart();
+  const { changeQuantity, removeItem, restoreItem, toggleSelected, wholesale } = useCart();
+  const { offerUndo } = useFeedback();
+  // Мелкое удаление — без вопроса, но с «Отменить» на 5 секунд (решение владельца 03.10).
+  const remove = () => {
+    const id = item.product.id;
+    removeItem(id);
+    offerUndo({ message: t("removedToast"), onUndo: () => restoreItem(id) });
+  };
   // До порога опта — подсказка, какой будет цена за штуку по опту (после порога цена и так уже оптовая).
   const wholesaleHint =
     wholesale.threshold !== null && !wholesale.qualifies && item.product.wholesalePrice && item.product.wholesalePrice < item.product.price
@@ -44,7 +52,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
           <div className="flex items-center gap-1 bg-accent-soft rounded-full px-1 py-1">
             <button
               type="button"
-              onClick={() => changeQuantity(item.product.id, -1)}
+              onClick={() => (item.quantity <= 1 ? remove() : changeQuantity(item.product.id, -1))}
               aria-label={t("decrease", { name })}
               className="w-6 h-6 rounded-full bg-white flex items-center justify-center transition active:scale-90"
             >
@@ -62,7 +70,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
           </div>
           <button
             type="button"
-            onClick={() => removeItem(item.product.id)}
+            onClick={remove}
             aria-label={t("remove", { name })}
             className="w-7 h-7 rounded-full flex items-center justify-center text-muted transition hover:text-error hover:bg-error-soft"
           >

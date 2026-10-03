@@ -100,6 +100,25 @@ The key → file map is `CATEGORY_PHOTOS` in `catalog/page.tsx`; a category
 without a picture falls back to its Lucide icon on a white rounded square.
 Tile size, grid and labels are unchanged.
 
+## Feedback on actions
+
+`src/components/ui/Feedback.tsx` (`useFeedback()`), mounted once in `AppProviders`:
+
+- **Undo bar** — after a deletion a dark bar sits above the bottom nav for 5 s
+  (`UNDO_MS`) with the message and «Отменить»; a thin line counts the time
+  down. One bar at a time.
+- **Confirm dialog** — «Удалить / Отменить» in the app's own style
+  (`confirm({ title })`), never the browser's `window.confirm` on customer
+  screens.
+- Rule (owner, 03.10): small removals (cart line, «Косметичка») delete at once
+  and offer the undo bar; important ones (a review; later — admin entities)
+  ask first, then offer the undo bar; account deletion asks only.
+- **Tap vibration** — every button vibrates lightly (`lib/haptics.ts`) where
+  the browser allows it (Android); iPhone needs the native shell plugin.
+- **Load errors** — `ui/LoadError.tsx` with «Повторить», never an empty state.
+- **Instant navigation** — `(app)/loading.tsx` shows at once on a tap; blocks
+  that arrive later reserve their space (`lib/reserved-block.ts`).
+
 ## Patterns this system commits to
 
 - **Bottom nav:** icon + label, a pill highlight behind the active

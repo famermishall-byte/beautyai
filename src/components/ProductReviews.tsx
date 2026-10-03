@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Star, Trash2, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { Button } from "@/components/ui/Button";
+import { useFeedback } from "@/components/ui/Feedback";
 import type { ProductReview } from "@/types";
 
 function Stars({ value, size = "size-4" }: { value: number; size?: string }) {
@@ -58,6 +59,9 @@ export function ProductReviews({ productId }: { productId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Отзыв, удаление которого ещё можно отменить: с экрана убран, на сервере удаляется через 5 секунд.
+  const [hiddenId, setHiddenId] = useState<string | null>(null);
+  const { confirm, offerUndo } = useFeedback();
 
   function load() {
     fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`)
@@ -105,17 +109,28 @@ export function ProductReviews({ productId }: { productId: string }) {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm(t("deleteConfirm"))) return;
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/reviews/${id}`, { method: "DELETE" });
-      // Полная перезагрузка, не точечное удаление из списка — так canReview/average/reason
-      // (напр. можно снова оставить отзыв на ту же покупку) тоже пересчитываются.
-      if (res.ok) load();
-    } finally {
-      setDeletingId(null);
-    }
+    if (!(await confirm({ title: t("deleteConfirm") }))) return;
+    setHiddenId(id);
+    offerUndo({
+      message: t("deletedToast"),
+      onUndo: () => setHiddenId(null),
+      onExpire: async () => {
+        setDeletingId(id);
+        try {
+          // keepalive — запрос дойдёт, даже если экран закрыли сразу после удаления
+          const res = await fetch(`/api/reviews/${id}`, { method: "DELETE", keepalive: true });
+          // Полная перезагрузка, не точечное удаление из списка — так canReview/average/reason
+          // (напр. можно снова оставить отзыв на ту же покупку) тоже пересчитываются.
+          if (res.ok) load();
+        } finally {
+          setDeletingId(null);
+          setHiddenId(null);
+        }
+      },
+    });
   }
+
+  const shown = reviews.filter((r) => r.id !== hiddenId);
 
   if (loading) return null;
 
@@ -171,11 +186,11 @@ export function ProductReviews({ productId }: { productId: string }) {
         </form>
       )}
 
-      {reviews.length === 0 ? (
+      {shown.length === 0 ? (
         <p className="text-sm text-muted">{t("empty")}</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {reviews.map((r) => (
+          {shown.map((r) => (
             <div key={r.id} className="bg-card border border-border rounded-[var(--radius-card)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>

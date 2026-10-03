@@ -158,3 +158,26 @@ test("the cart keeps the wholesale threshold the server sent", async () => {
   await store.load();
   assert.equal(store.getState().wholesaleThreshold, 5000);
 });
+
+test("restore brings a removed line back with its quantity and its unticked checkbox", async () => {
+  const a = product("a");
+  const server = fakeServer([a]);
+  const store = createCartStore(server.fetchImpl, () => {});
+  await store.load();
+  store.add(a);
+  store.add(a);
+  store.toggle("a");
+  store.remove("a");
+  assert.equal(await store.flush(), true);
+  assert.equal(server.rows.has("a"), false);
+
+  store.restore("a");
+  assert.equal(await store.flush(), true);
+  assert.deepEqual(server.rows.get("a"), { quantity: 2, selected: false });
+  assert.deepEqual(store.getState().items.map((i) => [i.product.id, i.quantity, i.selected]), [["a", 2, false]]);
+
+  // второй раз возвращать нечего
+  store.restore("a");
+  assert.equal(await store.flush(), true);
+  assert.equal(server.rows.get("a")?.quantity, 2);
+});

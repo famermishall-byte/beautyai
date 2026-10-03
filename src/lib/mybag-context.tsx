@@ -8,6 +8,8 @@ type MyBagContextValue = {
   savedIds: Set<string>;
   loading: boolean;
   toggle: (product: Product) => Promise<void>;
+  /** Вернуть товар в косметичку («Отменить» после удаления) — не зависит от того, что было на экране в момент нажатия. */
+  save: (product: Product) => Promise<void>;
   isSaved: (productId: string) => boolean;
 };
 
@@ -34,6 +36,20 @@ export function MyBagProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  async function save(product: Product) {
+    setProducts((prev) => (prev.some((p) => p.id === product.id) ? prev : [product, ...prev]));
+    try {
+      const res = await fetch("/api/mybag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    }
+  }
 
   async function toggle(product: Product) {
     const alreadySaved = products.some((p) => p.id === product.id);
@@ -63,7 +79,7 @@ export function MyBagProvider({ children }: { children: ReactNode }) {
 
   return (
     <MyBagContext.Provider
-      value={{ products, savedIds, loading, toggle, isSaved: (id) => savedIds.has(id) }}
+      value={{ products, savedIds, loading, toggle, save, isSaved: (id) => savedIds.has(id) }}
     >
       {children}
     </MyBagContext.Provider>

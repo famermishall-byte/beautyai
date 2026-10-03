@@ -16,6 +16,8 @@ type CartContextValue = {
   saveFailed: boolean;
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
+  /** «Отменить» после удаления — вернуть строку как была. */
+  restoreItem: (productId: string) => void;
   changeQuantity: (productId: string, delta: number) => void;
   toggleSelected: (productId: string) => void;
   setAllSelected: (selected: boolean) => void;
@@ -87,6 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         saveFailed: state.saveFailed,
         addItem: store.add,
         removeItem: store.remove,
+        restoreItem: store.restore,
         changeQuantity: store.change,
         toggleSelected: store.toggle,
         setAllSelected: store.setAll,

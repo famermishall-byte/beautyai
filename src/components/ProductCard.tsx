@@ -11,6 +11,7 @@ import { useMyBag } from "@/lib/mybag-context";
 import { usePurchaseHistory } from "@/lib/purchase-history-context";
 import { LOW_STOCK_MAX } from "@/lib/stock";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useFeedback } from "@/components/ui/Feedback";
 
 // Заготовка страницы товара общая для всех товаров: достаточно подгрузить её один раз за сеанс (первой
 // показанной карточкой), и любой товар открывается по нажатию мгновенно — без запроса на каждую карточку.
@@ -32,7 +33,9 @@ export function ProductCard({ product, eager = false }: { product: Product | Rec
     router.prefetch(`/product/${product.id}`);
   }, [router, product.id]);
   const { items, addItem, removeItem } = useCart();
-  const { toggle, isSaved } = useMyBag();
+  const { toggle, save, isSaved } = useMyBag();
+  const { offerUndo } = useFeedback();
+  const tBag = useTranslations("myBag");
   const { countOf } = usePurchaseHistory();
   // Прямо из корзины (общий CartProvider на весь app), а не из отдельной пометки —
   // тот же товар может рендериться в нескольких карточках одновременно (например,
@@ -60,7 +63,9 @@ export function ProductCard({ product, eager = false }: { product: Product | Rec
 
   function handleToggleSaved(e: React.MouseEvent) {
     e.preventDefault();
+    const wasSaved = saved;
     toggle(product);
+    if (wasSaved) offerUndo({ message: tBag("removedToast"), onUndo: () => save(product) });
   }
 
   return (

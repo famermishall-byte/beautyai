@@ -25,6 +25,8 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
   // Растёт при смене аккаунта: задачи, поставленные для прежнего аккаунта, ничего не меняют.
   let generation = 0;
   let account: string | null | undefined;
+  // Строки, удалённые в этом сеансе, — чтобы «Отменить» вернуло то же количество и ту же галочку.
+  const removed = new Map<string, CartItem>();
 
   const set = (patch: Partial<CartState>) => {
     state = { ...state, ...patch };
@@ -95,6 +97,8 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
   function changeBy(product: Product, delta: number) {
     mutate((items) => {
       const next = applyDelta(items, product, delta);
+      const before = items.find((i) => i.product.id === product.id);
+      if (before && quantityOf(next, product.id) === 0) removed.set(product.id, before);
       return { next, request: put(product.id, quantityOf(next, product.id)) };
     });
   }
@@ -130,11 +134,28 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
       if (item) changeBy(item.product, delta);
     },
     remove: (productId: string) =>
-      mutate((items) =>
-        items.some((i) => i.product.id === productId)
-          ? { next: removeProduct(items, productId), request: () => fetchImpl(`/api/cart?productId=${encodeURIComponent(productId)}`, { method: "DELETE" }) }
-          : null
-      ),
+      mutate((items) => {
+        const item = items.find((i) => i.product.id === productId);
+        if (!item) return null;
+        removed.set(productId, item);
+        return { next: removeProduct(items, productId), request: () => fetchImpl(`/api/cart?productId=${encodeURIComponent(productId)}`, { method: "DELETE" }) };
+      }),
+    /** «Отменить» после удаления: строка возвращается с прежним количеством и галочкой. */
+    restore: (productId: string) => {
+      const item = removed.get(productId);
+      if (!item) return;
+      removed.delete(productId);
+      mutate((items) => {
+        if (items.some((i) => i.product.id === productId)) return null;
+        return {
+          next: [...items, item],
+          request: async () => {
+            const res = await put(productId, item.quantity)();
+            return res.ok && !item.selected ? patch([productId], false)() : res;
+          },
+        };
+      });
+    },
     toggle: (productId: string) =>
       mutate((items) => {
         const item = items.find((i) => i.product.id === productId);
@@ -160,6 +181,7 @@ export function createCartStore(fetchImpl: CartFetch, onChange: (state: CartStat
       // нажать до этого, остаётся в очереди и выполнится после загрузки корзины.
       if (firstAccount) return true;
       generation++;
+      removed.clear();
       failedSinceFlush = false;
       tail = Promise.resolve();
       set({ items: [], loaded: false, saveFailed: false, wholesaleThreshold: null });

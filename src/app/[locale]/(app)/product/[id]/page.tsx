@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadError } from "@/components/ui/LoadError";
+import { useFeedback } from "@/components/ui/Feedback";
 import { Link } from "@/i18n/navigation";
 
 const BRANCH_STORAGE_KEY = "beautyai-branch";
@@ -31,7 +32,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const text = useProductText();
   const goBack = useGoBack("/catalog");
   const { addItem, items, changeQuantity } = useCart();
-  const { toggle, isSaved } = useMyBag();
+  const { toggle, save, isSaved } = useMyBag();
+  const { offerUndo } = useFeedback();
+  const tBag = useTranslations("myBag");
   const { countOf } = usePurchaseHistory();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -162,7 +165,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           <LayoutGrid className="size-4.5" strokeWidth={2} aria-hidden />
         </Link>
         <button
-          onClick={() => toggle(product)}
+          onClick={() => {
+            toggle(product);
+            if (saved) offerUndo({ message: tBag("removedToast"), onUndo: () => save(product) });
+          }}
           aria-label={saved ? t("removeFromBag") : t("saveToBag")}
           aria-pressed={saved}
           className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-sm transition hover:scale-105 active:scale-90"
