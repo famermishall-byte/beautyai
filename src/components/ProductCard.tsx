@@ -14,7 +14,8 @@ import { Link } from "@/i18n/navigation";
 /** Width + snap for a ProductCard inside a horizontal rail — the same everywhere (home, catalog). */
 export const PRODUCT_RAIL_ITEM = "w-40 shrink-0 snap-start";
 
-export function ProductCard({ product }: { product: Product | RecommendedProduct }) {
+/** `eager` — для карточек первого экрана: фото грузится сразу, у остальных — по мере прокрутки. */
+export function ProductCard({ product, eager = false }: { product: Product | RecommendedProduct; eager?: boolean }) {
   const t = useTranslations("product");
   const price = usePrice();
   const text = useProductText();
@@ -62,7 +63,7 @@ export function ProductCard({ product }: { product: Product | RecommendedProduct
           <img
             src={product.imageUrl}
             alt={productName}
-            loading="lazy"
+            loading={eager ? "eager" : "lazy"}
             decoding="async"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />

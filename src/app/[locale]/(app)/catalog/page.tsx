@@ -391,7 +391,7 @@ function CatalogContent() {
         <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
           {visible.map((product, i) => (
             <div key={product.id} className="animate-rise-in" style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}>
-              <ProductCard product={product} />
+              <ProductCard product={product} eager={i < 6} />
             </div>
           ))}
         </div>
