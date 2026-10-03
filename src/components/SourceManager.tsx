@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 import {
   SYNC_IMPORT_FIELDS,
   detectFormat,
@@ -89,6 +90,7 @@ function MappingEditor({
 
 export function SourceManager() {
   const t = useTranslations("sources");
+  const del = useDeleteWithUndo();
   const locale = useLocale();
   const [sources, setSources] = useState<Source[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -348,10 +350,16 @@ export function SourceManager() {
     }
   }
 
-  async function handleDeleteSource(id: string) {
-    if (!confirm(t("deleteConfirm"))) return;
-    await fetch(`/api/admin/import-templates/${id}`, { method: "DELETE" });
-    await loadAll();
+  function handleDeleteSource(id: string) {
+    void del.remove({
+      id,
+      question: t("deleteConfirm"),
+      commit: async () => {
+        const res = await fetch(`/api/admin/import-templates/${id}`, { method: "DELETE", keepalive: true });
+        await loadAll();
+        return res.ok;
+      },
+    });
   }
 
   async function handleReviewAction(id: string, status: "resolved" | "ignored") {
@@ -395,7 +403,7 @@ export function SourceManager() {
 
       {sources.length > 0 && (
         <div className="flex flex-col gap-3 mb-5">
-          {sources.map((source) => {
+          {sources.filter((s) => !del.hidden.has(s.id)).map((source) => {
             const result = resultBySource[source.id];
             return (
               <div key={source.id} className="border border-black/5 rounded-xl p-4">

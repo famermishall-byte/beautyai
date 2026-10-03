@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import type { Branch } from "@/types";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 
 type Form = { name: string; city: string; address: string; phone: string; whatsapp: string; hours: string; latitude: string; longitude: string };
 type Notice = { kind: "ok" | "error"; text: string };
@@ -59,6 +60,7 @@ function BranchCard({
   notify: (n: Notice) => void;
 }) {
   const t = useTranslations("branchManager");
+  const del = useDeleteWithUndo();
   const locale = useLocale();
   const [form, setForm] = useState<Form>(toForm(branch));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -104,16 +106,25 @@ function BranchCard({
     }
   }
 
-  async function handleDelete() {
-    if (!confirm(t("deleteConfirm", { name: branch.name }))) return;
-    const res = await fetch(`/api/admin/branches/${branch.id}`, { method: "DELETE" });
-    if (res.ok) {
-      onDeleted(branch.id);
-      notify({ kind: "ok", text: t("deletedNotice", { name: branch.name }) });
-    } else {
-      notify({ kind: "error", text: t("deleteFailed") });
-    }
+  function handleDelete() {
+    void del.remove({
+      id: branch.id,
+      question: t("deleteConfirm", { name: branch.name }),
+      commit: async () => {
+        const res = await fetch(`/api/admin/branches/${branch.id}`, { method: "DELETE", keepalive: true });
+        if (res.ok) {
+          onDeleted(branch.id);
+          notify({ kind: "ok", text: t("deletedNotice", { name: branch.name }) });
+        } else {
+          notify({ kind: "error", text: t("deleteFailed") });
+        }
+        return res.ok;
+      },
+    });
   }
+
+  // удаление ждёт 5 секунд «Отменить» — карточка пока спрятана
+  if (del.hidden.has(branch.id)) return null;
 
   return (
     <div id={`branch-${branch.id}`} className="border border-black/5 rounded-xl overflow-hidden">

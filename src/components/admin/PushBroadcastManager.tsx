@@ -7,6 +7,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { useSession } from "@/lib/session-context";
 import { Button } from "@/components/ui/Button";
 import { formatDateInput, formatTimeInput, parseDateInput, parseTimeInput, toDateInput } from "@/lib/date-range";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 
 type Broadcast = {
   id: string;
@@ -42,6 +43,7 @@ const todayIso = () => inputToIsoDate(new Date());
  */
 export function PushBroadcastManager() {
   const t = useTranslations("pushBroadcast");
+  const del = useDeleteWithUndo();
   const locale = useLocale();
   const { session } = useSession();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -156,15 +158,21 @@ export function PushBroadcastManager() {
     }
   }
 
-  async function remove(b: Broadcast) {
-    if (!confirm(b.status === "scheduled" ? t("confirmCancel") : t("confirmDelete"))) return;
-    const { error } = await createBrowserSupabaseClient().from("push_broadcasts").delete().eq("id", b.id);
-    if (error) {
-      setMessage({ ok: false, text: t("failed") });
-      return;
-    }
-    if (editingId === b.id) resetForm();
-    await load();
+  function remove(b: Broadcast) {
+    void del.remove({
+      id: b.id,
+      question: b.status === "scheduled" ? t("confirmCancel") : t("confirmDelete"),
+      commit: async () => {
+        const { error } = await createBrowserSupabaseClient().from("push_broadcasts").delete().eq("id", b.id);
+        if (error) {
+          setMessage({ ok: false, text: t("failed") });
+          return false;
+        }
+        if (editingId === b.id) resetForm();
+        await load();
+        return true;
+      },
+    });
   }
 
   const stamp = (iso: string) => new Date(iso).toLocaleString(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -272,7 +280,7 @@ export function PushBroadcastManager() {
           <p className="text-sm text-muted">{t("empty")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {history.map((b) => {
+            {history.filter((b) => !del.hidden.has(b.id)).map((b) => {
               const expired = !!b.valid_until && b.valid_until < todayIso();
               return (
                 <li key={b.id} className={["bg-card rounded-[var(--radius-card)] border p-4", editingId === b.id ? "border-accent" : "border-border"].join(" ")}>

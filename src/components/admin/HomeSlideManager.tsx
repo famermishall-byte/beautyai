@@ -6,6 +6,7 @@ import { Plus, ArrowUp, ArrowDown, Eye, EyeOff, Pencil, Trash2, Loader2, Video }
 import { ProductPicker, type PickedProduct } from "@/components/ProductPicker";
 import { Button } from "@/components/ui/Button";
 import { MediaPicker, type MediaValue } from "@/components/admin/MediaPicker";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 import { CATEGORY_GROUPS } from "@/lib/categories";
 import { HERO_ACTIONS, INLINE_ACTIONS, moveSlide } from "@/lib/home-slides";
 import type { HomeSlide, SlideAction, SlidePlacement } from "@/types";
@@ -179,6 +180,7 @@ export function HomeSlideManager({ placement = "hero" }: { placement?: SlidePlac
     return g ? tg(`${g.key}.title`) : name;
   };
   const [slides, setSlides] = useState<HomeSlide[] | null>(null);
+  const del = useDeleteWithUndo();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -255,14 +257,18 @@ export function HomeSlideManager({ placement = "hero" }: { placement?: SlidePlac
     setBusy(false);
   }
 
-  async function handleDelete(slide: HomeSlide) {
-    if (!window.confirm(t("confirmDelete"))) return;
-    setBusy(true);
+  function handleDelete(slide: HomeSlide) {
     setError(null);
-    const res = await fetch(`/api/admin/home-slides/${slide.id}`, { method: "DELETE" });
-    if (!res.ok) setError(t("deleteFailed"));
-    await load();
-    setBusy(false);
+    void del.remove({
+      id: slide.id,
+      question: t("confirmDelete"),
+      commit: async () => {
+        const res = await fetch(`/api/admin/home-slides/${slide.id}`, { method: "DELETE", keepalive: true });
+        if (!res.ok) setError(t("deleteFailed"));
+        await load();
+        return res.ok;
+      },
+    });
   }
 
   if (slides === null) return <Loader2 className="size-5 animate-spin text-muted mx-auto my-8" aria-hidden />;
@@ -287,7 +293,7 @@ export function HomeSlideManager({ placement = "hero" }: { placement?: SlidePlac
 
       <div className="flex flex-col gap-3">
         {slides.map((slide, i) =>
-          editingId === slide.id ? (
+          del.hidden.has(slide.id) ? null : editingId === slide.id ? (
             <SlideForm key={slide.id} placement={placement} initial={slideToForm(slide)} onCancel={() => setEditingId(null)} onSave={(form) => submitForm(slide.id, form)} />
           ) : (
             <div

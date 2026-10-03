@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { usePrice } from "@/lib/use-price";
 import { effectiveState, type EffectiveState } from "@/lib/promo-status";
 import type { Promotion } from "@/types";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 
 type DiscountType = "percent" | "fixed" | "special_price";
 
@@ -186,6 +187,7 @@ function PromotionForm({
 
 export function PromotionManager() {
   const t = useTranslations("promotionManager");
+  const del = useDeleteWithUndo();
   const locale = useLocale();
   const price = usePrice();
   const [promotions, setPromotions] = useState<Promotion[] | null>(null);
@@ -227,14 +229,21 @@ export function PromotionManager() {
     load();
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     setError(null);
-    const res = await fetch(`/api/admin/promotions/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      setError(t("deleteFailed"));
-      return;
-    }
-    load();
+    void del.remove({
+      id,
+      question: t("deleteConfirm"),
+      commit: async () => {
+        const res = await fetch(`/api/admin/promotions/${id}`, { method: "DELETE", keepalive: true });
+        if (!res.ok) {
+          setError(t("deleteFailed"));
+          return false;
+        }
+        load();
+        return true;
+      },
+    });
   }
 
   async function toggleDisabled(promotion: Promotion) {
@@ -286,7 +295,7 @@ export function PromotionManager() {
 
       <div className="flex flex-col gap-3">
         {filtered.map((promotion) =>
-          editingId === promotion.id ? (
+          del.hidden.has(promotion.id) ? null : editingId === promotion.id ? (
             <PromotionForm
               key={promotion.id}
               initial={promotionToForm(promotion)}

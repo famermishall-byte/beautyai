@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePrice } from "@/lib/use-price";
 import { Link } from "@/i18n/navigation";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 import {
   IMPORT_FIELDS,
   detectFormat,
@@ -33,6 +34,7 @@ type Step = "file" | "mapping" | "preview" | "done";
 export default function ImportPage() {
   // (`t` is used as a loop variable for templates below, so the translator is named ti / tf)
   const ti = useTranslations("adminImport");
+  const del = useDeleteWithUndo();
   const tf = useTranslations("importFields");
   const price = usePrice();
   const [step, setStep] = useState<Step>("file");
@@ -167,10 +169,18 @@ export default function ImportPage() {
     }
   }
 
-  async function handleDeleteTemplate(id: string) {
-    await fetch(`/api/admin/import-templates/${id}`, { method: "DELETE" });
-    setTemplates((prev) => prev.filter((t) => t.id !== id));
-    if (selectedTemplateId === id) setSelectedTemplateId("");
+  function handleDeleteTemplate(id: string) {
+    void del.remove({
+      id,
+      question: ti("deleteTemplateConfirm"),
+      commit: async () => {
+        const res = await fetch(`/api/admin/import-templates/${id}`, { method: "DELETE", keepalive: true });
+        if (!res.ok) return false;
+        setTemplates((prev) => prev.filter((t) => t.id !== id));
+        if (selectedTemplateId === id) setSelectedTemplateId("");
+        return true;
+      },
+    });
   }
 
   async function handleImport() {
@@ -218,7 +228,7 @@ export default function ImportPage() {
             <div className="bg-card rounded-2xl border border-black/5 p-5 mb-6">
               <h2 className="font-medium mb-3">{ti("myTemplates")}</h2>
               <ul className="flex flex-col gap-2">
-                {templates.map((t) => (
+                {templates.filter((t) => !del.hidden.has(t.id)).map((t) => (
                   <li key={t.id} className="flex items-center justify-between text-sm">
                     <span>{t.name}</span>
                     <button
@@ -263,7 +273,7 @@ export default function ImportPage() {
               >
                 <option value="">{ti("notChosen")}</option>
                 {templates
-                  .filter((t) => t.sourceType === format)
+                  .filter((t) => t.sourceType === format && !del.hidden.has(t.id))
                   .map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}

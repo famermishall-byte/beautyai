@@ -8,6 +8,7 @@ import { BannerInterstitial } from "@/components/BannerInterstitial";
 import { MediaPicker } from "@/components/admin/MediaPicker";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 import { effectiveState, type EffectiveState } from "@/lib/promo-status";
 import type { Banner } from "@/types";
 
@@ -207,6 +208,7 @@ export function BannerManager() {
   const t = useTranslations("bannerManager");
   const locale = useLocale();
   const [banners, setBanners] = useState<Banner[] | null>(null);
+  const del = useDeleteWithUndo();
   const [filter, setFilter] = useState<"all" | "active" | "draft" | "expired">("all");
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -250,14 +252,21 @@ export function BannerManager() {
     load();
   }
 
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     setError(null);
-    const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      setError(t("deleteFailed"));
-      return;
-    }
-    load();
+    void del.remove({
+      id,
+      question: t("deleteConfirm"),
+      commit: async () => {
+        const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE", keepalive: true });
+        if (!res.ok) {
+          setError(t("deleteFailed"));
+          return false;
+        }
+        load();
+        return true;
+      },
+    });
   }
 
   async function toggleDisabled(banner: Banner) {
@@ -312,7 +321,7 @@ export function BannerManager() {
 
       <div className="flex flex-col gap-3">
         {filtered.map((banner) =>
-          editingId === banner.id ? (
+          del.hidden.has(banner.id) ? null : editingId === banner.id ? (
             <BannerForm
               key={banner.id}
               initial={bannerToForm(banner)}

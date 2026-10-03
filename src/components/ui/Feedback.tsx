@@ -158,6 +158,42 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * «Важное» удаление (решение владельца 03.10): вопрос → запись сразу исчезает с экрана → 5 секунд «Отменить» →
+ * и только потом удаление на сервере (`commit`). `hidden` — то, что сейчас спрятано в ожидании.
+ */
+export function useDeleteWithUndo() {
+  const { confirm, offerUndo } = useFeedback();
+  const t = useTranslations("common");
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
+  const show = (id: string) =>
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+
+  async function remove(options: { id: string; question: string; description?: string; commit: () => Promise<boolean> }) {
+    const { id, question, description, commit } = options;
+    if (!(await confirm({ title: question, description }))) return;
+    setHidden((prev) => new Set(prev).add(id));
+    offerUndo({
+      message: t("deleted"),
+      onUndo: () => show(id),
+      onExpire: async () => {
+        try {
+          await commit();
+        } finally {
+          // сервер не удалил — запись возвращается на экран; удалил — её уже нет в перечитанном списке
+          show(id);
+        }
+      },
+    });
+  }
+
+  return { hidden, remove };
+}
+
 export function useFeedback() {
   const context = useContext(FeedbackContext);
   if (!context) throw new Error("useFeedback должен использоваться внутри FeedbackProvider");

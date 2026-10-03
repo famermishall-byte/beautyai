@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AdminPage } from "@/components/admin/AdminPage";
 import type { Branch } from "@/types";
+import { useDeleteWithUndo } from "@/components/ui/Feedback";
 
 type Person = { userId: string; email: string; displayName: string | null; role: string; branchId: string | null; branchName: string | null };
 type Notice = { kind: "ok" | "error"; text: string };
@@ -12,6 +13,7 @@ const inputClass = "w-full rounded-lg border border-black/10 bg-background px-3 
 
 export default function AdminStaffPage() {
   const t = useTranslations("adminStaff");
+  const del = useDeleteWithUndo();
   const roleLabel = (role: string) => (["owner", "admin", "branch_manager"].includes(role) ? t(`roles.${role}`) : role);
   const [staff, setStaff] = useState<Person[] | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -81,10 +83,13 @@ export default function AdminStaffPage() {
     if (ok) setEmail("");
   }
 
-  async function handleRemove(p: Person) {
-    if (!confirm(t("revokeConfirm", { email: p.email }))) return;
+  function handleRemove(p: Person) {
     setNotice(null);
-    await call({ email: p.email, role: "user", branchId: null }, t("revoked", { email: p.email }));
+    void del.remove({
+      id: p.userId,
+      question: t("revokeConfirm", { email: p.email }),
+      commit: () => call({ email: p.email, role: "user", branchId: null }, t("revoked", { email: p.email })),
+    });
   }
 
   return (
@@ -147,7 +152,7 @@ export default function AdminStaffPage() {
           <p className="text-sm text-muted">{t("nobody")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-black/5">
-            {staff.map((p) => (
+            {staff.filter((p) => !del.hidden.has(p.userId)).map((p) => (
               <li key={p.userId} className="py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">{p.displayName ? `${p.displayName} · ${p.email}` : p.email}</div>
