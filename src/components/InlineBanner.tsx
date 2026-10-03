@@ -17,6 +17,8 @@ export function InlineBanner() {
   const [loaded, setLoaded] = useState(false);
   const reserve = useReservedBlock("inline-banner", !loaded ? "loading" : slide ? "present" : "absent");
   const [inView, setInView] = useState(false);
+  // баннер близко к экрану: тогда создаём <video> (заранее, чтобы стартовал сразу), иначе — только обложка
+  const [near, setNear] = useState(false);
   const [muted, setMuted] = useState(true);
   const ref = useRef<HTMLAnchorElement>(null);
 
@@ -34,7 +36,12 @@ export function InlineBanner() {
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.5 });
     io.observe(el);
-    return () => io.disconnect();
+    const nearIo = new IntersectionObserver(([entry]) => setNear(entry.isIntersecting), { rootMargin: "0px 0px 700px 0px" });
+    nearIo.observe(el);
+    return () => {
+      io.disconnect();
+      nearIo.disconnect();
+    };
   }, [slide]);
 
   // место под баннер, пока он грузится, — иначе «Популярные товары» съезжают вниз
@@ -53,6 +60,7 @@ export function InlineBanner() {
           src={slide.videoUrl!}
           poster={slide.imageUrl}
           active={inView}
+          mount={near || inView}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
           onFailed={() => {}}

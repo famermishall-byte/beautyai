@@ -116,6 +116,7 @@ export function HeroSlider({ promo, products, isNew = false }: { promo: HomeSlid
               key={`promo-${item.slide.id}`}
               slide={item.slide}
               active={i === index}
+              near={Math.abs(i - index) <= 1}
               muted={muted}
               onToggleMute={() => setMuted((m) => !m)}
               onEnded={handleVideoEnded}
@@ -170,6 +171,7 @@ export function HeroSlider({ promo, products, isNew = false }: { promo: HomeSlid
 function PromoSlide({
   slide,
   active,
+  near,
   muted,
   onToggleMute,
   onEnded,
@@ -179,6 +181,8 @@ function PromoSlide({
 }: {
   slide: HomeSlide;
   active: boolean;
+  /** Слайд текущий или соседний — только тогда создаём <video> (см. HeroVideo.mount). */
+  near: boolean;
   muted: boolean;
   onToggleMute: () => void;
   onEnded: () => void;
@@ -195,7 +199,7 @@ function PromoSlide({
   return (
     <Link href={href} className="relative shrink-0 w-full snap-center aspect-[16/11] bg-accent-soft overflow-hidden">
       {slide.mediaType === "video" && slide.videoUrl ? (
-        <HeroVideo src={slide.videoUrl} poster={slide.imageUrl} active={active} muted={muted} onToggleMute={onToggleMute} onEnded={onEnded} onFailed={onFailed} />
+        <HeroVideo src={slide.videoUrl} poster={slide.imageUrl} active={active} mount={near} muted={muted} onToggleMute={onToggleMute} onEnded={onEnded} onFailed={onFailed} />
       ) : slide.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={slide.imageUrl} alt={slide.title ?? ""} className="absolute inset-0 w-full h-full object-cover" />

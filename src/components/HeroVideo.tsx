@@ -14,6 +14,7 @@ export function HeroVideo({
   onEnded,
   onFailed,
   loop = false,
+  mount = true,
 }: {
   src: string;
   poster: string | null;
@@ -25,6 +26,8 @@ export function HeroVideo({
   onFailed: () => void;
   /** Зацикленный ролик (инлайн-баннер); у слайдера false — иначе нет события ended. */
   loop?: boolean;
+  /** Создавать <video> только когда он нужен: iPhone в режиме «Домой» не тянет несколько роликов сразу (видео зависает на нуле). Иначе — обложка. */
+  mount?: boolean;
 }) {
   const t = useTranslations("home");
   const ref = useRef<HTMLVideoElement>(null);
@@ -50,7 +53,7 @@ export function HeroVideo({
       v.removeEventListener("error", onErr);
       clearInterval(timer);
     };
-  }, []);
+  }, [mount]);
 
   // AbortError — play() прерван нашим же pause() при перелистывании, это не поломка.
   function reportIfFailed(err: unknown) {
@@ -62,37 +65,53 @@ export function HeroVideo({
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (active) {
-      // Автоплей может быть запрещён (iOS энергосбережение) — остаётся постер, слайдер листает по таймеру.
-      setDbg((d) => [...d.slice(-7), `play() вызван active, muted=${v.muted}`]);
-      v.play().then(
-        () => setDbg((d) => [...d.slice(-7), "play() OK"]),
-        (e: unknown) => {
-          setDbg((d) => [...d.slice(-7), `play() ОТКАЗ ${e instanceof DOMException ? e.name : String(e)}`.slice(0, 80)]);
-          onPlayRejected(e);
-        },
-      );
-    } else {
+    if (!active) {
       v.pause();
       v.currentTime = 0;
+      return;
     }
-  }, [active]);
+    // Автоплей может быть запрещён — остаётся постер, слайдер листает по таймеру.
+    setDbg((d) => [...d.slice(-7), `play() вызван active, muted=${v.muted}`]);
+    v.play().then(
+      () => setDbg((d) => [...d.slice(-7), "play() OK"]),
+      (e: unknown) => {
+        setDbg((d) => [...d.slice(-7), `play() ОТКАЗ ${e instanceof DOMException ? e.name : String(e)}`.slice(0, 80)]);
+        onPlayRejected(e);
+      },
+    );
+    // Страховка для iPhone в режиме «Домой»: ролик «играет», а время стоит на нуле (не хватило видеодекодера) — перезапускаем.
+    const watchdog = setTimeout(() => {
+      if (!v.paused && v.currentTime < 0.05) {
+        setDbg((d) => [...d.slice(-7), "WATCHDOG: время 0, перезапуск"]);
+        v.load();
+        v.play().catch(onPlayRejected);
+      }
+    }, 2500);
+    return () => clearTimeout(watchdog);
+  }, [active, mount]);
 
   return (
     <>
-      <video
-        ref={ref}
-        src={src}
-        poster={poster ?? undefined}
-        muted={muted}
-        playsInline
-        loop={loop}
-        // ролики сжаты до 0,4–0,6 МБ, поэтому грузим заранее: слайд стартует сразу (с "none" задержка 0,4–1,3 с и больше)
-        preload="auto"
-        onEnded={onEnded}
-        onError={onFailed}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {mount ? (
+        <video
+          ref={ref}
+          src={src}
+          poster={poster ?? undefined}
+          muted={muted}
+          playsInline
+          loop={loop}
+          // ролики сжаты до 0,4–0,6 МБ, поэтому грузим заранее: слайд стартует сразу (с "none" задержка 0,4–1,3 с и больше)
+          preload="auto"
+          onEnded={onEnded}
+          onError={onFailed}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        poster && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )
+      )}
       <div className="absolute left-1 top-1 z-20 max-w-[92%] rounded bg-black/75 p-1 font-mono text-[9px] leading-tight text-white pointer-events-none">
         {dbg.map((l, i) => (
           <div key={i}>{l}</div>
