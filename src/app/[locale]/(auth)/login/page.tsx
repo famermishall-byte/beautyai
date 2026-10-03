@@ -9,6 +9,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "@/i18n/navigation";
 import { safeNextPath } from "@/lib/safe-next";
+import { setSessionOnly } from "@/lib/session-only";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -60,6 +61,8 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // «Чужое устройство — не запоминать вход»: по умолчанию вход запоминается (lib/session-only.ts)
+  const [sessionOnly, setSessionOnlyChoice] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
@@ -109,6 +112,7 @@ export default function LoginPage() {
         setError(translateAuthError(t, signInError.message, "login"));
         return;
       }
+      setSessionOnly(sessionOnly);
       router.push(afterLoginPath());
       router.refresh();
     } finally {
@@ -145,6 +149,7 @@ export default function LoginPage() {
       }
 
       if (data.session) {
+        setSessionOnly(sessionOnly);
         clearStaleCart();
         markJustRegistered();
         router.push("/");
@@ -269,6 +274,18 @@ export default function LoginPage() {
             onChange={setPassword}
             autoComplete="current-password"
           />
+          <label className="flex items-start gap-2.5 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={sessionOnly}
+              onChange={(e) => setSessionOnlyChoice(e.target.checked)}
+              className="mt-0.5 size-5 shrink-0 accent-[var(--accent)]"
+            />
+            <span>
+              {t("sessionOnly")}
+              {sessionOnly && <span className="block text-xs text-muted mt-0.5">{t("sessionOnlyHint")}</span>}
+            </span>
+          </label>
           <button
             type="submit"
             disabled={submitting}
@@ -359,6 +376,18 @@ export default function LoginPage() {
             onChange={setConfirmPassword}
             autoComplete="new-password"
           />
+          <label className="flex items-start gap-2.5 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={sessionOnly}
+              onChange={(e) => setSessionOnlyChoice(e.target.checked)}
+              className="mt-0.5 size-5 shrink-0 accent-[var(--accent)]"
+            />
+            <span>
+              {t("sessionOnly")}
+              {sessionOnly && <span className="block text-xs text-muted mt-0.5">{t("sessionOnlyHint")}</span>}
+            </span>
+          </label>
           <button
             type="submit"
             disabled={submitting}

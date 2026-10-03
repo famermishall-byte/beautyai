@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { disablePush } from "@/lib/push";
+import { clearSessionOnly, sessionOnlyExpired } from "@/lib/session-only";
 
 export type Session = {
   email: string | null;
@@ -59,6 +60,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // Fetching the session on mount (a genuine "synchronize with an external
     // system" effect, per https://react.dev/learn/synchronizing-with-effects)
     // — not a derived-state case, so there's no render-time equivalent here.
+    // Временный вход с чужого устройства, а вкладку уже закрывали — выходим из аккаунта (lib/session-only.ts).
+    if (sessionOnlyExpired()) {
+      signOut().finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSession().finally(() => {
       if (!cancelled) setLoading(false);
@@ -67,6 +78,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
+    // Только при первом показе: signOut и loadSession не должны перезапускать загрузку сессии.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function refresh() {
@@ -78,6 +91,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // Уведомления этого аккаунта больше не должны приходить на этот телефон (lib/push.ts).
     await disablePush();
     await supabase.auth.signOut();
+    clearSessionOnly();
     setSession(null);
     router.push("/login");
     router.refresh();
