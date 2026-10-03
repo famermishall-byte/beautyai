@@ -237,7 +237,7 @@ export default function LoginPage() {
             key={tab}
             onClick={() => switchMode(tab)}
             className={[
-              "flex-1 rounded-full py-2 text-sm font-medium transition",
+              "flex-auto rounded-full px-1.5 py-2 text-xs font-medium transition min-[340px]:whitespace-nowrap min-[380px]:px-2 min-[380px]:text-[13px]",
               mode === tab ? "bg-white shadow-sm text-foreground" : "text-muted hover:text-foreground",
             ].join(" ")}
           >
