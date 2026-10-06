@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
+import { LIMITS } from "@/lib/limits";
+
+// Сколько позиций из старой корзины переносим за раз (в нормальной корзине их единицы).
+const MAX_MERGE_ITEMS = 200;
 
 // Одноразовый перенос старой корзины из localStorage телефона в аккаунт: количества складываются
 // с тем, что уже лежит в корзине аккаунта; товары чужого магазина / удалённые — пропускаются.
@@ -12,7 +16,7 @@ export async function POST(request: NextRequest) {
   const incoming: { productId: string; quantity: number }[] = (Array.isArray(body.items) ? body.items : []).filter(
     (i: { productId?: unknown; quantity?: unknown }) =>
       typeof i?.productId === "string" && typeof i?.quantity === "number" && Number.isInteger(i.quantity) && i.quantity > 0
-  );
+  ).slice(0, MAX_MERGE_ITEMS);
   if (incoming.length === 0) return NextResponse.json({ ok: true });
 
   const supabase = await createServerSupabaseClient();
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
     .map((i) => ({
       user_id: profile.userId,
       product_id: i.productId,
-      quantity: (existingQty.get(i.productId) ?? 0) + i.quantity,
+      quantity: Math.min(LIMITS.maxQuantity, (existingQty.get(i.productId) ?? 0) + i.quantity),
       updated_at: new Date().toISOString(),
     }));
   if (rows.length === 0) return NextResponse.json({ ok: true });

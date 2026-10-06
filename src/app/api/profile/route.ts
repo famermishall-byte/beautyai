@@ -4,6 +4,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { SKIN_TYPES, SKIN_CONCERNS } from "@/lib/skincare";
 import { HAIR_TYPES, HAIR_CONCERNS } from "@/lib/haircare";
 import { SUPABASE_URL } from "@/lib/supabase/config";
+import { LIMITS, asText, textLimitError } from "@/lib/limits";
 
 const VALID_SKIN_TYPES = new Set<string>(SKIN_TYPES.map((t) => t.value));
 const VALID_CONCERNS = new Set<string>(SKIN_CONCERNS.map((c) => c.value));
@@ -24,11 +25,13 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const update: Record<string, unknown> = {};
 
   if ("displayName" in body) {
-    const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
+    const displayName = asText(body.displayName);
+    const tooLong = textLimitError("Имя", displayName, LIMITS.displayName);
+    if (tooLong) return NextResponse.json({ error: tooLong }, { status: 400 });
     update.display_name = displayName || null;
   }
 
