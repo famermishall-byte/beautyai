@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
 
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { title, productId, discountType, discountValue, showOldPrice, startAt, endAt, status } = body;
 
   if (!title || !productId || !discountType || !startAt || !endAt) {

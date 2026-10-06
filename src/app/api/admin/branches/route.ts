@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { name, city, address, phone, whatsapp, hours } = body;
   const latitude = parseCoordinate(body.latitude, 90);
   const longitude = parseCoordinate(body.longitude, 180);

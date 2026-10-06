@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const status: string = body.status;
 
   if (!status || !isOrderStatus(status)) {

@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const status = body.status === "resolved" || body.status === "ignored" ? body.status : null;
   if (!status) {
     return NextResponse.json({ error: "Некорректный статус." }, { status: 400 });
