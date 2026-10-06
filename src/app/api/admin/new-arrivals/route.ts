@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest) {
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const productIds: unknown = body.productIds;
   if (!Array.isArray(productIds) || !productIds.every((id) => typeof id === "string")) {
     return NextResponse.json({ error: "Некорректный список товаров." }, { status: 400 });

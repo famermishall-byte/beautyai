@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const name: string = (body.name ?? "").trim();
 
   if (!name) {

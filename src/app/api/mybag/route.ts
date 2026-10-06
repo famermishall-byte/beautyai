@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const productId = body.productId;
   if (typeof productId !== "string" || !productId) {
     return NextResponse.json({ error: "Не указан товар." }, { status: 400 });

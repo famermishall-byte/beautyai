@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const sourceType = typeof body.sourceType === "string" ? body.sourceType : "xlsx";
   const columnMapping = body.columnMapping;

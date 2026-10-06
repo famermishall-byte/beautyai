@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   if (!isStoreManager(profile.role)) return NextResponse.json({ error: "Доступ запрещён." }, { status: 403 });
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { title, productId, discountType, discountValue, showOldPrice, startAt, endAt, status } = body;
 
   if (!title || !productId || !discountType || !startAt || !endAt) {

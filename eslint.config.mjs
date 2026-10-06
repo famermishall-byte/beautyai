@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Не наш исходный код: рабочие копии веток, нативные проекты Capacitor, служебные скрипты и копии скриншотов.
+    ".claude/**",
+    "android/**",
+    "ios/**",
+    ".playwright-mcp/**",
+    "scripts/**",
   ]),
 ]);
 
