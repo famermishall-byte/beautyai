@@ -40,7 +40,7 @@
 2. **Vercel** — новый проект из того же репозитория (или копии), переменные окружения: `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
    `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`; регион `fra1` в `vercel.json`.
 3. **Почта** — свой аккаунт Brevo, адрес отправителя клиента, SMTP в Supabase; в «Confirm signup» вставить письмо со ссылкой
-   `{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=email`; Site URL и Redirect URLs — адрес нового сайта.
+   `{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=email`, а в Reset Password — тот же адрес с `&type=recovery` (тексты — docs/EMAIL-TEMPLATES.md); Site URL и Redirect URLs — адрес нового сайта.
 4. **Уведомления в браузере** — новые ключи VAPID (публичный в `src/lib/push.ts`, закрытый в секретах функции `send-push` и в Vault).
 5. **Домен** — подключить в Vercel; обновить Site URL, `capacitor.config.ts`, `send-push`. Со своим доменом письма реже попадают в спам.
 6. **Данные в базе** — название магазина, филиалы, слайды и баннеры главной, настройки опта; роль владельца выдать клиенту (`profiles.role`).

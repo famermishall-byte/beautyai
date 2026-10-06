@@ -21,12 +21,17 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
-    // The recovery link from the email establishes a temporary session via
-    // the URL fragment — the browser client picks it up automatically.
-    supabase.auth.getSession().then(({ data }) => {
-      setHasValidSession(!!data.session);
-      setReady(true);
-    });
+    // Основная ссылка из письма — /api/auth/confirm?type=recovery: сервер уже проверил её и вошёл (cookie), здесь
+    // остаётся прочитать сессию. Запасные пути для старых писем: ссылка с `?code=` (работает только в том же
+    // браузере, где нажимали «Забыли пароль») и токены во фрагменте адреса (клиент подхватывает их сам).
+    const code = new URLSearchParams(window.location.search).get("code");
+    const prepare = code ? supabase.auth.exchangeCodeForSession(code).catch(() => null) : Promise.resolve(null);
+    prepare
+      .then(() => supabase.auth.getSession())
+      .then(({ data }) => {
+        setHasValidSession(!!data.session);
+        setReady(true);
+      });
   }, []);
 
   async function handleSubmit(e: FormEvent) {
