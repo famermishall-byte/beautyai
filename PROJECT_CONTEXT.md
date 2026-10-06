@@ -2317,3 +2317,5 @@ X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWho
 **06.10 — проблема №1 ВЫЛОЖЕНА (main = bfd804f + SQL):** `supabase/order_tokens_private.sql` ПРИМЕНЁН на боевой базе после выкладки кода. Проверено: у anon/authenticated нет чтения status_token/courier_token, остальные колонки читаются. Для превью-сборок добавлена переменная SUPABASE_SERVICE_ROLE_KEY (Preview) в Vercel — без неё заказ на превью не оформляется. Откат при проблемах: `grant select on public.orders to authenticated;`. Следующая проблема аудита: №2 — обновить Next.js 16.3.5 → 16.3.8.
 
 **06.10 — проблема №2 аудита (ветка update-next):** Next.js и eslint-config-next 16.3.5 → 16.3.8 (закрывает RCE в next/og, которым мы не пользуемся). tsc/eslint/110 тестов/build чистые.
+
+**06.10 — проблема №3 аудита (ветка update-xlsx):** xlsx 0.18.5 (npm, с уязвимостями prototype pollution/ReDoS) → официальная 0.20.3 с cdn.sheetjs.com (ссылка в package.json). Код импорта не менялся; тесты `src/lib/import/formats.test.ts` (xlsx, csv, пустой файл, __proto__). Сборка на Vercel качает пакет с cdn.sheetjs.com.
