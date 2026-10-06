@@ -131,7 +131,9 @@ export async function POST(request: NextRequest) {
     const whatsappUrl = buildWhatsAppUrl(branch.whatsapp, message);
 
     return NextResponse.json({ ok: true, orderId: order.id, orderNumber, whatsappUrl });
-  } catch {
+  } catch (error) {
+    // В лог Vercel — чтобы причину отказа было видно (раньше ошибка глоталась без следа).
+    console.error("POST /api/orders failed", error);
     return NextResponse.json({ error: "Не удалось оформить заказ — база данных недоступна." }, { status: 500 });
   }
 }
