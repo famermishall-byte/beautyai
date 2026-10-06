@@ -14,6 +14,7 @@ import { FirstRunFlow } from "@/components/FirstRunFlow";
 import { PushSync } from "@/components/PushSync";
 import { FeedbackProvider } from "@/components/ui/Feedback";
 import { IosStandaloneShell } from "@/components/IosStandaloneShell";
+import { IosPullToRefresh } from "@/components/IosPullToRefresh";
 
 export function AppProviders({
   children,
@@ -25,6 +26,7 @@ export function AppProviders({
   return (
     <SessionProvider>
       <IosStandaloneShell />
+      <IosPullToRefresh />
       <FeedbackProvider>
       <CartProvider>
         <MyBagProvider>
