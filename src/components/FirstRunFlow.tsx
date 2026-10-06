@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Bell, Tag, Package, Sparkles, MapPin, Store, Navigation } from "lucide-react";
 import { useSession } from "@/lib/session-context";
 import { consumeJustRegistered } from "@/lib/session-flags";
+import { isNewAccount } from "@/lib/new-account";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import {
   notifDecided,
   geoDecided,
@@ -28,13 +30,25 @@ export function FirstRunFlow() {
     // Starts hidden on server and first client render, then decides after
     // mount (localStorage/Notification don't exist during SSR). Deferred via
     // a resolved microtask — same pattern as NavHeader.tsx.
-    Promise.resolve().then(() => {
+    Promise.resolve().then(async () => {
       // Раньше это всплывало при КАЖДОМ входе, пока уведомления/геолокация не были решены —
       // включая обычный логин уже существующего аккаунта и переход владельца/менеджера из
-      // админки в витрину (там isAdmin=false, см. session-context.tsx). Теперь — ровно один
-      // раз, сразу после регистрации (флаг ставит login/page.tsx). Повторно включить/выключить
-      // уведомления и геолокацию позже можно в /profile — NotificationGeoSettings.tsx.
-      if (!consumeJustRegistered()) return;
+      // админки в витрину (там isAdmin=false, см. session-context.tsx). Теперь — только для НОВОГО
+      // аккаунта (создан меньше 2 суток назад; lib/new-account.ts) и один раз на устройство: ответ
+      // запоминается (permissions.ts). Признак «только что зарегистрировался в этом же браузере» один не годится:
+      // с подтверждением почты письмо открывают в другом браузере, и вопросы пропадали (07.10). Повторно
+      // включить/выключить уведомления и геолокацию позже можно в /profile — NotificationGeoSettings.tsx.
+      const justRegistered = consumeJustRegistered();
+      if (!justRegistered) {
+        let createdAt: string | null = null;
+        try {
+          const { data } = await createBrowserSupabaseClient().auth.getUser();
+          createdAt = data.user?.created_at ?? null;
+        } catch {
+          return;
+        }
+        if (!isNewAccount(createdAt)) return;
+      }
       setStep(!notifDecided() ? "notif" : !geoDecided() ? "geo" : null);
     });
   }, [loading, session, isAdmin]);
