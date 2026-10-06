@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { mapOrder } from "@/lib/supabase";
+import { mapOrder, ORDER_SELECT } from "@/lib/supabase";
 import { getSessionProfile, isStaff } from "@/lib/auth";
 import { isOrderStatus } from "@/lib/orderStatus";
 import { applyQuantities, orderTotal, validQuantities } from "@/lib/orderEdit";
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       if (!profile.branchId) return NextResponse.json({ error: "Вам пока не назначен филиал." }, { status: 403 });
       update = update.eq("branch_id", profile.branchId);
     }
-    const { data: order, error } = await update.select("*, branches(*)").single();
+    const { data: order, error } = await update.select(ORDER_SELECT).single();
 
     if (error) throw error;
 
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   try {
     const supabase = await createServerSupabaseClient();
-    let read = supabase.from("orders").select("*, branches(*)").eq("id", id).eq("store_id", profile.storeId);
+    let read = supabase.from("orders").select(ORDER_SELECT).eq("id", id).eq("store_id", profile.storeId);
     if (profile.role === "branch_manager") {
       if (!profile.branchId) return NextResponse.json({ error: "Вам пока не назначен филиал." }, { status: 403 });
       read = read.eq("branch_id", profile.branchId);
@@ -106,7 +106,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       })
       .eq("id", id)
       .eq("store_id", profile.storeId)
-      .select("*, branches(*)")
+      .select(ORDER_SELECT)
       .single();
     if (error) {
       return NextResponse.json({ error: "Не удалось изменить заказ. Возможно, владельцу нужно запустить SQL «order_edit» в Supabase." }, { status: 500 });

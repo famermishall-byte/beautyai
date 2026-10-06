@@ -62,7 +62,20 @@ export function mapFeedback(
   };
 }
 
-export function mapOrder(row: Record<string, unknown> & { branches?: Record<string, unknown> }) {
+/**
+ * Колонки заказа, которые видны сессии пользователя (покупателю, сотрудникам). Секретные ссылки заказа —
+ * `status_token` (продавец) и `courier_token` (курьер) — сюда НЕ входят: в базе на них отозвано право чтения
+ * (supabase/order_tokens_private.sql), иначе покупатель мог бы сам вызвать функции продавца/курьера и отметить свой
+ * заказ оплаченным. Поэтому `select("*")` по заказам не использовать. Новая колонка в `orders` = добавить сюда
+ * И в GRANT SELECT в SQL.
+ */
+// Одной литеральной строкой (а не .join): клиент Supabase разбирает тип ответа по тексту запроса.
+export const ORDER_COLUMNS =
+  "id, store_id, user_id, branch_id, number, legacy_number, status, total_price, original_total, is_wholesale, customer_name, customer_phone, items_json, created_at, paid_at, shipped_at, delivered_at, status_source, status_changed_at, edited_at, edited_by, stock_reserved, delivery_method, delivery_address, delivery_time, courier_phone" as const;
+/** Заказ вместе с филиалом — вместо `select("*, branches(*)")`. */
+export const ORDER_SELECT = `${ORDER_COLUMNS}, branches(*)` as const;
+
+export function mapOrder(row: Record<string, unknown>) {
   return {
     id: row.id as string,
     number: row.number as string,
@@ -76,7 +89,7 @@ export function mapOrder(row: Record<string, unknown> & { branches?: Record<stri
     paidAt: (row.paid_at as string | null | undefined) ?? null,
     statusSource: (row.status_source as string | null | undefined) ?? null,
     statusChangedAt: (row.status_changed_at as string | null | undefined) ?? null,
-    branch: row.branches ? mapBranch(row.branches) : null,
+    branch: row.branches ? mapBranch(row.branches as Record<string, unknown>) : null,
     originalTotal: (row.original_total as number | null | undefined) ?? null,
     editedAt: (row.edited_at as string | null | undefined) ?? null,
     editedBy: (row.edited_by as string | null | undefined) ?? null,

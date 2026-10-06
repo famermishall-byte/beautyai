@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
-import { mapOrder } from "@/lib/supabase";
+import { mapOrder, ORDER_SELECT } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
 import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { loadCart } from "@/lib/cart-server";
@@ -146,7 +146,7 @@ export async function GET() {
     const supabase = await createServerSupabaseClient();
     const { data: orders, error } = await supabase
       .from("orders")
-      .select("*, branches(*)")
+      .select(ORDER_SELECT)
       .eq("user_id", profile.userId)
       .order("created_at", { ascending: false });
 

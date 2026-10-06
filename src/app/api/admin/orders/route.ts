@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { mapOrder } from "@/lib/supabase";
+import { mapOrder, ORDER_SELECT } from "@/lib/supabase";
 import { getSessionProfile, isStaff } from "@/lib/auth";
 import { availableForOrder } from "@/lib/stock-reserve";
 
@@ -50,7 +50,7 @@ export async function GET() {
 
   try {
     const supabase = await createServerSupabaseClient();
-    let query = supabase.from("orders").select("*, branches(*)").eq("store_id", profile.storeId).order("created_at", { ascending: false });
+    let query = supabase.from("orders").select(ORDER_SELECT).eq("store_id", profile.storeId).order("created_at", { ascending: false });
     if (profile.role === "branch_manager") {
       // Only the orders of their own branch (RLS enforces the same on the database side).
       if (!profile.branchId) return NextResponse.json({ orders: [], error: "Вам пока не назначен филиал." }, { status: 403 });

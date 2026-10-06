@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import { getSessionProfile } from "@/lib/auth";
 import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import { loadCart } from "@/lib/cart-server";
@@ -26,9 +27,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
     const since = new Date(Date.now() - WINDOW_MINUTES * 60_000).toISOString();
-    const { data: rows, error } = await supabase
+    // Ссылка продавца (`status_token`) нужна для сообщения в WhatsApp, а сессии покупателя читать её нельзя
+    // (supabase/order_tokens_private.sql) — читает сервер сервисным ключом, строго по заказам этого же покупателя
+    // (`user_id` ниже). Без ключа восстанавливать заказ нечем (его же и оформление заказа требует).
+    const service = createServiceSupabaseClient();
+    if (!service) return NextResponse.json({ order: null });
+    const { data: rows, error } = await service
       .from("orders")
       .select("*, branches(*)")
       .eq("user_id", profile.userId)
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
         ? { method: "delivery", address: row.delivery_address ?? null, time: row.delivery_time ?? null, courierPhone: row.courier_phone ?? null }
         : { method: "pickup", address: null, time: null, courierPhone: null };
     // Порог опта в сообщении — тот же, что считает корзина (supabase/wholesale.sql).
-    const threshold = row.is_wholesale ? (await loadCart(supabase, profile.userId, profile.storeId)).threshold : null;
+    const threshold = row.is_wholesale ? (await loadCart(await createServerSupabaseClient(), profile.userId, profile.storeId)).threshold : null;
 
     const message = buildOrderMessage({
       orderNumber: row.number as string,
