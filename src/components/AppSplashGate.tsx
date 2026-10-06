@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Image from "next/image";
+import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { useSession } from "@/lib/session-context";
 import { SPLASH_COOKIE } from "@/lib/splash-cookie";
 
@@ -16,7 +16,7 @@ import { SPLASH_COOKIE } from "@/lib/splash-cookie";
 // компьютере, заставка успевала мелькнуть даже на обычном обновлении, пока клиентский эффект её
 // не спрятал (жалоба владельца, 24.09: «раньше не выходил, а сейчас выходит»). Раз решение готово
 // уже в SSR-разметке, скрывать нечего — её просто не рисует ни один рендер.
-const MIN_SPLASH_MS = 1200;
+const MIN_SPLASH_MS = 2600;
 
 export function AppSplashGate({
   children,
@@ -53,14 +53,7 @@ export function AppSplashGate({
           showSplash ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        <Image
-          src="/brand/splash.webp"
-          alt=""
-          width={832}
-          height={1248}
-          priority
-          className="intro-logo h-auto max-h-[80dvh] w-auto max-w-[78vw] object-contain"
-        />
+        <AnimatedLogo />
       </div>
       <div className={showSplash ? "invisible" : "visible"}>{children}</div>
     </>

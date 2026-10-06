@@ -31,9 +31,6 @@ for (const { size, out } of icons) {
   console.log("wrote", out, `${size}x${size}`);
 }
 
-// Whole logo for the in-app splash (AppSplashGate). Webp keeps it light for a screen shown on every app open.
-await sharp(SRC).resize({ width: 832 }).webp({ quality: 88 }).toFile("public/brand/splash.webp");
-console.log("wrote public/brand/splash.webp");
 
 // Capacitor native splash: logo centered on the same pink, generous margin around it.
 const SPLASH = 2732;
