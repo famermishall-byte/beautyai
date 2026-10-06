@@ -2307,3 +2307,5 @@ X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWho
   без журнала. Если нет — искать дальше (например, `preload="metadata"`, один ролик за раз, отдельное обновление экрана).
 
 **05.10 (или позже) — обновление свайпом (ветка ios-pull-refresh, СЛИТА в main и выложена):** в приложении с иконки «Домой» на iPhone нет встроенного pull-to-refresh, поэтому `IosPullToRefresh.tsx` делает жест сам (только `navigator.standalone`). Проверено владельцем на тестовой иконке. Видео на главной в приложении «Домой» — владелец сообщила, что грузится хорошо.
+
+**06.10 — новый логотип и название (ветка new-logo):** иконка = эмблема из присланной картинки, заставка = весь логотип (`design/logo-drafts/1-new-logo.jpg`, `scripts/build-brand-assets.mjs`); название «Магазин Косметики и не только» в messages/manifest/sw.js (в БД stores.name уже такое). Не обновлены: android/ios (capacitor-assets) и capacitor.config appName «Beauty» — до публикации в сторах.

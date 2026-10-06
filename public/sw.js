@@ -9,10 +9,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "ОПТОВЫЕ ЦЕНЫ 01", body: event.data ? event.data.text() : "" };
+    data = { title: "Магазин Косметики и не только", body: event.data ? event.data.text() : "" };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || "ОПТОВЫЕ ЦЕНЫ 01", {
+    self.registration.showNotification(data.title || "Магазин Косметики и не только", {
       body: data.body || "",
       icon: "/icon-512.png",
       tag: data.tag,
