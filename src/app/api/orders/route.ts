@@ -8,6 +8,8 @@ import { loadCart } from "@/lib/cart-server";
 import { orderLinesFromCart } from "@/lib/cart-logic";
 import { applyWholesale } from "@/lib/wholesale";
 import { parseDeliveryInput } from "@/lib/delivery";
+import { LIMITS, asText, orderRateError, textLimitError } from "@/lib/limits";
+import { OPEN_ORDER_STATUSES } from "@/lib/stock-reserve";
 
 // Товары заказа берутся НЕ из запроса, а из корзины аккаунта (только отмеченные галочкой), с ценами
 // из каталога и акциями — см. loadCart(). Заказанные строки потом удаляются из корзины; неотмеченные
@@ -19,13 +21,16 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const branchId: string = body.branchId;
-  const customerName: string = (body.customerName ?? "").trim();
-  const customerPhone: string = (body.customerPhone ?? "").trim();
+  const branchId = asText(body.branchId);
+  const customerName = asText(body.customerName);
+  const customerPhone = asText(body.customerPhone);
 
   if (!branchId || !customerName || !customerPhone) {
     return NextResponse.json({ error: "Не хватает данных для оформления заказа." }, { status: 400 });
   }
+  const tooLong =
+    textLimitError("Имя", customerName, LIMITS.customerName) ?? textLimitError("Телефон", customerPhone, LIMITS.customerPhone);
+  if (tooLong) return NextResponse.json({ error: tooLong }, { status: 400 });
   // Самовывоз или доставка (адрес обязателен) — lib/delivery.ts, supabase/order_delivery.sql.
   const parsedDelivery = parseDeliveryInput(body);
   if (!parsedDelivery.ok) {
@@ -35,6 +40,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = await createServerSupabaseClient();
+
+    // Защита от потока заказов: каждый заказ сразу резервирует остаток (supabase/stock_reserve.sql).
+    const hourAgo = new Date(Date.now() - 60 * 60_000).toISOString();
+    const [{ count: lastHour }, { count: open }] = await Promise.all([
+      supabase.from("orders").select("id", { count: "exact", head: true }).eq("user_id", profile.userId).gte("created_at", hourAgo),
+      supabase.from("orders").select("id", { count: "exact", head: true }).eq("user_id", profile.userId).in("status", [...OPEN_ORDER_STATUSES]),
+    ]);
+    const rateError = orderRateError({ lastHour: lastHour ?? 0, open: open ?? 0 });
+    if (rateError) return NextResponse.json({ error: rateError }, { status: 429 });
 
     const cart = await loadCart(supabase, profile.userId, profile.storeId, { selectedOnly: true });
     // От порога — оптовые цены (supabase/wholesale.sql, lib/wholesale.ts); ниже — обычные.

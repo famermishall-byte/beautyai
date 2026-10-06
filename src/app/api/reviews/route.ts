@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { mapProductReview } from "@/lib/supabase";
 import { getSessionProfile } from "@/lib/auth";
+import { LIMITS, asText, textLimitError } from "@/lib/limits";
 
 export async function GET(request: NextRequest) {
   const profile = await getSessionProfile();
@@ -59,15 +60,17 @@ export async function POST(request: NextRequest) {
   const profile = await getSessionProfile();
   if (!profile) return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
 
-  const body = await request.json();
-  const productId: string | undefined = body.productId;
+  const body = await request.json().catch(() => ({}));
+  const productId = asText(body.productId) || undefined;
   const rating = Number(body.rating);
-  const comment: string = (body.comment ?? "").trim();
+  const comment = asText(body.comment);
 
   if (!productId) return NextResponse.json({ error: "Не указан товар." }, { status: 400 });
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return NextResponse.json({ error: "Оценка должна быть от 1 до 5 звёзд." }, { status: 400 });
   }
+  const tooLong = textLimitError("Комментарий", comment, LIMITS.reviewComment);
+  if (tooLong) return NextResponse.json({ error: tooLong }, { status: 400 });
 
   try {
     const supabase = await createServerSupabaseClient();

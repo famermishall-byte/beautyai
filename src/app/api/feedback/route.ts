@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
 import { normalizeContactPhone } from "@/lib/feedback";
+import { LIMITS, asText, feedbackRateError, textLimitError } from "@/lib/limits";
 
 // Подсказка для поля «Телефон для связи»: номер из последнего заказа клиента (клиент может его поменять).
 export async function GET() {
@@ -31,9 +32,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Не авторизовано." }, { status: 401 });
   }
 
-  const body = await request.json();
-  const message: string = (body.message ?? "").trim();
-  const branchId: string | undefined = body.branchId;
+  const body = await request.json().catch(() => ({}));
+  const message = asText(body.message);
+  const branchId = asText(body.branchId) || undefined;
   const phone = normalizeContactPhone(body.phone);
 
   if (!message) {
@@ -42,9 +43,19 @@ export async function POST(request: NextRequest) {
   if (!phone) {
     return NextResponse.json({ error: "Укажите телефон для связи." }, { status: 400 });
   }
+  const tooLong = textLimitError("Сообщение", message, LIMITS.feedbackMessage);
+  if (tooLong) return NextResponse.json({ error: tooLong }, { status: 400 });
 
   try {
     const supabase = await createServerSupabaseClient();
+
+    const { count: lastHour } = await supabase
+      .from("feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", profile.userId)
+      .gte("created_at", new Date(Date.now() - 60 * 60_000).toISOString());
+    const rateError = feedbackRateError(lastHour ?? 0);
+    if (rateError) return NextResponse.json({ error: rateError }, { status: 429 });
 
     // Any branch works for the WhatsApp destination — feedback isn't tied to
     // a specific store location, we just need *a* number to send it to.

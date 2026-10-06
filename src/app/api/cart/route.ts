@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/auth";
 import { loadCart } from "@/lib/cart-server";
+import { quantityError } from "@/lib/limits";
 
 // Корзина за аккаунтом — тот же подход, что /api/mybag: RLS пускает только к своим строкам,
 // user_id всегда из сессии.
@@ -28,6 +29,9 @@ export async function PUT(request: NextRequest) {
   if (typeof productId !== "string" || !productId || typeof quantity !== "number" || !Number.isInteger(quantity)) {
     return NextResponse.json({ error: "Неверные данные корзины." }, { status: 400 });
   }
+
+  const tooMany = quantity > 0 ? quantityError(quantity) : null;
+  if (tooMany) return NextResponse.json({ error: tooMany }, { status: 400 });
 
   const supabase = await createServerSupabaseClient();
   if (quantity <= 0) {

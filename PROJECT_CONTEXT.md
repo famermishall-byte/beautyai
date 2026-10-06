@@ -2319,3 +2319,5 @@ X вместо Y» (`WholesaleProgress`, `summary.wholesaleTotal` из `applyWho
 **06.10 — проблема №2 аудита (ветка update-next):** Next.js и eslint-config-next 16.3.5 → 16.3.8 (закрывает RCE в next/og, которым мы не пользуемся). tsc/eslint/110 тестов/build чистые.
 
 **06.10 — проблема №3 аудита (ветка update-xlsx):** xlsx 0.18.5 (npm, с уязвимостями prototype pollution/ReDoS) → официальная 0.20.3 с cdn.sheetjs.com (ссылка в package.json). Код импорта не менялся; тесты `src/lib/import/formats.test.ts` (xlsx, csv, пустой файл, __proto__). Сборка на Vercel качает пакет с cdn.sheetjs.com.
+
+**06.10 — проблема №4 аудита (ветка input-limits):** `src/lib/limits.ts` — длины (имя в заказе 100, телефон 30, обратная связь 2000, комментарий отзыва 1000, имя профиля 80), количество в корзине 1..9999 (и при переносе старой корзины, не больше 200 позиций), заказов ≤5 в час и ≤10 открытых на человека (429), обратная связь ≤5 в час. Подключено в api/orders, feedback, reviews, profile, cart, cart/merge; тесты limits.test.ts. Оптовый порог (сумма заказа) лимитами не затронут. Базу не менял.
