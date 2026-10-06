@@ -1,0 +1,29 @@
+# Шаблоны писем Supabase (Authentication → Email Templates)
+
+Ссылки в письмах ведут на наш сервер (`/api/auth/confirm`), поэтому работают в любом браузере и приложении, а не только
+в том, где человек регистрировался или нажимал «Забыли пароль». Меняются в панели Supabase вручную:
+https://supabase.com/dashboard/project/nufmsvwkixnfjvzdabmz/auth/templates
+
+Site URL и Redirect URLs (Authentication → URL Configuration) — адрес рабочего сайта; ссылки строятся от `{{ .SiteURL }}`.
+
+## Confirm signup (подтверждение почты)
+
+Ссылка: `{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=email`
+
+## Reset Password (восстановление пароля)
+
+Ссылка: `{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
+
+Тема: `Восстановление пароля`
+
+Тело (HTML):
+
+```html
+<h2>Восстановление пароля</h2>
+<p>Вы запросили сброс пароля. Нажмите на ссылку, чтобы задать новый пароль:</p>
+<p><a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">Задать новый пароль</a></p>
+<p>Если вы не запрашивали сброс, просто проигнорируйте это письмо — пароль останется прежним.</p>
+```
+
+Как это работает: сервер проверяет ссылку, входит в аккаунт и открывает страницу `/reset-password`, где человек вводит новый
+пароль. Ссылка одноразовая; если она устарела, страница так и скажет и предложит запросить новую.
