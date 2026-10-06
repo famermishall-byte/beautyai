@@ -323,11 +323,33 @@ body {
   }
 }
 
-/* Анимированный логотип на заставке (AnimatedLogo): эмблема въезжает с поворотом, по ней проходит блик, надписи
-   выезжают по очереди, всё слегка «дышит». Только transform/opacity — плавно и на слабых телефонах. */
-@keyframes logo-emblem {
-  from { opacity: 0; transform: scale(0.6) rotate(-14deg); }
-  to { opacity: 1; transform: scale(1) rotate(0); }
+/* Анимированный логотип на заставке (AnimatedLogo): буква M «качается» вперёд-назад, кольцо-лента и лепестки крутятся
+   вокруг неё в разные стороны и замедляются, помада поднимается с отскоком, затем блик и надписи. К ~2.7 с всё стоит
+   на своих местах. Только transform/opacity — плавно и на слабых телефонах. */
+@keyframes logo-m {
+  0% { opacity: 0; transform: perspective(900px) rotateY(-100deg) scale(0.3); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  18% { opacity: 1; transform: perspective(900px) rotateY(22deg) scale(1.32); animation-timing-function: ease-in-out; }
+  38% { transform: perspective(900px) rotateY(-14deg) scale(0.86); animation-timing-function: ease-in-out; }
+  58% { transform: perspective(900px) rotateY(9deg) scale(1.16); animation-timing-function: ease-in-out; }
+  78% { transform: perspective(900px) rotateY(-3deg) scale(0.97); animation-timing-function: ease-out; }
+  100% { opacity: 1; transform: perspective(900px) rotateY(0) scale(1); }
+}
+@keyframes logo-ring {
+  from { opacity: 0; transform: rotate(-720deg) scale(0.55); }
+  15% { opacity: 1; }
+  to { opacity: 1; transform: rotate(0) scale(1); }
+}
+@keyframes logo-petals {
+  from { opacity: 0; transform: rotate(420deg) scale(0.7); }
+  25% { opacity: 1; }
+  to { opacity: 1; transform: rotate(0) scale(1); }
+}
+@keyframes logo-lipstick {
+  0% { opacity: 0; transform: translateY(90px) rotate(-6deg); animation-timing-function: ease-out; }
+  30% { opacity: 1; }
+  62% { transform: translateY(-16px) rotate(2deg); animation-timing-function: ease-in-out; }
+  82% { transform: translateY(5px) rotate(-1deg); animation-timing-function: ease-out; }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
 }
 @keyframes logo-line {
   from { opacity: 0; transform: translateY(22px); }
@@ -343,28 +365,31 @@ body {
 }
 @keyframes logo-glow {
   0% { opacity: 0; transform: scale(0.7); }
-  40% { opacity: 0.45; }
-  100% { opacity: 0; transform: scale(1.25); }
+  35% { opacity: 0.5; }
+  100% { opacity: 0; transform: scale(1.3); }
 }
 @keyframes logo-float {
   from { transform: translateY(0); }
   to { transform: translateY(-6px); }
 }
-.logo-stage { animation: logo-float 3s ease-in-out 1.8s infinite alternate; }
-.logo-emblem { animation: logo-emblem 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+.logo-stage { animation: logo-float 3s ease-in-out 4.4s infinite alternate; }
+.logo-m { transform-origin: 49.8% 67.8%; animation: logo-m 2.6s both; animation-delay: 0.15s; }
+.logo-ring { transform-origin: 49.9% 56.9%; animation: logo-ring 2.7s cubic-bezier(0.1, 0.75, 0.2, 1) both; animation-delay: 0.1s; }
+.logo-petals { transform-origin: 49.9% 56.9%; animation: logo-petals 2.4s cubic-bezier(0.12, 0.8, 0.25, 1) both; animation-delay: 0.2s; }
+.logo-lipstick { transform-origin: 52% 66%; animation: logo-lipstick 1.5s both; animation-delay: 0.9s; }
 .logo-line { animation: logo-line 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .logo-rule { animation: logo-rule 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .logo-glow {
   background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 65%);
-  animation: logo-glow 2.2s ease-out 0.2s both;
+  animation: logo-glow 2.6s ease-out 0.1s both;
 }
 .logo-shine {
   background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.95) 50%, transparent 65%);
   background-size: 250% 100%;
   background-repeat: no-repeat;
-  animation: logo-shine 1.2s ease-in-out 1.05s both;
+  animation: logo-shine 1.2s ease-in-out 2.6s both;
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-stage, .logo-emblem, .logo-line, .logo-rule, .logo-glow, .logo-shine { animation: none !important; }
+  .logo-stage, .logo-m, .logo-ring, .logo-petals, .logo-lipstick, .logo-line, .logo-rule, .logo-glow, .logo-shine { animation: none !important; }
   .logo-glow, .logo-shine { display: none; }
 }
