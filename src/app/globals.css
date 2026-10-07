@@ -274,55 +274,6 @@ body {
   }
 }
 
-/* App splash (every open): mark scales in, two rings ripple out, name/tagline fade up. */
-@keyframes intro-logo {
-  from {
-    opacity: 0;
-    transform: scale(0.55);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes intro-ring {
-  from {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(2.4);
-  }
-}
-@keyframes intro-text {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.intro-logo {
-  animation: intro-logo 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.intro-ring {
-  animation: intro-ring 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-.intro-text {
-  animation: intro-text 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .intro-logo,
-  .intro-ring,
-  .intro-text {
-    animation: none !important;
-  }
-}
-
 /* Анимированный логотип на заставке (AnimatedLogo): буква M «качается» вперёд-назад, кольцо-лента и лепестки крутятся
    вокруг неё в разные стороны и замедляются, помада поднимается с отскоком, затем блик и надписи. К ~2.7 с всё стоит
    на своих местах. Только transform/opacity — плавно и на слабых телефонах. */
