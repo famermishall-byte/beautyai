@@ -23,14 +23,26 @@ const icons = [
   { size: 512, out: "src/app/icon.png" },
   { size: 180, out: "src/app/apple-icon.png" },
   { size: 512, out: "public/icon-512.png" }, // PWA manifest
-  { size: 1024, out: "assets/icon.png" }, // Capacitor
-  { size: 1024, out: "assets/icon-foreground.png" },
+  { size: 1024, out: "assets/icon.png" }, // Capacitor (iOS)
 ];
 for (const { size, out } of icons) {
   await (await emblem(size)).toFile(out);
   console.log("wrote", out, `${size}x${size}`);
 }
 
+
+// Android: адаптивная иконка = передний план + фон, система вырезает из неё круг/«квадрат со скруглением».
+// Эмблема должна лежать в «безопасной зоне» (~66% холста), иначе острие помады обрежется — поэтому уменьшаем до 62%.
+// Берём эмблему с прозрачным фоном (public/brand/splash/emblem.webp — её делает build-splash-layers.mjs), чтобы вокруг
+// не было еле заметной рамки от чуть иного оттенка розового.
+const FG_HEIGHT = Math.round(1024 * 0.62);
+const emblemKeyed = await sharp("public/brand/splash/emblem.webp").resize({ height: FG_HEIGHT }).png().toBuffer();
+await sharp({ create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+  .composite([{ input: emblemKeyed, gravity: "center" }])
+  .png()
+  .toFile("assets/icon-foreground.png");
+await sharp({ create: { width: 1024, height: 1024, channels: 3, background: BG } }).png().toFile("assets/icon-background.png");
+console.log("wrote assets/icon-foreground.png, assets/icon-background.png");
 
 // Capacitor native splash: logo centered on the same pink, generous margin around it.
 const SPLASH = 2732;
